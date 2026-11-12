@@ -1,2 +1,4 @@
-club_ep1/img/paco_vestuario.png https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/9nyXhQ2rXDcInx5AFRp2/LKITE6ICty7bmiwcoYYR/content.png?Expires=1794524400&KeyName=assets-cdn-key-1&Signature=AZN6WktYlQ8eUMkdFWDCKquVUIk=
-
+club_ep1/N02.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/hW9A2tvsEuplmnuEmoYm/UnLgXGowUhSdtTRKNL6A/content.mp3?Expires=1794531600&KeyName=assets-cdn-key-1&Signature=5Vw_GD1gtHzGuYY7qzrEuG8tkFQ=
+club_ep1/N06.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/c8vBCnQZQkXAI0szfQ8A/EiBQUOfs1ltIADnhzLR8/content.mp3?Expires=1794531600&KeyName=assets-cdn-key-1&Signature=TpeMG5FNbElZ3-gonB3FqFwVIQc=
+club_ep1/N10.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/U7tJfEpm5XrXeKDJVUSV/kh8Gi8ZyOZuZqWuQF3BL/content.mp3?Expires=1794531600&KeyName=assets-cdn-key-1&Signature=w5EtLtP0WhLrnhZ4Y4mEehivjX0=
+club_ep1/N21.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/6QdEw6OwsJcujjWiin5E/FIkBwpmGjm1l3ikSbcFz/content.mp3?Expires=1794531600&KeyName=assets-cdn-key-1&Signature=yB1mjOFZnr-atZWs_zSJHZBKf9I=
