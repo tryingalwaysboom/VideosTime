@@ -1,0 +1,35 @@
+name: lipsync
+on:
+  workflow_dispatch:
+    inputs:
+      imagen: {description: "ruta imagen", default: "descargas/lipsync/paco.png"}
+      audio: {description: "ruta audio wav", default: "descargas/lipsync/paco_N09.wav"}
+      salida: {description: "ruta mp4 salida", default: "descargas/lipsync/paco_N09.mp4"}
+permissions:
+  contents: write
+jobs:
+  sadtalker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.8"}
+      - name: Instalar SadTalker
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          git clone --depth 1 https://github.com/OpenTalker/SadTalker.git /tmp/st
+          cd /tmp/st
+          pip install -q torch==1.12.1+cpu torchvision==0.13.1+cpu torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -q -r requirements.txt
+          bash scripts/download_models.sh
+      - name: Animar cara
+        run: |
+          cd /tmp/st
+          python inference.py --driven_audio "$GITHUB_WORKSPACE/${{ inputs.audio }}" --source_image "$GITHUB_WORKSPACE/${{ inputs.imagen }}" \
+            --result_dir /tmp/out --still --preprocess full --cpu --expression_scale 1.1
+          f=$(ls -t /tmp/out/*.mp4 | head -1); cp "$f" "$GITHUB_WORKSPACE/${{ inputs.salida }}"
+      - name: Guardar
+        run: |
+          git config user.name github-actions; git config user.email actions@github.com
+          git pull -q; git add descargas; git commit -m "lipsync: ${{ inputs.salida }}" || exit 0; git push
