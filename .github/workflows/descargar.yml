@@ -1,0 +1,26 @@
+name: descargar
+on:
+  push:
+    paths: ["descargas/urls.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bajar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar audios
+        run: |
+          cd descargas
+          while read -r nombre url; do
+            [ -z "$nombre" ] && continue
+            curl -sSfL --retry 3 -o "$nombre" "$url" && echo "ok $nombre"
+          done < urls.txt
+      - name: Guardar en el repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add descargas
+          git commit -m "Descargas: audios ElevenLabs" || exit 0
+          git push
