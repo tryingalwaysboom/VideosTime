@@ -1,0 +1,35 @@
+name: alinear
+on:
+  push:
+    paths: ["descargas/**/alinear.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  alinear:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q faster-whisper==1.0.3
+      - name: Tiempos por palabra
+        run: |
+          python - <<'PY'
+          import glob, json, os
+          from faster_whisper import WhisperModel
+          m = WhisperModel("medium", device="cpu", compute_type="int8")
+          for marca in glob.glob("descargas/**/alinear.txt", recursive=True):
+              carpeta = os.path.dirname(marca)
+              for mp3 in sorted(glob.glob(os.path.join(carpeta, "*.mp3"))):
+                  segs, _ = m.transcribe(mp3, language="es", word_timestamps=True, beam_size=5)
+                  pal = [{"p": w.word.strip(), "inicio": round(w.start, 3), "fin": round(w.end, 3)} for s in segs for w in s.words]
+                  json.dump(pal, open(mp3[:-4] + ".json", "w", encoding="utf-8"), ensure_ascii=False)
+                  print(mp3, len(pal))
+          PY
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add descargas
+          git commit -m "Tiempos por palabra" || exit 0
+          git push
