@@ -761,7 +761,30 @@ def coche():
     b += '<path d="M40 380 L-60 330 L-60 430Z" fill="#fff0b0" opacity="0.18"/>'
     return svg(1080, 560, b, grain=False)
 
-LAYERS = {"bg_notaria": bg_notaria, "bg_dark": bg_dark, "bg_campo": bg_campo, "hierba": hierba, "bg_vestuario": bg_vestuario,
+
+def escudo():
+    b = '<g filter="url(#drop)">'
+    shield = '<path d="M60 40 L540 40 L540 330 Q540 560 300 680 Q60 560 60 330Z"/>'
+    b += cel(shield, "#1f5aa8", "#174486", "#2f74c8", -40, -14, 12)
+    b += '</g>'
+    i = uid()
+    b += f'<clipPath id="{i}">{shield}</clipPath><g clip-path="url(#{i})">'
+    for k in range(5):
+        b += f'<rect x="{90 + k*96}" y="40" width="48" height="700" fill="#f2efe6" opacity="0.92"/>'
+    b += '<rect x="60" y="40" width="480" height="150" fill="#16386e"/>'
+    b += '<rect x="60" y="40" width="480" height="700" fill="#5a4a3a" opacity="0.18"/>'
+    b += '<path d="M300 120 L330 220 L300 300 L350 420 L320 520" stroke="#1d1630" stroke-width="7" fill="none" opacity="0.7"/>'
+    b += '</g>'
+    b += '<text x="300" y="150" font-family="Anton" font-size="96" text-anchor="middle" fill="#f2c94c" stroke="#1d1630" stroke-width="4">C.D.</text>'
+    b += cel('<circle cx="300" cy="380" r="95"/>', "#f6f4ee", "#d0cbbf", None, -16, -8, 8)
+    for (x, y) in ((300, 340), (255, 400), (345, 400), (300, 440)):
+        b += f'<path d="M{x-22} {y-8} L{x} {y-24} L{x+22} {y-8} L{x+14} {y+16} L{x-14} {y+16}Z" fill="#1d1630"/>'
+    b += cel('<path d="M0 560 L600 560 L570 640 L600 720 L0 720 L30 640Z"/>', "#c0392b", "#8f2a20", None, -10, -6, 8)
+    b += '<text x="300" y="665" font-family="Anton" font-size="78" text-anchor="middle" fill="#f6f4ee">SAN LORENZO</text>'
+    b += '<text x="300" y="790" font-family="Anton" font-size="70" text-anchor="middle" fill="#f2c94c" stroke="#1d1630" stroke-width="3">1931</text>'
+    return svg(600, 820, b)
+
+LAYERS = {"escudo": escudo, "bg_notaria": bg_notaria, "bg_dark": bg_dark, "bg_campo": bg_campo, "hierba": hierba, "bg_vestuario": bg_vestuario,
           "bg_puerta": bg_puerta, "baldosas": baldosas, "paco": paco, "arturo": arturo, "abuelo_foto": abuelo_foto,
           "cabra": cabra, "ramon": lambda: jugador("ramon"), "josito": lambda: jugador("josito"), "primo": lambda: jugador("primo"),
           "manos": manos, "caja": caja, "carta": carta, "coche": coche}

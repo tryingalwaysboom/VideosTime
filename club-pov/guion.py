@@ -7,8 +7,8 @@ VOCES = {
 }
 
 LINEAS = [
-    ("L01", "N", "Tu abuelo ha muerto. Y te ha dejado algo que nadie quería... un club de fútbol.",
-     "Tu abuelo ha *muerto.* Y te ha dejado algo que *nadie* quería... un *club* de *fútbol.*"),
+    ("L01", "N", "Tu abuelo ha muerto. Y en su testamento, te ha dejado lo único que nadie en el pueblo quería tener... ¡Un club de fútbol!",
+     "Tu abuelo ha *muerto.* Y en su *testamento,* te ha dejado lo *único* que *nadie* en el pueblo quería tener... ¡Un *club* de *fútbol!*"),
     ("L02", "N", "El Club Deportivo San Lorenzo. Última división. Y no viene solo.",
      "El Club Deportivo *San* *Lorenzo.* *Última* *división.* Y no viene *solo.*"),
     ("L03", "N", "Una deuda de ciento ochenta y dos mil euros. Cuarenta y tres partidos seguidos sin ganar. Y en el último partido... cero aficionados en la grada.",
@@ -19,8 +19,8 @@ LINEAS = [
      "Llegas al *campo.* La *hierba* te llega a las *rodillas.* Las porterías *no* tienen *red.* Y hay una *cabra* en el círculo *central.*"),
     ("L06", "N", "En el vestuario queda alguien. Paco. Lleva cuarenta y un años lavando camisetas aquí. Y hace nueve meses que no cobra.",
      "En el vestuario queda *alguien.* *Paco.* Lleva *41* *años* lavando camisetas aquí. Y hace *9* *meses* que *no* *cobra.*"),
-    ("L07", "P", "Tu abuelo dijo que vendrías. Yo no me lo creía.",
-     "Tu abuelo dijo que *vendrías.* Yo *no* me lo *creía.*"),
+    ("L07", "P", "Tu abuelo dijo que vendrías... Yo no me lo creía.",
+     "Tu abuelo dijo que *vendrías...* Yo *no* me lo *creía.*"),
     ("L08", "N", "Le preguntas por los jugadores. Te enseña una lista. Quedan tres.",
      "Le preguntas por los *jugadores.* Te enseña una *lista.* Quedan... *tres.*"),
     ("L09", "N", "Ramón: cuarenta y cuatro años, portero, con una rodilla de titanio. Josito: diecisiete años. Nadie sabe si es bueno, porque nunca le han dejado jugar. Y el Primo. Nadie sabe de quién es primo.",
