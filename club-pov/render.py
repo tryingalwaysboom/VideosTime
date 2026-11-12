@@ -90,50 +90,113 @@ def vignette():
 VIG = vignette()
 
 # ---------------------------------------------------------------- subtítulos
+import difflib, unicodedata
+def _norm(w):
+    w = unicodedata.normalize("NFD", w.lower()); w = "".join(c for c in w if unicodedata.category(c) != "Mn")
+    return "".join(c for c in w if c.isalnum())
+
+def _whisper(lid):
+    p = os.path.join(VOZ, lid + ".json")
+    if not os.path.exists(p): return []
+    raw = json.load(open(p, encoding="utf-8"))
+    out = []
+    for w in raw:   # une "182" + ".400" y similares
+        if out and w["p"][:1] in ".,-" and any(ch.isdigit() for ch in w["p"]):
+            out[-1] = {"p": out[-1]["p"] + w["p"], "inicio": out[-1]["inicio"], "fin": w["fin"]}
+        else:
+            out.append(dict(w))
+    return out
+
+def word_times(lid, words):
+    """Tiempos (inicio, fin) absolutos para cada palabra del subtítulo, alineados con lo que dice la voz."""
+    t0, t1 = TL[lid]
+    ww = _whisper(lid)
+    n = len(words)
+    res = [None] * n
+    if ww:
+        A = [_norm(w.strip("*")) for w in words]; B = [_norm(w["p"]) for w in ww]
+        sm = difflib.SequenceMatcher(None, A, B, autojunk=False)
+        for op, i1, i2, j1, j2 in sm.get_opcodes():
+            if op == "equal" or (op == "replace" and i2 - i1 == j2 - j1):
+                for k in range(i2 - i1):
+                    res[i1 + k] = (t0 + ww[j1 + k]["inicio"], t0 + ww[j1 + k]["fin"])
+            elif op == "replace" and j2 > j1:
+                s_, e_ = ww[j1]["inicio"], ww[j2 - 1]["fin"]
+                L = sum(len(x) for x in A[i1:i2]) or 1; acc = 0
+                for k in range(i1, i2):
+                    a0 = s_ + (e_ - s_) * acc / L; acc += len(A[k]); res[k] = (t0 + a0, t0 + s_ + (e_ - s_) * acc / L)
+    # rellena huecos interpolando
+    for k in range(n):
+        if res[k] is None:
+            prev = next((res[j][1] for j in range(k - 1, -1, -1) if res[j]), t0)
+            nxt = next((res[j][0] for j in range(k + 1, n) if res[j]), t1)
+            gap = [j for j in range(k, n) if res[j] is None]
+            run = [j for j in gap if all(res[m] is None for m in range(k, j + 1))]
+            m = len(run); step = (nxt - prev) / (m or 1)
+            for i, j in enumerate(run): res[j] = (prev + i * step, prev + (i + 1) * step)
+    return res
+
 def chunks():
     out = []
     for lid, who, tts, cap in LINEAS:
         words = cap.split()
-        t0, t1 = TL[lid]
-        tot = sum(len(w.strip("*")) + 2 for w in words)
+        times = word_times(lid, words)
         groups, cur = [], []
-        for w in words:
-            cur.append(w)
-            if sum(len(x.strip("*")) + 1 for x in cur) >= 14 or w.rstrip("*").endswith((".", ",", ":", "?", "!")):
+        for i, w in enumerate(words):
+            cur.append(i)
+            if sum(len(words[x].strip("*")) + 1 for x in cur) >= 14 or w.rstrip("*").endswith((".", ",", ":", "?", "!")):
                 groups.append(cur); cur = []
         if cur: groups.append(cur)
-        t = t0
         for g in groups:
-            d = (t1 - t0) * sum(len(w.strip("*")) + 2 for w in g) / tot
-            out.append((t, t + d, g, who, lid)); t += d
+            out.append((times[g[0]][0], times[g[-1]][1], [(words[i].strip("*").upper(), times[i]) for i in g], who, lid))
     return out
 CH = chunks()
+
+def WT(lid, palabra, n=1):
+    """Instante en que la voz dice `palabra` (n-ésima aparición) dentro de la línea lid."""
+    cap = [x for x in LINEAS if x[0] == lid][0][3].split()
+    tt = word_times(lid, cap); c = 0
+    for w, (a, b) in zip(cap, tt):
+        if _norm(w.strip("*")) == _norm(palabra):
+            c += 1
+            if c == n: return a
+    raise KeyError(lid + palabra)
 NOMBRE = {"P": "PACO", "A": "EL ABUELO (CARTA)", "R": "ARTURO"}
 
 def draw_caption(canvas, T):
-    for t0, t1, g, who, lid in CH:
-        if t0 <= T < t1 + (0.25 if lid != "L17" else 0) and T < t1 + .25:
-            nxt = [c for c in CH if c[0] > t0]
-            if nxt and T >= nxt[0][0]: continue
-            d = ImageDraw.Draw(canvas)
-            k = 0.82 + 0.18 * back((T - t0) / .14)
-            size = 96 * k
-            f = font(F_ANTON, size)
-            parts = [(w.strip("*").upper(), w.startswith("*")) for w in g]
-            widths = [d.textlength(p + " ", font=f) for p, _ in parts]
-            total = sum(widths) - d.textlength(" ", font=f)
-            if total > 820:
-                size *= 820 / total; f = font(F_ANTON, size)
-                widths = [d.textlength(p + " ", font=f) for p, _ in parts]; total = sum(widths) - d.textlength(" ", font=f)
-            x = W / 2 - total / 2; y = 1480
-            for (p, hi), wd in zip(parts, widths):
-                d.text((x, y), p, font=f, fill=YEL if hi else WHITE, anchor="lm", stroke_width=9, stroke_fill=(10, 10, 20))
-                x += wd
-            if who in NOMBRE:
-                tag = NOMBRE[who]; ft = font(F_UI, 30); tw = d.textlength(tag, font=ft)
-                d.rounded_rectangle((W / 2 - tw / 2 - 18, 1385, W / 2 + tw / 2 + 18, 1431), 12, fill=YEL)
-                d.text((W / 2, 1408), tag, font=ft, fill=OL, anchor="mm")
-            return
+    for idx, (t0, t1, g, who, lid) in enumerate(CH):
+        nxt0 = CH[idx + 1][0] if idx + 1 < len(CH) else 1e9
+        hold = min(t1 + .35, nxt0) if CH[idx + 1 if idx + 1 < len(CH) else idx][4] == lid else t1 + .35
+        if not (t0 - .04 <= T < max(hold, t1)):
+            continue
+        if T >= nxt0 - .04: continue
+        d = ImageDraw.Draw(canvas)
+        k = 0.85 + 0.15 * back((T - t0 + .04) / .14)
+        f = font(F_ANTON, 96 * k)
+        widths = [d.textlength(p + " ", font=f) for p, _ in g]
+        total = sum(widths) - d.textlength(" ", font=f)
+        sc = min(1.0, 820 / total)
+        if sc < 1:
+            f = font(F_ANTON, 96 * k * sc); widths = [d.textlength(p + " ", font=f) for p, _ in g]; total = sum(widths) - d.textlength(" ", font=f)
+        x = W / 2 - total / 2; y = 1480
+        starts = [ws for _, (ws, we) in g] + [1e9]
+        for i_, ((p, (ws, we)), wd) in enumerate(zip(g, widths)):
+            fin_ = min(starts[i_ + 1], we + .35) if i_ + 1 < len(g) else we + .35
+            activa = ws - .03 <= T < fin_ - .03
+            dicha = T >= ws - .03
+            col = YEL if activa else (WHITE if dicha else (225, 225, 230))
+            if activa:
+                u = clamp((T - ws + .03) / .12); fa = font(F_ANTON, f.size * (1 + .12 * math.sin(u * PI_)))
+                d.text((x + (wd - d.textlength(" ", font=f)) / 2, y), p, font=fa, fill=col, anchor="mm", stroke_width=10, stroke_fill=(10, 10, 20))
+            else:
+                d.text((x, y), p, font=f, fill=col, anchor="lm", stroke_width=9, stroke_fill=(10, 10, 20))
+            x += wd
+        if who in NOMBRE:
+            tag = NOMBRE[who]; ft = font(F_UI, 30); tw = d.textlength(tag, font=ft)
+            d.rounded_rectangle((W / 2 - tw / 2 - 18, 1385, W / 2 + tw / 2 + 18, 1431), 12, fill=YEL)
+            d.text((W / 2, 1408), tag, font=ft, fill=OL, anchor="mm")
+        return
+PI_ = math.pi
 
 # ---------------------------------------------------------------- HUD
 HORAS = [(0, "10:02"), (S("L05"), "12:40"), (S("L06"), "13:05"), (S("L11"), "13:31"), (S("L13"), "19:48")]
@@ -188,7 +251,7 @@ def sc_notaria(T):
     c = bg("bg_notaria", T, 0, 1.12, 1.0, 5).convert("RGBA")
     u = ease((T - .1) / .9)
     put(c, "manos", 540, 960 + 400 * (1 - u))
-    stamp(c, T, E("L01") - .9, "HEREDADO", 540, 820)
+    stamp(c, T, WT("L01", "club"), "HEREDADO", 540, 820)
     return c
 
 def crest(d, cx, cy, s):
@@ -205,7 +268,7 @@ def sc_club(T):
     if s > 0:
         # grietas: escudo agrietado
         crest(d, 540, 700, 1.25 * s)
-    t1 = S("L02") + (E("L02") - S("L02")) * .45
+    t1 = WT("L02", "Última")
     if T >= t1:
         u = popscale(T, t1)
         d.rounded_rectangle((540 - 260 * u, 1010, 540 + 260 * u, 1100), 16, fill=RED)
@@ -215,8 +278,8 @@ def sc_club(T):
 def sc_stats(T):
     c = bg("bg_dark", T, S("L03"), 1.04, 1.0, 10).convert("RGBA"); d = ImageDraw.Draw(c)
     s0, e0 = TL["L03"]; L = e0 - s0
-    items = [(s0 + .1, "DEUDA HEREDADA", -182400, "€", RED), (s0 + L * .33, "PARTIDOS SEGUIDOS SIN GANAR", 43, "", WHITE),
-             (s0 + L * .68, "AFICIONADOS EN EL ÚLTIMO PARTIDO", 0, "", YEL)]
+    items = [(s0 + .1, "DEUDA HEREDADA", -182400, "€", RED), (WT("L03", "43"), "PARTIDOS SEGUIDOS SIN GANAR", 43, "", WHITE),
+             (WT("L03", "cero"), "AFICIONADOS EN EL ÚLTIMO PARTIDO", 0, "", YEL)]
     for i, (t, lab, val, suf, col) in enumerate(items):
         if T < t: continue
         y = 430 + i * 270
@@ -243,14 +306,14 @@ def sc_campo(T):
     z = 1.10 - 0.10 * clamp((T - s0) / (L + .5))
     c = bg("bg_campo", T, s0, 1.10, 1.0, L + .5, .5, .45).convert("RGBA")
     def scr(px, py): return z * px - (z * W - W) * .5, z * py - (z * H - H) * .45
-    tg = s0 + L * .72
+    tg = WT("L05", "cabra")
     if T >= tg:
         k = popscale(T, tg, .45)
         put(c, "cabra", 560, 1290, 1.0 * max(k, .02))
     c.alpha_composite(scaled("hierba", 1.0), (0, int(60 * (1 - ease((T - s0) / 2.5)))))
     d = ImageDraw.Draw(c)
-    if s0 + L * .48 <= T < tg:  # porterías
-        u = popscale(T, s0 + L * .48)
+    if WT("L05", "porterías") <= T < tg:  # porterías
+        u = popscale(T, WT("L05", "porterías"))
         for gx in (180, 900):
             cx, cy = scr(gx, 1300)
             rx, ry = 165 * z * u, 120 * z * u
@@ -315,14 +378,13 @@ def sc_plantilla(T):
     c = bg("bg_dark", T, s8, 1.0, 1.04, e10 - s8).convert("RGBA")
     s9, e9 = TL["L09"]; L9 = e9 - s9
     if T < s9:
-        n = 3 if T >= s8 + (E("L08") - s8) * .8 else 18
-        slot_grid(c, T, s8 + .1, n if T >= s8 + (E("L08") - s8) * .8 else 0)
+        slot_grid(c, T, s8 + .1, 3 if T >= WT("L08", "tres.") else 0)
         return c
     if T < E("L09") + .15:
         slot_grid(c, T, -99, 3)
         cards = [("ramon", "RAMÓN", "44 AÑOS · PORTERO", "RODILLA DE TITANIO", s9),
-                 ("josito", "JOSITO", "17 AÑOS", "NUNCA HA JUGADO", s9 + L9 * .33),
-                 ("primo", "EL PRIMO", "¿PRIMO DE QUIÉN?", "NADIE LO SABE", s9 + L9 * .7)]
+                 ("josito", "JOSITO", "17 AÑOS", "NUNCA HA JUGADO", WT("L09", "Josito:")),
+                 ("primo", "EL PRIMO", "¿PRIMO DE QUIÉN?", "NADIE LO SABE", WT("L09", "el"))]
         for i, (lay, nm, a1, a2, t) in enumerate(cards):
             if T < t: continue
             nxt = cards[i + 1][4] if i < 2 else 1e9
@@ -343,7 +405,7 @@ def sc_plantilla(T):
     k = popscale(T, E("L09") + .15, .4)
     text(d, (540, 650), "MENOS DE 7", 150 * max(k, .01), WHITE, stroke=8)
     if k > .6: text(d, (540, 820), "= NO HAY PARTIDO", 80, RED, stroke=6)
-    if T > S("L10") + (E("L10") - S("L10")) * .6:
+    if T > WT("L10", "Ni"):
         x = 540
         for i in range(3):
             put(c, ["ramon", "josito", "primo"][i], 300 + i * 240, 1050, .45)
@@ -351,19 +413,19 @@ def sc_plantilla(T):
 
 def sc_caja(T):
     s0, e0 = TL["L11"]; L = e0 - s0
-    zt = s0 + L * .78
+    zt = WT("L11", "sobre")
     z = 1.0 + 0.9 * ease((T - zt) / 1.2) if T > zt else 1.0
     c = bg("bg_dark", T, s0, 1.0, 1.0, 1).convert("RGBA")
     u = ease((T - s0) / .5)
     k = (z - 1) / .9
     put(c, "caja", 540 - k * (380 - 540) * z, 900 + 100 * (1 - u) - k * (850 - 550) * z, 1.0 * z)
     d = ImageDraw.Draw(c)
-    if T >= s0 + L * .35 and T < zt:
-        k = popscale(T, s0 + L * .35)
+    if T >= WT("L11", "312") and T < zt:
+        k = popscale(T, WT("L11", "312"))
         d.rounded_rectangle((330, 400, 750, 500), 16, fill=(40, 120, 70))
         if k > .5: text(d, (540, 450), "312 €", 80, WHITE)
-    if T >= s0 + L * .55 and T < zt:
-        k = popscale(T, s0 + L * .55)
+    if T >= WT("L11", "bocadillo") and T < zt:
+        k = popscale(T, WT("L11", "bocadillo"))
         d.rounded_rectangle((560, 1240, 920, 1310), 12, fill=YEL)
         if k > .5: text(d, (740, 1275), "CADUCADO EN 2019", 30, OL, "mm", F_UI)
     if T >= zt + .9:
@@ -373,7 +435,7 @@ def sc_caja(T):
 HAND = ["Si lees esto, te van a ofrecer", "dinero por el campo.", "No lo vendas.", "Debajo del vestuario", "está la razón por la que", "este club nunca", "debe morir.", "", "         — Tu abuelo"]
 def sc_carta(T):
     s0, e0 = TL["L12"]; L = e0 - s0
-    tb = s0 + L * .45
+    tb = WT("L12", "Debajo") - .2
     if T >= tb + .2 and T < e0 + .3:
         z = 1.0 + .25 * clamp((T - tb) / (e0 - tb))
         c = bg("baldosas", T, tb, 1.0 + .0, 1.25, e0 - tb).convert("RGBA")
@@ -415,11 +477,11 @@ def sc_arturo(T):
         d.rounded_rectangle((200, 280, 880, 430), 20, fill=(40, 120, 70), outline=OL, width=6)
         if k > .5:
             text(d, (540, 355), "250.000 €", 120 * min(1.1, k), WHITE, stroke=6)
-        if T >= s0 + (E("L14") - s0) * .7:
-            stamp(c, T, s0 + (E("L14") - s0) * .7, "PISOS DE LUJO", 540, 520, YEL, 6, 80)
+        if T >= WT("L14", "pisos."):
+            stamp(c, T, WT("L14", "pisos."), "PISOS DE LUJO", 540, 520, YEL, 6, 80)
     else:
         ficha(c, T, S("L15"), 50, 280, "ARTURO FERRÁN", "PRESIDENTE · ATLÉTICO VALLE", "EL QUE ARRUINÓ A TU ABUELO")
-        tr = S("L15") + (E("L15") - S("L15")) * .25
+        tr = WT("L15", "presidente")
         if T >= tr:
             k = popscale(T, tr)
             d = ImageDraw.Draw(c)
@@ -446,14 +508,14 @@ def sc_decision(T):
     c = bg("bg_dark", T, s0, 1.0, 1.04, 10).convert("RGBA"); d = ImageDraw.Draw(c)
     k = popscale(T, s0, .4)
     text(d, (540, 250), "¿QUÉ HARÍAS TÚ?", 110 * max(k, .01), YEL, stroke=8)
-    ta, tb = s0 + L * .12, s0 + L * .55
+    ta, tb = WT("L16", "A:"), WT("L16", "B:")
     hiA = ta <= T < tb; hiB = tb <= T < e0
     option(c, T, ta, 290, "A", [("VENDES EL", (40, 40, 60)), ("TERRENO", (40, 40, 60)), ("", OL), ("+68.000 €", (30, 130, 70)),
                                  ("pero derriban", (200, 50, 50)), ("el campo", (200, 50, 50))], (248, 246, 240), hiA)
     option(c, T, tb, 790, "B", [("ROMPES EL", OL), ("CONTRATO", OL), ("", OL), ("312 €", OL), ("3 jugadores", OL), ("21 días", OL)],
            YEL, hiB)
     if T >= S("L17"):
-        u = popscale(T, S("L17") + (E("L17") - S("L17")) * .5)
+        u = popscale(T, WT("L17", "Comenta"))
         if u > 0:
             d = ImageDraw.Draw(c)
             d.rounded_rectangle((540 - 300 * u, 1120, 540 + 300 * u, 1210), 45, fill=WHITE)
