@@ -15,7 +15,7 @@ jobs:
           cd descargas
           while read -r nombre url; do
             [ -z "$nombre" ] && continue
-            curl -sSfL --retry 3 -o "$nombre" "$url" && echo "ok $nombre"
+            curl -sSfL --retry 3 --create-dirs -o "$nombre" "$url" && echo "ok $nombre"
           done < urls.txt
       - name: Guardar en el repo
         run: |
