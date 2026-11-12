@@ -1,1 +1,2 @@
-club_ep1/N01.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/B4VLin4aykrDaULZ0Yye/0qsiGOjpNkSj3RrMRvNW/content.mp3?Expires=1794477600&KeyName=assets-cdn-key-1&Signature=j0jaMpl4k9BdgeQhQPzzCSpK-RA=
+club_ep1/N04.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/2OShw2FnVFHtKmAmVACu/pssXBmACcpt2i8rpDThR/content.mp3?Expires=1794524400&KeyName=assets-cdn-key-1&Signature=RLElu7wmFIeFpG2AhrqGzTAPGQg=
+club_ep1/N19.mp3 https://elevenlabsusercontent.com/database/workspace/b96e481a5b2f4d21840b9932135a22d8/content_generation/EEk7d8hoEiwW8QpQpLZN/vio9WsR4yl0JbVyvo2Qx/content.mp3?Expires=1794524400&KeyName=assets-cdn-key-1&Signature=JtG-wq8uaoYC_1KDqyeUQxH4Lks=
