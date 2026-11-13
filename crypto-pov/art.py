@@ -135,26 +135,27 @@ def heroe(expr="shock", luz=None):
     b += '<g transform="translate(0,60)">'
     b += neck(305, 360, 90, 110)
     b += face(350, 300, 118)
-    # pelo desordenado con flequillo de lado (2009)
-    hair = ('<path d="M226 300 Q210 170 300 140 Q360 100 440 140 Q500 170 482 260 Q470 230 440 214 '
-            'Q450 250 420 252 Q410 214 330 200 Q260 220 250 300 Q240 330 226 300Z"/>')
-    b += cel(hair, "#4a2f22", "#2f1d15", "#6b4630", -18, -10, 7)
-    b += cel('<path d="M300 200 Q430 160 470 250 Q420 236 380 250 Q340 236 300 200Z"/>', "#4a2f22", "#2f1d15", None, -10, -4, 6)
+    # pelo: casquete con flequillo de lado hacia la derecha (2009)
+    b += cel('<path d="M230 300 Q206 190 280 150 Q350 112 430 138 Q492 162 484 250 Q478 290 468 300 '
+             'Q462 252 440 236 Q396 252 340 236 Q290 238 262 262 Q246 276 240 304Z"/>', "#4a2f22", "#2f1d15", "#6b4630", -18, -10, 7)
+    b += cel('<path d="M250 250 Q290 176 380 168 Q452 166 474 214 Q478 236 462 244 Q430 214 380 220 '
+             'Q320 226 270 262 Q252 268 250 250Z"/>', "#5a3a2a", "#3a2418", "#7a5038", -10, -6, 6)
+    b += '<path d="M300 200 Q350 186 400 192 M330 176 Q380 168 430 178" stroke="#2f1d15" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>'
     if expr == "shock":
-        b += eye(305, 318, 16) + eye(398, 318, 16)
-        b += '<path d="M276 270 Q305 250 334 266 M370 266 Q398 250 428 270" stroke="#2f1d15" stroke-width="12" fill="none" stroke-linecap="round"/>'
-        b += f'<ellipse cx="352" cy="412" rx="26" ry="34" fill="#5a2a2a" stroke="{OL}" stroke-width="6"/>'
+        b += eye(305, 300, 15) + eye(398, 300, 15)
+        b += '<path d="M280 268 Q305 254 332 264 M372 264 Q398 254 424 268" stroke="#2f1d15" stroke-width="11" fill="none" stroke-linecap="round"/>'
+        b += f'<ellipse cx="351" cy="388" rx="20" ry="25" fill="#6a2a2a" stroke="{OL}" stroke-width="6"/><ellipse cx="351" cy="398" rx="11" ry="8" fill="#e07070"/>'
     elif expr == "miedo":
-        b += eye(305, 318, 15, -3) + eye(398, 318, 15, -3)
-        b += '<path d="M276 262 Q305 274 334 262 M370 262 Q398 274 428 262" stroke="#2f1d15" stroke-width="12" fill="none" stroke-linecap="round"/>'
-        b += f'<path d="M322 418 Q352 404 382 418" stroke="{OL}" stroke-width="7" fill="none" stroke-linecap="round"/>'
-        b += '<path d="M460 300 Q470 330 462 350 Q452 330 460 300Z" fill="#9fdcff" stroke="#1d1630" stroke-width="3"/>'
+        b += eye(305, 302, 14, -3) + eye(398, 302, 14, -3)
+        b += '<path d="M280 266 Q305 274 332 268 M372 268 Q398 274 424 266" stroke="#2f1d15" stroke-width="11" fill="none" stroke-linecap="round"/>'
+        b += f'<path d="M326 392 Q338 382 351 390 Q364 382 378 392" stroke="{OL}" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        b += '<path d="M462 268 Q474 296 464 314 Q452 296 462 268Z" fill="#9fdcff" stroke="#1d1630" stroke-width="3"/>'
     else:  # decidido
-        b += eye(305, 322, 13) + eye(398, 322, 13)
-        b += '<path d="M276 286 Q305 276 334 292 M370 292 Q398 276 428 286" stroke="#2f1d15" stroke-width="12" fill="none" stroke-linecap="round"/>'
-        b += f'<path d="M318 414 Q352 432 388 410" stroke="{OL}" stroke-width="7" fill="none" stroke-linecap="round"/>'
-    b += cel('<path d="M346 330 Q372 366 356 384 Q340 390 330 380 Q332 356 346 330Z"/>', SK, SKS, None, -6, -4, 5)
-    b += '<ellipse cx="270" cy="378" rx="24" ry="14" fill="#e7887a" opacity="0.4"/><ellipse cx="432" cy="378" rx="24" ry="14" fill="#e7887a" opacity="0.4"/>'
+        b += eye(305, 296, 13) + eye(398, 296, 13)
+        b += '<path d="M276 262 Q305 254 334 268 M370 268 Q398 254 428 262" stroke="#2f1d15" stroke-width="11" fill="none" stroke-linecap="round"/>'
+        b += f'<path d="M322 384 Q352 400 384 380" stroke="{OL}" stroke-width="6" fill="none" stroke-linecap="round"/>'
+    b += f'<path d="M352 306 Q344 334 338 346 Q346 356 360 352" stroke="{OL}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+    b += '<ellipse cx="272" cy="350" rx="22" ry="13" fill="#e7887a" opacity="0.4"/><ellipse cx="430" cy="350" rx="22" ry="13" fill="#e7887a" opacity="0.4"/>'
     b += '</g>'
     if luz:
         b += f'<rect width="700" height="1000" fill="{luz}" opacity="0.28" style="mix-blend-mode:multiply"/>'
@@ -172,10 +173,11 @@ def bg_espejo():
     for y in range(0, H, 80):
         for x in range(0, W, 80):
             b += f'<rect x="{x+3}" y="{y+3}" width="74" height="74" rx="4" fill="#e3f0f1"/>'
-    b += cel('<rect x="560" y="70" width="800" height="880" rx="40"/>', "#c9a46a", "#9c7a44", "#e6c48a", -20, -8, 9)
-    b += f'<rect x="600" y="110" width="720" height="800" rx="26" fill="#a7c4cf" stroke="{OL}" stroke-width="7"/>'
-    b += '<path d="M640 160 L760 160 L660 300Z" fill="#fff" opacity="0.35"/><path d="M1220 840 L1290 760 L1290 860Z" fill="#fff" opacity="0.25"/>'
-    b += cel(f'<rect x="420" y="960" width="1080" height="140" rx="24"/>', "#f4f4f6", "#cfd0d8", None, -16, -6, 7)
+    b += cel('<rect x="580" y="140" width="760" height="720" rx="40"/>', "#c9a46a", "#9c7a44", "#e6c48a", -20, -8, 9)
+    b += f'<rect x="620" y="180" width="680" height="640" rx="26" fill="#a7c4cf" stroke="{OL}" stroke-width="7"/>'
+    b += cel(f'<rect x="420" y="890" width="1080" height="220" rx="24"/>', "#f4f4f6", "#cfd0d8", None, -16, -6, 7)
+    b += f'<rect x="880" y="860" width="40" height="50" rx="8" fill="#b9bcc8" stroke="{OL}" stroke-width="5"/><rect x="860" y="850" width="120" height="22" rx="10" fill="#d9dce6" stroke="{OL}" stroke-width="5"/>'
+    b += cel(f'<rect x="1280" y="900" width="110" height="70" rx="12"/>', "#9fd6c9", "#76b0a3", None, -8, -3, 5)
     return svg(W, H, b)
 
 
@@ -217,9 +219,9 @@ def papa(expr="serio"):
     b += '<g transform="translate(10,140)">'
     b += neck(305, 380, 90, 110)
     b += face(350, 310, 120)
-    b += cel('<path d="M232 300 Q226 200 280 170 L300 250 Q270 260 262 320Z"/>', "#6b6b72", "#4b4b52", None, 8, 0, 6)
-    b += cel('<path d="M468 300 Q474 200 420 170 L400 250 Q430 260 438 320Z"/>', "#6b6b72", "#4b4b52", None, -8, 0, 6)
-    b += '<path d="M290 190 Q350 170 410 190" stroke="#6b6b72" stroke-width="10" fill="none" stroke-linecap="round"/>'
+    b += cel('<path d="M234 318 Q226 248 252 214 Q270 200 284 210 Q262 246 266 322Z"/>', "#8a8a92", "#66666e", None, 6, 0, 6)
+    b += cel('<path d="M466 318 Q474 248 448 214 Q430 200 416 210 Q438 246 434 322Z"/>', "#8a8a92", "#66666e", None, -6, 0, 6)
+    b += '<path d="M318 196 Q350 186 382 196" stroke="#8a8a92" stroke-width="8" fill="none" stroke-linecap="round"/>'
     if expr == "serio":
         b += eye(305, 312, 11) + eye(395, 312, 11)
         b += '<path d="M278 276 Q305 288 334 278 M366 278 Q395 288 422 276" stroke="#4b4b52" stroke-width="11" fill="none" stroke-linecap="round"/>'

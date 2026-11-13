@@ -188,7 +188,7 @@ def etiqueta(c, T, t0, s, cx, cy, fill=YEL, fg=OL, size=36):
     if T < t0: return
     u = popscale(T, t0); d = ImageDraw.Draw(c); f = font(F_UI, size); tw = d.textlength(s, font=f)
     d.rounded_rectangle((cx - (tw / 2 + 22) * u, cy - 34, cx + (tw / 2 + 22) * u, cy + 34), 14, fill=fill, outline=OL, width=4)
-    if u > .5: d.text((cx, cy), s, font=f, fill=fg, anchor="mm")
+    if T - t0 > .2: d.text((cx, cy), s, font=f, fill=fg, anchor="mm")
 
 def flecha_a(d, x0, y0, x1, y1, col=YEL, w=10):
     d.line((x0, y0, x1, y1), fill=col, width=w)
@@ -247,8 +247,8 @@ def draw_caption(canvas, T):
             x += wd
         if who in TAGS:
             tag = TAGS[who]; ft = font(F_UI, 28); tw = d.textlength(tag, font=ft)
-            d.rounded_rectangle((W / 2 - tw / 2 - 18, 868, W / 2 + tw / 2 + 18, 910), 12, fill=CYAN if who == "Y" else YEL)
-            d.text((W / 2, 889), tag, font=ft, fill=OL, anchor="mm")
+            d.rounded_rectangle((W / 2 - tw / 2 - 18, 846, W / 2 + tw / 2 + 18, 888), 12, fill=CYAN if who == "Y" else YEL)
+            d.text((W / 2, 867), tag, font=ft, fill=OL, anchor="mm")
         return
 
 # ---------------------------------------------------------------- barra superior de la serie
@@ -289,7 +289,7 @@ def draw_hud(canvas, T):
     elif T < S("N16"): fecha, hora, tf = "JAN 9, 2009", "11:47 PM", S("N12")
     else: fecha, hora, tf = "JAN 10, 2009", "3:12 AM", S("N16")
     d.text((176, 69), fecha, font=font(F_ANTON, 40 * pop(tf)), fill=WHITE, anchor="lm")
-    d.text((176 + d.textlength(fecha, font=font(F_ANTON, 40)) + 22, 70), hora, font=font(F_UI, 26), fill=GRIS, anchor="lm")
+    d.text((400, 70), hora, font=font(F_UI, 26), fill=GRIS, anchor="lm")
     # precio BTC
     t_p = WT("N09", "zero"); on = T >= t_p
     btc_icon(d, 600, 69, 20, on)
@@ -324,7 +324,7 @@ def sc_hook(T):
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(2)))
     t26, t09 = WT("N01", "2026"), WT("N01", "2009")
     if T < t09:
-        yr = "2026"; u = popscale(T, t26)
+        yr = "2026"; u = popscale(T, .05, .45)
     else:
         u2 = clamp((T - t09) / .7)
         yr = str(int(round(2026 - 17 * ease(u2)))); u = 1
@@ -332,8 +332,8 @@ def sc_hook(T):
     gd.text((W / 2, H / 2 - 40), yr, font=font(F_ANTON, 330 * max(u, .01)), fill=ORG + (255,), anchor="mm")
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(18))); c.alpha_composite(gl)
     d = ImageDraw.Draw(c)
-    if T >= t26: d.text((W / 2, H / 2 - 40), yr, font=font(F_ANTON, 330 * max(u, .01)), fill=WHITE, anchor="mm")
-    if T >= t26: etiqueta(c, T, t26, "YOU GO TO SLEEP", W / 2, 180, CYAN)
+    if T >= .05: d.text((W / 2, H / 2 - 40), yr, font=font(F_ANTON, 330 * max(u, .01)), fill=WHITE, anchor="mm")
+    if .1 <= T < t09: etiqueta(c, T, .1, "YOU GO TO SLEEP", W / 2, 180, CYAN)
     if T >= t09: etiqueta(c, T, t09, "YOU WAKE UP", W / 2, 180, YEL)
     tb = WT("N01", "bitcoin")
     if T >= tb:
@@ -346,16 +346,18 @@ def sc_alarma(T):
     c = bg("bg_bedroom", T, s0, 1.9, 1.75, 3, .38, .78)
     ring = s0 - .3 <= T < WT("N02", "phone", fin=True) + .6
     sh = 8 * math.sin(T * 60) if ring else 0
-    put(c, "alarma", 905 + sh, 470, 1.6, rot=sh * .8)
+    z = 1.9 - .15 * ease_io((T - s0) / 3); x0 = (W - W / z) * .38; y0 = (H - H / z) * .78
+    ax, ay = (800 - x0) * z, (632 - y0) * z
+    put(c, "alarma", ax + sh, ay, 150 * z / 300, rot=sh * .8)
     if ring:
         d = ImageDraw.Draw(c)
         for k in range(3):
             a = (T * 3 + k / 3) % 1
-            r = 170 + a * 140
-            d.arc((905 - r, 470 - r, 905 + r, 470 + r), 200, 250, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
-            d.arc((905 - r, 470 - r, 905 + r, 470 + r), 290, 340, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
+            r = 90 * z + a * 140
+            d.arc((ax - r, ay - r, ax + r, ay + r), 200, 250, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
+            d.arc((ax - r, ay - r, ax + r, ay + r), 290, 340, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
         stamp(c, T, s0 - .2, "RIIIING!", 1450, 300, YEL, 8, 110)
-    etiqueta(c, T, WT("N02", "real"), "A REAL ALARM CLOCK", 905, 860, YEL)
+    etiqueta(c, T, WT("N02", "real"), "A REAL ALARM CLOCK", ax, ay - 190, YEL)
     return c
 
 def sc_cuarto(T):
@@ -391,24 +393,24 @@ def sc_movil(T):
 
 def sc_espejo(T):
     s0 = S("N05")
-    c = bg("bg_espejo", T, s0, 1.0, 1.12, 4, .5, .4)
-    # reflejo recortado al espejo (600,110 -> 1320,910 en el fondo a 1x, ajustado al zoom)
-    z = 1.0 + .12 * ease_io((T - s0) / 4)
-    x0 = (W - W / z) * .5; y0 = (H - H / z) * .4
-    mx0, my0, mx1, my1 = [(v - o) * z for v, o in ((600, x0), (110, y0), (1320, x0), (910, y0))]
+    c = bg("bg_espejo", T, s0, 1.0, 1.06, 4, .5, .5)
+    z = 1.0 + .06 * ease_io((T - s0) / 4)
+    x0 = (W - W / z) * .5; y0 = (H - H / z) * .5
+    mx0, my0, mx1, my1 = [(v - o) * z for v, o in ((620, x0), (180, y0), (1300, x0), (820, y0))]
     ref = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     tr = WT("N05", "19")
     nm = "heroe_shock" if T >= WT("N05", "mirror") else "heroe_miedo"
     jump = 18 * math.sin(clamp((T - tr) / .3) * PI_) if T >= tr else 0
-    put(ref, nm, (mx0 + mx1) / 2, my1 - 330 * z - jump, 1.25 * z)
+    put(ref, nm, (mx0 + mx1) / 2, my0 + 430 * z - jump, 1.15 * z)
     m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).rounded_rectangle((mx0 + 4, my0 + 4, mx1 - 4, my1 - 4), int(24 * z), fill=255)
     tint = Image.new("RGBA", (W, H), (167, 196, 207, 60)); ref.alpha_composite(tint)
     c.paste(ref, (0, 0), Image.composite(ref.getchannel("A"), Image.new("L", (W, H), 0), m))
     d = ImageDraw.Draw(c)
-    d.polygon([(mx0 + 40, my0 + 50), (mx0 + 160, my0 + 50), (mx0 + 60, my0 + 190)], fill=(255, 255, 255, 70))
+    gl_ = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl_).polygon([(mx0 + 30, my0 + 30), (mx0 + 150, my0 + 30), (mx0 + 30, my0 + 170)], fill=(255, 255, 255, 80))
+    c.alpha_composite(gl_)
     if T >= tr:
-        stamp(c, T, tr, "AGE: 19", 1640, 520, YEL, -8, 120)
-        etiqueta(c, T, tr + .25, "AGAIN.", 1640, 700, RED, WHITE, 40)
+        stamp(c, T, tr, "AGE: 19", 1650, 480, YEL, -8, 120)
+        etiqueta(c, T, tr + .25, "AGAIN.", 1650, 660, RED, WHITE, 40)
     return c
 
 def tv_noticias(c, T, x, y, w, h, t0):
@@ -462,18 +464,21 @@ def sc_satoshi(T):
         u = ease((T - tn) / .5); put(c, "nakamoto", 520, 640 + 80 * (1 - u), .9, alpha=u)
         etiqueta(c, T, tn + .2, "SATOSHI NAKAMOTO", 520, 230, ORG, WHITE, 40)
         etiqueta(c, T, tn + .5, "IDENTITY: UNKNOWN", 520, 990 - 120, (40, 40, 60), WHITE, 26) if False else None
-    tb = WT("N07", "block")
+    tdays = WT("N07", "six")
+    if tdays <= T < tn: 
+        u = popscale(T, tdays); text(d, (W / 2, 470), "6 DAYS AGO", 200 * u, ORG, stroke=10)
+        text(d, (W / 2, 640), "JANUARY 3, 2009", 60 * u, WHITE, f=F_ANTON)
     if T >= WT("N07", "first"):
         u = popscale(T, WT("N07", "first"))
-        panel(c, (980, 330, 980 + 780 * u, 700), (250, 246, 235), 250, 22, OL, 6)
+        panel(c, (980, 260, 980 + 780 * u, 610), (250, 246, 235), 250, 22, OL, 6)
         if u > .6:
-            text(d, (1370, 400), "BLOCK #0", 64, OL)
-            text(d, (1370, 470), "\"THE GENESIS BLOCK\"", 40, ORG)
-            text(d, (1370, 545), "MINED: JAN 3, 2009", 34, (90, 80, 100), f=F_UI)
-            text(d, (1370, 610), "REWARD: 50 BTC", 34, (90, 80, 100), f=F_UI)
+            text(d, (1370, 325), "BLOCK #0", 64, OL)
+            text(d, (1370, 395), "\"THE GENESIS BLOCK\"", 40, ORG)
+            text(d, (1370, 470), "MINED: JAN 3, 2009", 34, (90, 80, 100), f=F_UI)
+            text(d, (1370, 535), "REWARD: 50 BTC", 34, (90, 80, 100), f=F_UI)
     tk = WT("N08", "nobody")
     if T >= tk:
-        stamp(c, T, tk, "ALMOST NOBODY KNOWS", 1370, 840, RED, -4, 80)
+        stamp(c, T, tk, "ALMOST NOBODY KNOWS", 1370, 745, RED, -4, 76)
     return c
 
 def sc_precio(T):
@@ -537,15 +542,15 @@ def sc_papa(T):
     put(c, "heroe_decidido", 330, 720, 1.25)
     # taza: se cae al reírse
     tr = S("D02") + .35
-    if T < tr: put(c, "taza", 1080, 860, .75)
+    if T >= tr + .25:
+        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+        sp = ease((T - tr - .25) / .5)
+        od.ellipse((860 - 120 * sp, 728 - 8 * sp, 900 + 130 * sp, 742 + 8 * sp), fill=(90, 51, 32, 235), outline=OL, width=4)
+        c.alpha_composite(ov)
+    if T < tr: put(c, "taza", 880, 652, .7)
     else:
-        u = clamp((T - tr) / .45)
-        put(c, "taza", 1080 - 90 * u, 860 + 120 * ease(u), .75, rot=80 * ease(u))
-        if u > .6:
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-            sp = ease((T - tr - .27) / .4)
-            od.ellipse((900 - 180 * sp, 990 - 30 * sp, 1080 + 120 * sp, 1010 + 26 * sp), fill=(90, 51, 32, 230), outline=OL, width=5)
-            c.alpha_composite(ov)
+        u = clamp((T - tr) / .35)
+        put(c, "taza", 880 + 40 * ease(u), 652 + 40 * ease(u), .7, rot=-85 * ease(u))
     if TL["D02"][3] is None and T >= S("D02"):
         u = popscale(T, S("D02")); d = ImageDraw.Draw(c)
         bx, by = 1340, 250
@@ -676,7 +681,7 @@ def sc_pc(T):
 def sc_cara(T, nombre, t0, luz=True, latido=False):
     c = bg("bg_noche", T, t0, 1.35, 1.45, 5, .5, .5).filter(ImageFilter.GaussianBlur(6))
     pul = 1 + (.025 * max(0, math.sin(T * 2 * PI_ * 1.1)) ** 8 if latido else 0)
-    put(c, nombre, W / 2, 640, 1.55 * pul)
+    put(c, nombre, W / 2, 720, 1.3 * pul)
     if luz:
         ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
         od.ellipse((W / 2 - 700, 200, W / 2 + 700, 1300), fill=CYAN + (60,))
