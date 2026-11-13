@@ -299,7 +299,9 @@ def draw_hud(canvas, T):
     if T < S("N12"): fecha, hora, tf = ("JAN ?, ????" if T < t_fecha else "JAN 9, 2009"), "7:58 AM", t_fecha
     elif T < S("N16"): fecha, hora, tf = "JAN 9, 2009", "11:47 PM", S("N12")
     else: fecha, hora, tf = "JAN 10, 2009", "3:12 AM", S("N16")
-    if T < S("N02") - .4: fecha, hora, tf = "??? ?, 2026", "11:59 PM", 0
+    if T < S("N02") - .4:
+        if T < WT("N01", "2009"): fecha, hora, tf = "??? ?, 2026", "11:59 PM", 0
+        else: fecha, hora, tf = "??? ?, 2009", "?:?? AM", WT("N01", "2009")
     yr = HY0 + 37
     d.text((134, yr), fecha, font=font(F_ANTON, 36 * pop(tf)), fill=WHITE, anchor="lm")
     d.text((420, yr + 2), hora, font=font(F_UI, 22), fill=GRIS, anchor="lm")
@@ -307,7 +309,7 @@ def draw_hud(canvas, T):
     if T < WT("N09", "future"): goal, tg = "Figure out what's happening", S("N02")
     elif T < WT("N14", "50"): goal, tg = "Get Bitcoin before anyone else", WT("N09", "future")
     else: goal, tg = "Keep mining. Tell no one.", WT("N14", "50")
-    if T < S("N02") - .4: goal = "Sleep"
+    if T < S("N02") - .4: goal = "Sleep" if T < WT("N01", "2009") else "???"
     d.text((580, HY0 + 46), goal, font=font(F_UI, 23 * pop(tg)), fill=WHITE, anchor="lm")
     # fila 2: precio, tus BTC, cash
     y2 = HY0 + 106
