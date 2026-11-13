@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+crypto-pov/tmp/
+crypto-pov/layers/_tmp.html
