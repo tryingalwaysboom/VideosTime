@@ -283,8 +283,8 @@ def barra_base():
     im.alpha_composite(gl.filter(ImageFilter.GaussianBlur(6)))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle((HX0, HY0, HX1, HY1), 24, fill=(12, 10, 26, 215), outline=ORG + (120,), width=2)
-    d.rounded_rectangle((HX0 + 14, HY0 + 14, HX0 + 104, HY0 + 58), 12, fill=ORG)
-    d.text((HX0 + 59, HY0 + 37), f"EP.{EPISODIO}", font=font(F_ANTON, 30), fill=OL, anchor="mm")
+    d.rounded_rectangle((HX0 + 14, HY0 + 14, HX0 + 124, HY0 + 58), 12, fill=ORG)
+    d.text((HX0 + 69, HY0 + 37), f"PART {EPISODIO}", font=font(F_ANTON, 30), fill=OL, anchor="mm")
     d.line((HX0 + 16, HY0 + 70, HX1 - 16, HY0 + 70), fill=(255, 255, 255, 35), width=2)
     for xs in (378, 712): d.line((xs, HY0 + 80, xs, HY1 - 10), fill=(255, 255, 255, 40), width=2)
     d.line((560, HY0 + 12, 560, HY0 + 60), fill=(255, 255, 255, 40), width=2)
@@ -303,8 +303,8 @@ def draw_hud(canvas, T):
         if T < WT("N01", "2009"): fecha, hora, tf = "??? ?, 2026", "11:59 PM", 0
         else: fecha, hora, tf = "??? ?, 2009", "?:?? AM", WT("N01", "2009")
     yr = HY0 + 37
-    d.text((134, yr), fecha, font=font(F_ANTON, 36 * pop(tf)), fill=WHITE, anchor="lm")
-    d.text((420, yr + 2), hora, font=font(F_UI, 22), fill=GRIS, anchor="lm")
+    d.text((160, yr), fecha, font=font(F_ANTON, 34 * pop(tf)), fill=WHITE, anchor="lm")
+    d.text((436, yr + 2), hora, font=font(F_UI, 22), fill=GRIS, anchor="lm")
     # objetivo (fila 1, derecha)
     if T < WT("N09", "future"): goal, tg = "Figure out what's happening", S("N02")
     elif T < WT("N14", "50"): goal, tg = "Get Bitcoin before anyone else", WT("N09", "future")
