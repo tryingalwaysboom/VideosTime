@@ -8,7 +8,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from guion import LINEAS, CLIPS, HUECO_SIN_AUDIO
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-W, H, FPS = 1920, 1080, 30
+W, H, FPS = 1080, 1080, 30
+BW, BH = 1920, 1080   # tamaño de los fondos dibujados (a 1x)
 LAY = os.path.join(HERE, "layers"); AUD = os.path.join(HERE, "..", "descargas", "crypto_ep1"); TMP = os.path.join(HERE, "tmp")
 os.makedirs(TMP, exist_ok=True)
 FONTS = os.path.join(HERE, "..", "taller-pov", "fonts")
@@ -77,7 +78,7 @@ def fix_words(ws):
 
 def timeline():
     """TL[lid] = (t0, t1, src0, archivo, palabras con tiempos absolutos)"""
-    t, tl = 0.6, {}
+    t, tl = -0.12, {}
     for lid, who, txt in LINEAS:
         t += GAP.get(lid, .25)
         if lid in CLIPS:
@@ -138,12 +139,17 @@ def put(canvas, name, cx, cy, s=1.0, alpha=1.0, rot=0):
         im = im.copy(); im.putalpha(im.getchannel("A").point(lambda v: int(v * alpha)))
     canvas.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
 
+def view(z, fx, fy):
+    """Origen (en coords del fondo 1x) de la ventana W x H vista con zoom z."""
+    return (BW - W / z) * fx, (BH - H / z) * fy
+
 def bg(name, T, t0, zoom0=1.0, zoom1=1.06, dur=8, fx=0.5, fy=0.5):
     im = layer(name)
     z = zoom0 + (zoom1 - zoom0) * ease_io((T - t0) / dur)
-    w, h = 2 * W / z, 2 * H / z
-    x0 = (2 * W - w) * fx; y0 = (2 * H - h) * fy
-    return im.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + w, y0 + h), reducing_gap=2.0).convert("RGBA")
+    x0, y0 = view(z, fx, fy)
+    return im.resize((W, H), Image.BILINEAR, box=(2 * x0, 2 * y0, 2 * (x0 + W / z), 2 * (y0 + H / z)), reducing_gap=2.0).convert("RGBA")
+
+def zoom_at(T, t0, zoom0, zoom1, dur): return zoom0 + (zoom1 - zoom0) * ease_io((T - t0) / dur)
 
 def text(d, xy, s, size, fill=WHITE, anchor="mm", f=F_ANTON, stroke=0, sfill=OL):
     d.text(xy, s, font=font(f, size), fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=sfill)
@@ -230,12 +236,12 @@ def draw_caption(canvas, T):
         if not (t0 - .04 <= T < t1 + .35) or T >= nxt0 - .04: continue
         d = ImageDraw.Draw(canvas)
         k = 0.88 + 0.12 * back((T - t0 + .04) / .14)
-        size = 78 * k; f = font(F_ANTON, size)
+        size = 72 * k; f = font(F_ANTON, size)
         widths = [d.textlength(p + " ", font=f) for p, _ in g]
         total = sum(widths) - d.textlength(" ", font=f)
-        if total > 1500:
-            f = font(F_ANTON, size * 1500 / total); widths = [d.textlength(p + " ", font=f) for p, _ in g]; total = sum(widths) - d.textlength(" ", font=f)
-        x = W / 2 - total / 2; y = 950
+        if total > 980:
+            f = font(F_ANTON, size * 980 / total); widths = [d.textlength(p + " ", font=f) for p, _ in g]; total = sum(widths) - d.textlength(" ", font=f)
+        x = W / 2 - total / 2; y = 960
         starts = [ws for _, (ws, we) in g] + [1e9]
         for i_, ((p, (ws, we)), wd) in enumerate(zip(g, widths)):
             fin_ = min(starts[i_ + 1], we + .35) if i_ + 1 < len(g) else we + .35
@@ -249,11 +255,11 @@ def draw_caption(canvas, T):
             x += wd
         if who in TAGS:
             tag = TAGS[who]; ft = font(F_UI, 28); tw = d.textlength(tag, font=ft)
-            d.rounded_rectangle((W / 2 - tw / 2 - 18, 846, W / 2 + tw / 2 + 18, 888), 12, fill=CYAN if who == "Y" else YEL)
-            d.text((W / 2, 867), tag, font=ft, fill=OL, anchor="mm")
+            d.rounded_rectangle((W / 2 - tw / 2 - 18, 862, W / 2 + tw / 2 + 18, 904), 12, fill=CYAN if who == "Y" else YEL)
+            d.text((W / 2, 883), tag, font=ft, fill=OL, anchor="mm")
         return
 
-# ---------------------------------------------------------------- barra superior de la serie
+# ---------------------------------------------------------------- barra superior de la serie (cuadrado: 2 filas)
 EPISODIO = 1
 
 def btc_icon(d, cx, cy, r, on=True):
@@ -265,161 +271,157 @@ def coin_usd(d, cx, cy, r, on=True):
     d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(90, 190, 110) if on else (70, 78, 100), outline=(30, 90, 40) if on else (40, 44, 60), width=3)
     d.text((cx, cy + 1), "$", font=font(F_UI, int(r * 1.2)), fill=WHITE, anchor="mm")
 
+HX0, HY0, HX1, HY1 = 24, 18, W - 24, 156
+
 @lru_cache(1)
 def barra_base():
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    x0, y0, x1, y1 = 40, 26, W - 40, 112
-    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((x0, y0 + 8, x1, y1 + 10), 24, fill=(0, 0, 0, 120))
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((HX0, HY0 + 8, HX1, HY1 + 10), 24, fill=(0, 0, 0, 120))
     im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10)))
-    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).rounded_rectangle((x0, y0, x1, y1), 24, outline=ORG + (140,), width=6)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).rounded_rectangle((HX0, HY0, HX1, HY1), 24, outline=ORG + (140,), width=6)
     im.alpha_composite(gl.filter(ImageFilter.GaussianBlur(6)))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((x0, y0, x1, y1), 24, fill=(12, 10, 26, 210), outline=ORG + (120,), width=2)
-    d.rounded_rectangle((x0 + 14, y0 + 18, x0 + 112, y1 - 18), 12, fill=ORG)
-    d.text((x0 + 63, (y0 + y1) / 2 + 1), f"EP.{EPISODIO}", font=font(F_ANTON, 32), fill=OL, anchor="mm")
-    for xs in (560, 860, 1120, 1380): d.line((xs, y0 + 18, xs, y1 - 18), fill=(255, 255, 255, 40), width=2)
-    d.text((1404, y0 + 26), "GOAL", font=font(F_UI, 18), fill=ORG, anchor="lm")
+    d.rounded_rectangle((HX0, HY0, HX1, HY1), 24, fill=(12, 10, 26, 215), outline=ORG + (120,), width=2)
+    d.rounded_rectangle((HX0 + 14, HY0 + 14, HX0 + 104, HY0 + 58), 12, fill=ORG)
+    d.text((HX0 + 59, HY0 + 37), f"EP.{EPISODIO}", font=font(F_ANTON, 30), fill=OL, anchor="mm")
+    d.line((HX0 + 16, HY0 + 70, HX1 - 16, HY0 + 70), fill=(255, 255, 255, 35), width=2)
+    for xs in (378, 712): d.line((xs, HY0 + 80, xs, HY1 - 10), fill=(255, 255, 255, 40), width=2)
+    d.line((560, HY0 + 12, 560, HY0 + 60), fill=(255, 255, 255, 40), width=2)
+    d.text((580, HY0 + 22), "GOAL", font=font(F_UI, 15), fill=ORG, anchor="lm")
     return im
 
 def draw_hud(canvas, T):
-    if T < E("N01") + .3 or T >= S("N19") - .1: return
+    if T >= S("N19") - .1: return
     canvas.alpha_composite(barra_base()); d = ImageDraw.Draw(canvas)
     def pop(t): return 1 + .28 * math.sin(clamp((T - t) / .3) * PI_) if 0 <= T - t < .3 else 1
-    # fecha y hora
     t_fecha = WT("N04", "january")
     if T < S("N12"): fecha, hora, tf = ("JAN ?, ????" if T < t_fecha else "JAN 9, 2009"), "7:58 AM", t_fecha
     elif T < S("N16"): fecha, hora, tf = "JAN 9, 2009", "11:47 PM", S("N12")
     else: fecha, hora, tf = "JAN 10, 2009", "3:12 AM", S("N16")
-    d.text((176, 69), fecha, font=font(F_ANTON, 40 * pop(tf)), fill=WHITE, anchor="lm")
-    d.text((400, 70), hora, font=font(F_UI, 26), fill=GRIS, anchor="lm")
-    # precio BTC
-    t_p = WT("N09", "zero"); on = T >= t_p
-    btc_icon(d, 600, 69, 20, on)
-    d.text((632, 56), "BTC PRICE", font=font(F_UI, 16), fill=GRIS, anchor="lm")
-    d.text((632, 84), "$0.00" if on else "?", font=font(F_ANTON, 30 * pop(t_p)), fill=WHITE if on else GRIS, anchor="lm")
-    # tus BTC
-    t_b = WT("N14", "50"); hb = T >= t_b
-    btc_icon(d, 900, 69, 20, hb)
-    d.text((932, 56), "YOUR BTC", font=font(F_UI, 16), fill=GRIS, anchor="lm")
-    v = int(50 * ease((T - t_b) / .9)) if hb else 0
-    d.text((932, 84), str(v), font=font(F_ANTON, 30 * pop(t_b)), fill=ORG if hb else WHITE, anchor="lm")
-    # dinero
-    t_c = WT("N10", "three"); hc = T >= t_c
-    coin_usd(d, 1160, 69, 20, hc)
-    d.text((1192, 56), "CASH", font=font(F_UI, 16), fill=GRIS, anchor="lm")
-    d.text((1192, 84), money(int(340 * ease((T - t_c) / .8))) if hc else "?", font=font(F_ANTON, 30 * pop(t_c)), fill=WHITE if hc else GRIS, anchor="lm")
-    # objetivo
+    if T < S("N02") - .4: fecha, hora, tf = "??? ?, 2026", "11:59 PM", 0
+    yr = HY0 + 37
+    d.text((134, yr), fecha, font=font(F_ANTON, 36 * pop(tf)), fill=WHITE, anchor="lm")
+    d.text((420, yr + 2), hora, font=font(F_UI, 22), fill=GRIS, anchor="lm")
+    # objetivo (fila 1, derecha)
     if T < WT("N09", "future"): goal, tg = "Figure out what's happening", S("N02")
     elif T < WT("N14", "50"): goal, tg = "Get Bitcoin before anyone else", WT("N09", "future")
     else: goal, tg = "Keep mining. Tell no one.", WT("N14", "50")
-    d.text((1404, 84), goal, font=font(F_UI, 26 * pop(tg)), fill=WHITE, anchor="lm")
+    if T < S("N02") - .4: goal = "Sleep"
+    d.text((580, HY0 + 46), goal, font=font(F_UI, 23 * pop(tg)), fill=WHITE, anchor="lm")
+    # fila 2: precio, tus BTC, cash
+    y2 = HY0 + 106
+    t_p = WT("N09", "zero"); on = T >= t_p
+    btc_icon(d, 64, y2, 22, on)
+    d.text((98, y2 - 15), "BTC PRICE", font=font(F_UI, 16), fill=GRIS, anchor="lm")
+    d.text((98, y2 + 13), "$0.00" if on else "?", font=font(F_ANTON, 32 * pop(t_p)), fill=WHITE if on else GRIS, anchor="lm")
+    t_b = WT("N14", "50"); hb = T >= t_b
+    btc_icon(d, 418, y2, 22, hb)
+    d.text((452, y2 - 15), "YOUR BTC", font=font(F_UI, 16), fill=GRIS, anchor="lm")
+    v = int(50 * ease((T - t_b) / .9)) if hb else 0
+    d.text((452, y2 + 13), str(v), font=font(F_ANTON, 32 * pop(t_b)), fill=ORG if hb else WHITE, anchor="lm")
+    t_c = WT("N10", "three"); hc = T >= t_c
+    coin_usd(d, 752, y2, 22, hc)
+    d.text((786, y2 - 15), "CASH", font=font(F_UI, 16), fill=GRIS, anchor="lm")
+    d.text((786, y2 + 13), money(int(340 * ease((T - t_c) / .8))) if hc else "?", font=font(F_ANTON, 32 * pop(t_c)), fill=WHITE if hc else GRIS, anchor="lm")
 
-# ---------------------------------------------------------------- escenas
+# ---------------------------------------------------------------- escenas (1080x1080)
 def sc_hook(T):
-    c = Image.new("RGBA", (W, H), (10, 9, 22, 255)); d = ImageDraw.Draw(c)
-    # túnel de anillos
+    c = Image.new("RGBA", (W, H), (10, 9, 22, 255))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
     for i in range(14):
-        ph = ((T * .55 + i / 14) % 1); r = 40 + ph ** 2 * 1400
+        ph = ((T * .55 + i / 14) % 1); r = 40 + ph ** 2 * 1100
         a = int(150 * math.sin(ph * PI_))
-        od.ellipse((W / 2 - r * 1.6, H / 2 - r, W / 2 + r * 1.6, H / 2 + r), outline=ORG + (a,) if i % 2 else CYAN + (a // 2,), width=4)
+        od.ellipse((W / 2 - r * 1.2, H / 2 - r, W / 2 + r * 1.2, H / 2 + r), outline=ORG + (a,) if i % 2 else CYAN + (a // 2,), width=4)
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(2)))
-    t26, t09 = WT("N01", "2026"), WT("N01", "2009")
-    if T < t09:
-        yr = "2026"; u = popscale(T, .05, .45)
-    else:
-        u2 = clamp((T - t09) / .7)
-        yr = str(int(round(2026 - 17 * ease(u2)))); u = 1
+    t09 = WT("N01", "2009")
+    if T < t09: yr = "2026"
+    else: yr = str(int(round(2026 - 17 * ease(clamp((T - t09) / .7)))))
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(gl)
-    gd.text((W / 2, H / 2 - 40), yr, font=font(F_ANTON, 330 * max(u, .01)), fill=ORG + (255,), anchor="mm")
+    gd.text((W / 2, 470), yr, font=font(F_ANTON, 300), fill=ORG + (255,), anchor="mm")
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(18))); c.alpha_composite(gl)
     d = ImageDraw.Draw(c)
-    if T >= .05: d.text((W / 2, H / 2 - 40), yr, font=font(F_ANTON, 330 * max(u, .01)), fill=WHITE, anchor="mm")
-    if .1 <= T < t09: etiqueta(c, T, .1, "YOU GO TO SLEEP", W / 2, 180, CYAN)
-    if T >= t09: etiqueta(c, T, t09, "YOU WAKE UP", W / 2, 180, YEL)
+    d.text((W / 2, 470), yr, font=font(F_ANTON, 300), fill=WHITE, anchor="mm")
+    if T < t09: etiqueta(c, T, -1, "YOU GO TO SLEEP", W / 2, 200, CYAN, OL, 40)
+    else: etiqueta(c, T, t09, "YOU WAKE UP", W / 2, 200, YEL, OL, 40)
     tb = WT("N01", "bitcoin")
     if T >= tb:
-        u = popscale(T, tb, .5); put(c, "btc_coin", W / 2 + 470, H / 2 - 60, .9 * u, rot=8 * math.sin(T * 2))
-        put(c, "btc_coin", W / 2 - 470, H / 2 - 60, .9 * u, rot=-8 * math.sin(T * 2))
+        u = popscale(T, tb, .5)
+        put(c, "btc_coin", 180, 760, .6 * u, rot=8 * math.sin(T * 2)); put(c, "btc_coin", W - 180, 760, .6 * u, rot=-8 * math.sin(T * 2))
     return c
 
 def sc_alarma(T):
-    s0 = S("N02")
-    c = bg("bg_bedroom", T, s0, 1.9, 1.75, 3, .38, .78)
+    s0 = S("N02"); z = zoom_at(T, s0, 1.9, 1.75, 3)
+    c = bg("bg_bedroom", T, s0, 1.9, 1.75, 3, .5, .78)
+    x0, y0 = view(z, .5, .78)
     ring = s0 - .3 <= T < WT("N02", "phone", fin=True) + .6
     sh = 8 * math.sin(T * 60) if ring else 0
-    z = 1.9 - .15 * ease_io((T - s0) / 3); x0 = (W - W / z) * .38; y0 = (H - H / z) * .78
     ax, ay = (800 - x0) * z, (632 - y0) * z
     put(c, "alarma", ax + sh, ay, 150 * z / 300, rot=sh * .8)
     if ring:
         d = ImageDraw.Draw(c)
         for k in range(3):
-            a = (T * 3 + k / 3) % 1
-            r = 90 * z + a * 140
+            a = (T * 3 + k / 3) % 1; r = 90 * z + a * 140
             d.arc((ax - r, ay - r, ax + r, ay + r), 200, 250, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
             d.arc((ax - r, ay - r, ax + r, ay + r), 290, 340, fill=(255, 255, 255, int(255 * (1 - a))), width=8)
-        stamp(c, T, s0 - .2, "RIIIING!", 1450, 300, YEL, 8, 110)
-    etiqueta(c, T, WT("N02", "real"), "A REAL ALARM CLOCK", ax, ay - 190, YEL)
+        stamp(c, T, s0 - .2, "RIIIING!", 800, 290, YEL, 8, 90)
+    etiqueta(c, T, WT("N02", "real"), "A REAL ALARM CLOCK", ax, ay - 200, YEL)
     return c
 
 def sc_cuarto(T):
     s0, e0 = S("N03"), E("N03")
-    u = ease_io((T - s0) / (e0 - s0 + .4))
-    c = bg("bg_bedroom", T, s0, 1.22 - .17 * u, 1.22 - .17 * u, 1, .15 + .7 * u, .45)
-    etiqueta(c, T, WT("N03", "posters"), "POSTERS", 760 - 520 * u + 330, 520, YEL)
-    etiqueta(c, T, WT("N03", "monitor"), "CRT MONITOR · 17\"", 1180 - 300 * u + 200, 230, CYAN)
-    etiqueta(c, T, WT("N03", "flip"), "FLIP PHONE", 1250, 720, YEL)
+    u = ease_io((T - s0) / (e0 - s0 + .4)); z = 1.25 - .15 * u; fx = .2 + .8 * u
+    c = bg("bg_bedroom", T, s0, z, z, 1, fx, .45)
+    x0, y0 = view(z, fx, .45)
+    sc_ = lambda X, Y: ((X - x0) * z, (Y - y0) * z)
+    px, py = sc_(985, 470); etiqueta(c, T, WT("N03", "posters"), "POSTERS", px, py, YEL)
+    mx, my = sc_(1500, 225); etiqueta(c, T, WT("N03", "monitor"), "CRT MONITOR · 17\"", mx, my, CYAN)
+    fx_, fy_ = sc_(1262, 560); etiqueta(c, T, WT("N03", "flip"), "FLIP PHONE", fx_, fy_, YEL)
     if T >= WT("N03", "apartment"):
-        stamp(c, T, WT("N03", "apartment", fin=True), "NOT YOUR ROOM", 520, 300, RED, -8, 90)
+        stamp(c, T, WT("N03", "apartment", fin=True), "NOT YOUR ROOM", W / 2, 770, RED, -6, 80)
     return c
 
 def sc_movil(T):
     s0 = S("N04")
     c = bg("bg_bedroom", T, s0, 1.3, 1.36, 4, .9, .6).filter(ImageFilter.GaussianBlur(10)); dark(c, 110)
     u = ease((T - s0 + .3) / .5)
-    cy = 560 + 600 * (1 - u)
-    put(c, "movil", W / 2, cy, 1.0, rot=-4)
+    cy = 580 + 600 * (1 - u)
+    put(c, "movil", W / 2, cy, .9, rot=-4)
     d = ImageDraw.Draw(c)
-    # pantalla del móvil (en coords del lienzo: el móvil mide 420x920, pantalla en 96,80 228x300)
-    sx, sy = W / 2 - 210 + 96, cy - 460 + 80
-    d.text((sx + 114, sy + 40), "08:00", font=font(F_MONO, 34), fill=OL, anchor="mm")
+    k = .9; sx, sy = W / 2 - 210 * k + 96 * k, cy - 460 * k + 80 * k; sw_ = 228 * k
+    d.text((sx + sw_ / 2, sy + 36), "08:00", font=font(F_MONO, 30), fill=OL, anchor="mm")
     tj = WT("N04", "january")
     if T >= tj:
-        d.text((sx + 114, sy + 140), "FRI", font=font(F_ANTON, 44 * popscale(T, tj)), fill=OL, anchor="mm")
-        d.text((sx + 114, sy + 200), "09 JAN", font=font(F_ANTON, 50 * popscale(T, tj)), fill=OL, anchor="mm")
+        d.text((sx + sw_ / 2, sy + 125), "FRI", font=font(F_ANTON, 40 * popscale(T, tj)), fill=OL, anchor="mm")
+        d.text((sx + sw_ / 2, sy + 180), "09 JAN", font=font(F_ANTON, 46 * popscale(T, tj)), fill=OL, anchor="mm")
     t9 = WT("N04", "2009")
     if T >= t9:
-        d.text((sx + 114, sy + 260), "2009", font=font(F_ANTON, 50 * popscale(T, t9)), fill=(200, 40, 40), anchor="mm")
-        stamp(c, T, t9 + .1, "2009", 1450, 520, RED, -10, 170)
+        d.text((sx + sw_ / 2, sy + 235), "2009", font=font(F_ANTON, 46 * popscale(T, t9)), fill=(200, 40, 40), anchor="mm")
+        stamp(c, T, t9 + .1, "2009", 850, 300, RED, -12, 110)
     return c
 
 def sc_espejo(T):
-    s0 = S("N05")
+    s0 = S("N05"); z = zoom_at(T, s0, 1.0, 1.06, 4)
     c = bg("bg_espejo", T, s0, 1.0, 1.06, 4, .5, .5)
-    z = 1.0 + .06 * ease_io((T - s0) / 4)
-    x0 = (W - W / z) * .5; y0 = (H - H / z) * .5
-    mx0, my0, mx1, my1 = [(v - o) * z for v, o in ((620, x0), (180, y0), (1300, x0), (820, y0))]
+    x0, y0 = view(z, .5, .5)
+    mx0, my0, mx1, my1 = (620 - x0) * z, (180 - y0) * z, (1300 - x0) * z, (820 - y0) * z
     ref = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     tr = WT("N05", "19")
     nm = "heroe_shock" if T >= WT("N05", "mirror") else "heroe_miedo"
     jump = 18 * math.sin(clamp((T - tr) / .3) * PI_) if T >= tr else 0
     put(ref, nm, (mx0 + mx1) / 2, my0 + 430 * z - jump, 1.15 * z)
     m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).rounded_rectangle((mx0 + 4, my0 + 4, mx1 - 4, my1 - 4), int(24 * z), fill=255)
-    tint = Image.new("RGBA", (W, H), (167, 196, 207, 60)); ref.alpha_composite(tint)
+    ref.alpha_composite(Image.new("RGBA", (W, H), (167, 196, 207, 60)))
     c.paste(ref, (0, 0), Image.composite(ref.getchannel("A"), Image.new("L", (W, H), 0), m))
-    d = ImageDraw.Draw(c)
     gl_ = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl_).polygon([(mx0 + 30, my0 + 30), (mx0 + 150, my0 + 30), (mx0 + 30, my0 + 170)], fill=(255, 255, 255, 80))
     c.alpha_composite(gl_)
     if T >= tr:
-        stamp(c, T, tr, "AGE: 19", 1650, 480, YEL, -8, 120)
-        etiqueta(c, T, tr + .25, "AGAIN.", 1650, 660, RED, WHITE, 40)
+        stamp(c, T, tr, "AGE: 19", mx1 - 60, my0 + 120, YEL, -8, 90)
+        etiqueta(c, T, tr + .25, "AGAIN.", mx1 - 60, my0 + 250, RED, WHITE, 36)
     return c
 
 def tv_noticias(c, T, x, y, w, h, t0):
-    """Pinta las noticias de 2009 en la pantalla de la tele (x,y,w,h en coords de pantalla)."""
     tv = Image.new("RGBA", (w, h), (24, 40, 90, 255)); d = ImageDraw.Draw(tv)
     d.rectangle((0, 0, w, h * .62), fill=(40, 60, 120))
-    # gráfico cayendo
     pts = [(int(w * .08 + i * w * .84 / 9), int(h * .16 + (i ** 1.4) * h * .045 + 10 * math.sin(i * 1.7))) for i in range(10)]
     k = int(clamp((T - t0) / 1.4) * 9) + 1
     if k > 1: d.line(pts[:k], fill=(255, 80, 80), width=6)
@@ -429,174 +431,164 @@ def tv_noticias(c, T, x, y, w, h, t0):
     tick = "  BANKS COLLAPSING · MILLIONS LOSE THEIR HOMES · DOW DOWN 34% IN 2008 · BAILOUTS ·  "
     f = font(F_UI, int(h * .085)); tw = d.textlength(tick, font=f); off = (T * 160) % tw
     for k2 in range(3): d.text((-off + k2 * tw, h * .9), tick, font=f, fill=(20, 20, 30), anchor="lm")
-    # líneas de CRT
     scan(tv, 40)
     c.alpha_composite(tv, (int(x), int(y)))
 
 def sc_salon_tv(T):
-    s0 = S("N06")
-    c = bg("bg_salon", T, s0, 1.0, 1.08, 8, .62, .4)
-    z = 1.0 + .08 * ease_io((T - s0) / 8); x0 = (W - W / z) * .62; y0 = (H - H / z) * .4
-    tx, ty = (1170 - x0) * z + 6, (236 - y0) * z + 6
-    tv_noticias(c, T, tx, ty, int(508 * z), int(356 * z), S("V01"))
+    s0 = S("N06"); z = zoom_at(T, s0, 1.0, 1.06, 8); fx = .78
+    c = bg("bg_salon", T, s0, 1.0, 1.06, 8, fx, .4)
+    x0, y0 = view(z, fx, .4)
+    tv_noticias(c, T, (1170 - x0) * z + 6, (236 - y0) * z + 6, int(508 * z), int(356 * z), S("V01"))
     td = S("D01") - .7
     if T >= td:
         u = ease((T - td) / .6)
-        put(c, "papa_serio", 420 - 500 * (1 - u), 700, 1.12)
-        put(c, "taza", 640 - 500 * (1 - u), 860, .72)
-    if T >= S("V01") and TL["V01"][3] is None:
-        etiqueta(c, T, S("V01") + .1, "TV: \"BANKS ARE COLLAPSING...\"", 1410, 760, YEL, OL, 30)
+        put(c, "papa_serio", 230 - 450 * (1 - u), 760, 1.0)
+        put(c, "taza", 470 - 450 * (1 - u), 840, .55)
     return c
 
 def sc_satoshi(T):
-    s0 = S("N07")
     c = Image.new("RGBA", (W, H), (12, 10, 24, 255))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    od.ellipse((W / 2 - 700, H / 2 - 420, W / 2 + 700, H / 2 + 420), fill=ORG + (55,))
+    od.ellipse((W / 2 - 500, H / 2 - 420, W / 2 + 500, H / 2 + 420), fill=ORG + (55,))
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(120)))
     d = ImageDraw.Draw(c)
-    # código binario cayendo
-    for i in range(26):
-        x = 40 + i * 74; sp = 60 + (i * 37) % 90
+    for i in range(15):
+        x = 36 + i * 72; sp = 60 + (i * 37) % 90
         for j in range(12):
             y = (j * 92 + T * sp + i * 51) % (H + 100) - 50
             d.text((x, y), "01"[(i + j) % 2], font=font(F_MONO, 30), fill=(247, 147, 26, 50), anchor="mm")
-    tn = WT("N07", "satoshi")
+    tn = WT("N07", "satoshi"); tdays = WT("N07", "six")
+    if tdays <= T < tn:
+        u = popscale(T, tdays); text(d, (W / 2, 470), "6 DAYS AGO", 170 * u, ORG, stroke=10)
+        text(d, (W / 2, 630), "JANUARY 3, 2009", 56 * u, WHITE)
     if T >= tn:
-        u = ease((T - tn) / .5); put(c, "nakamoto", 520, 640 + 80 * (1 - u), .9, alpha=u)
-        etiqueta(c, T, tn + .2, "SATOSHI NAKAMOTO", 520, 230, ORG, WHITE, 40)
-        etiqueta(c, T, tn + .5, "IDENTITY: UNKNOWN", 520, 990 - 120, (40, 40, 60), WHITE, 26) if False else None
-    tdays = WT("N07", "six")
-    if tdays <= T < tn: 
-        u = popscale(T, tdays); text(d, (W / 2, 470), "6 DAYS AGO", 200 * u, ORG, stroke=10)
-        text(d, (W / 2, 640), "JANUARY 3, 2009", 60 * u, WHITE, f=F_ANTON)
+        u = ease((T - tn) / .5); put(c, "nakamoto", 270, 620 + 80 * (1 - u), .72, alpha=u)
+        etiqueta(c, T, tn + .2, "SATOSHI NAKAMOTO", 270, 270, ORG, WHITE, 30)
     if T >= WT("N07", "first"):
         u = popscale(T, WT("N07", "first"))
-        panel(c, (980, 260, 980 + 780 * u, 610), (250, 246, 235), 250, 22, OL, 6)
+        panel(c, (545, 330, 545 + 500 * u, 650), (250, 246, 235), 250, 22, OL, 6)
         if u > .6:
-            text(d, (1370, 325), "BLOCK #0", 64, OL)
-            text(d, (1370, 395), "\"THE GENESIS BLOCK\"", 40, ORG)
-            text(d, (1370, 470), "MINED: JAN 3, 2009", 34, (90, 80, 100), f=F_UI)
-            text(d, (1370, 535), "REWARD: 50 BTC", 34, (90, 80, 100), f=F_UI)
+            text(d, (795, 395), "BLOCK #0", 56, OL)
+            text(d, (795, 458), "\"THE GENESIS BLOCK\"", 34, ORG)
+            text(d, (795, 528), "MINED: JAN 3, 2009", 28, (90, 80, 100), f=F_UI)
+            text(d, (795, 585), "REWARD: 50 BTC", 28, (90, 80, 100), f=F_UI)
     tk = WT("N08", "nobody")
-    if T >= tk:
-        stamp(c, T, tk, "ALMOST NOBODY KNOWS", 1370, 745, RED, -4, 76)
+    if T >= tk: stamp(c, T, tk, "ALMOST NOBODY KNOWS", W / 2, 790, RED, -4, 64)
     return c
 
 def sc_precio(T):
     s0 = S("N09")
-    c = Image.new("RGBA", (W, H), (12, 10, 24, 255)); d = ImageDraw.Draw(c)
-    scan(c, 40)
+    c = Image.new("RGBA", (W, H), (12, 10, 24, 255)); d = ImageDraw.Draw(c); scan(c, 40)
+    text(d, (W / 2, 215), "TODAY · 2009", 40, GRIS, f=F_UI)
+    put(c, "btc_coin", 330, 370, .75 * popscale(T, s0 + .1, .5), rot=6 * math.sin(T * 2))
     tz = WT("N09", "zero")
-    put(c, "btc_coin", 480, 470, 1.0 * popscale(T, s0 + .1, .5), rot=6 * math.sin(T * 2))
-    text(d, (480, 160), "TODAY · 2009", 44, GRIS, f=F_UI)
     if T >= tz:
-        u = popscale(T, tz); text(d, (480, 760), "$0.00", 150 * u, WHITE, stroke=8)
-        text(d, (480, 860), "PER BITCOIN", 34, GRIS, f=F_UI)
+        text(d, (680, 360), "$0.00", 130 * popscale(T, tz), WHITE, stroke=8)
+        text(d, (680, 450), "PER BITCOIN", 28, GRIS, f=F_UI)
     tf = WT("N09", "future")
     if T >= tf:
-        u = ease((T - tf) / .6)
-        flecha_a(d, 760, 470, 760 + 380 * u, 470, ORG, 14)
-        text(d, (1440, 160), "YOUR FUTURE", 44, ORG, f=F_UI)
+        u = ease((T - tf) / .5)
+        flecha_a(d, W / 2, 500, W / 2, 500 + 90 * u, ORG, 12)
+        text(d, (W / 2, 640), "YOUR FUTURE", 40, ORG, f=F_UI)
         th = WT("N09", "hundred")
         if T >= th:
             v = int(100000 * ease((T - th) / 1.0))
-            text(d, (1440, 470), f"${v:,}+", 150 * popscale(T, th), ORG, stroke=8)
-            text(d, (1440, 590), "PER BITCOIN", 34, GRIS, f=F_UI)
+            text(d, (W / 2, 770), f"${v:,}+", 150 * popscale(T, th), ORG, stroke=8)
     return c
 
-def pantalla_banco(c, T, x0, y0, w, h, t0):
+REF_SW, REF_SH = 1230, 726   # pantalla del monitor a tamaño de referencia (se dibuja así y se escala)
+
+def monitor(c, T, t0):
+    z = 1.0 + .04 * ease_io((T - t0) / 20)
+    mon = scaled("monitor_grande", round(.66 * z, 3)); mx, my = (W - mon.width) // 2, 180 + (H - 180 - 120 - mon.height) // 2
+    c.alpha_composite(mon, (mx, my))
+    k = mon.width / 1580
+    return int(mx + 100 * k + 4), int(my + 80 * k + 4), int(1380 * k - 8), int(820 * k - 8)
+
+def pantalla_banco(T):
+    w, h = REF_SW, REF_SH
     sc = Image.new("RGBA", (w, h), (236, 240, 246, 255)); d = ImageDraw.Draw(sc)
     d.rectangle((0, 0, w, 70), fill=(20, 60, 140)); d.text((24, 35), "FIRST HOMETOWN BANK · Online Banking", font=font(F_SANSB, 30), fill=WHITE, anchor="lm")
     d.rectangle((0, 70, w, 112), fill=(200, 210, 225)); d.text((24, 91), "Accounts   Transfers   Bill Pay   Log out", font=font(F_SANS, 24), fill=(30, 40, 70), anchor="lm")
-    d.text((60, 190), "Student Checking  ****4417", font=font(F_SANSB, 34), fill=(30, 40, 70), anchor="lm")
-    d.text((60, 260), "Available balance", font=font(F_SANS, 30), fill=(90, 100, 120), anchor="lm")
+    d.text((60, 190), "Student Checking  ****4417", font=font(F_SANSB, 36), fill=(30, 40, 70), anchor="lm")
+    d.text((60, 260), "Available balance", font=font(F_SANS, 32), fill=(90, 100, 120), anchor="lm")
     tv = WT("N10", "three")
     if T >= tv:
         v = 340 * ease((T - tv) / .9)
-        d.text((60, 360), f"${v:,.2f}", font=font(F_SANSB, int(110 * popscale(T, tv))), fill=(20, 120, 50), anchor="lm")
+        d.text((60, 370), f"${v:,.2f}", font=font(F_SANSB, int(130 * popscale(T, tv))), fill=(20, 120, 50), anchor="lm")
     rows = [("01/07/09", "GameStop", "-$59.99"), ("01/05/09", "Paycheck · Pizza Hut", "+$212.40"), ("01/02/09", "iTunes", "-$0.99")]
     for i, (a, b, cc) in enumerate(rows):
-        yy = 470 + i * 56; d.line((60, yy - 26, w - 60, yy - 26), fill=(200, 205, 215), width=2)
-        d.text((60, yy), a, font=font(F_SANS, 26), fill=(90, 100, 120), anchor="lm"); d.text((260, yy), b, font=font(F_SANS, 26), fill=(30, 40, 70), anchor="lm")
-        d.text((w - 60, yy), cc, font=font(F_SANSB, 26), fill=(30, 40, 70), anchor="rm")
+        yy = 490 + i * 60; d.line((60, yy - 28, w - 60, yy - 28), fill=(200, 205, 215), width=2)
+        d.text((60, yy), a, font=font(F_SANS, 28), fill=(90, 100, 120), anchor="lm"); d.text((280, yy), b, font=font(F_SANS, 28), fill=(30, 40, 70), anchor="lm")
+        d.text((w - 60, yy), cc, font=font(F_SANSB, 28), fill=(30, 40, 70), anchor="rm")
     scan(sc, 14)
-    c.alpha_composite(sc, (int(x0), int(y0)))
+    return sc
 
 def sc_banco(T):
     s0 = S("N10")
     c = Image.new("RGBA", (W, H), (30, 26, 40, 255))
-    z = 1.0 + .06 * ease_io((T - s0) / 6)
-    mon = scaled("monitor_grande", round(.9 * z, 3)); mx, my = (W - mon.width) // 2, 150 - int(40 * z)
-    c.alpha_composite(mon, (mx, my))
-    k = mon.width / 1580
-    pantalla_banco(c, T, mx + 100 * k + 6, my + 80 * k + 6, int(1380 * k - 12), int(820 * k - 12), s0)
+    sx, sy, sw, sh = monitor(c, T, s0)
+    c.alpha_composite(pantalla_banco(T).resize((sw, sh), Image.LANCZOS), (sx, sy))
     te = WT("N10", "entire")
-    if T >= te: stamp(c, T, te, "ENTIRE FORTUNE", 1450, 780, RED, -8, 90)
+    if T >= te: stamp(c, T, te, "ENTIRE FORTUNE", 760, 650, RED, -8, 70)
     return c
 
 def sc_papa(T):
-    s0 = S("Y01")
-    c = bg("bg_salon", T, s0, 1.12, 1.18, 9, .35, .5)
+    s0 = S("Y01"); z = zoom_at(T, s0, 1.12, 1.18, 9); fx = .228
+    c = bg("bg_salon", T, s0, 1.12, 1.18, 9, fx, .5)
+    x0, y0 = view(z, fx, .5)
     risa = T >= S("D02") - .05
     bounce = 10 * abs(math.sin(T * 14)) if risa else 0
-    put(c, "papa_risa" if risa else "papa_serio", 1340, 690 - bounce, 1.2)
-    put(c, "heroe_decidido", 330, 720, 1.25)
-    # taza: se cae al reírse
+    put(c, "heroe_decidido", 230, 760, 1.0)
+    put(c, "papa_risa" if risa else "papa_serio", 870, 740 - bounce, .98)
+    mx, my = (740 - x0) * z, (640 - y0) * z
     tr = S("D02") + .35
     if T >= tr + .25:
         ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-        sp = ease((T - tr - .25) / .5)
-        od.ellipse((860 - 120 * sp, 728 - 8 * sp, 900 + 130 * sp, 742 + 8 * sp), fill=(90, 51, 32, 235), outline=OL, width=4)
+        sp = ease((T - tr - .25) / .5); ty = my + 78
+        od.ellipse((mx - 20 - 110 * sp, ty - 7 - 7 * sp, mx + 20 + 120 * sp, ty + 7 + 7 * sp), fill=(90, 51, 32, 235), outline=OL, width=4)
         c.alpha_composite(ov)
-    if T < tr: put(c, "taza", 880, 652, .7)
+    if T < tr: put(c, "taza", mx, my, .62)
     else:
         u = clamp((T - tr) / .35)
-        put(c, "taza", 880 + 40 * ease(u), 652 + 40 * ease(u), .7, rot=-85 * ease(u))
-    if TL["D02"][3] is None and T >= S("D02"):
-        u = popscale(T, S("D02")); d = ImageDraw.Draw(c)
-        bx, by = 1340, 250
-        d.rounded_rectangle((bx - 330 * u, by - 80 * u, bx + 330 * u, by + 80 * u), 40, fill=WHITE, outline=OL, width=6)
-        if u > .6:
-            d.polygon([(bx - 40, by + 76), (bx + 10, by + 76), (bx - 60, by + 150)], fill=WHITE, outline=OL)
-            text(d, (bx, by), "SON... GO GET A JOB.", 58, OL)
-    if risa: etiqueta(c, T, S("D02") + .1, "HA HA HA", 1700, 430, YEL, OL, 40)
+        put(c, "taza", mx + 36 * ease(u), my + 36 * ease(u), .62, rot=-85 * ease(u))
+    if risa: etiqueta(c, T, S("D02") + .1, "HA HA HA", 880, 330, YEL, OL, 38)
     return c
 
-def crt_noche(c, T, cx, cy, s, screen_fn=None):
-    """CRT en la mesa de noche con resplandor."""
+def crt_noche(c, cx, cy, s):
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    od.ellipse((cx - 600 * s, cy - 380 * s, cx + 600 * s, cy + 380 * s), fill=CYAN + (70,))
+    od.ellipse((cx - 560 * s, cy - 380 * s, cx + 560 * s, cy + 380 * s), fill=CYAN + (70,))
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(90)))
-    put(c, "monitor_grande", cx, cy, s * .62)
 
 def sc_noche(T):
     s0 = S("N12")
-    c = bg("bg_noche", T, s0, 1.0, 1.1, 9, .5, .55)
-    on = T >= WT("N12", "turn")
+    c = bg("bg_noche", T, s0, 1.0, 1.08, 9, .4, .55)
+    on = T >= WT("N12", "turn"); s = .58
     shake = 4 * math.sin(T * 70) if T >= WT("N12", "fan") else 0
+    cx, cy = W / 2 + shake, 520
+    if on: crt_noche(c, cx, cy, 1.0)
+    put(c, "monitor_grande", cx, cy, s)
+    mw, mh = 1580 * s, 1060 * s
+    x0, y0 = cx - mw / 2 + 100 * s + 4, cy - mh / 2 + 80 * s + 4
+    scr = Image.new("RGBA", (int(1380 * s) - 8, int(820 * s) - 8), (0, 0, 0, 255)); sd = ImageDraw.Draw(scr)
     if on:
-        crt_noche(c, T, 960 + shake, 470, 1.0)
-        mw, mh = 1580 * .62, 1060 * .62
-        x0, y0 = 960 + shake - mw / 2 + 100 * .62 + 4, 470 - mh / 2 + 80 * .62 + 4
         boot = clamp((T - WT("N12", "turn")) / 1.4)
-        scr = Image.new("RGBA", (int(1380 * .62) - 8, int(820 * .62) - 8), (0, 0, 0, 255)); sd = ImageDraw.Draw(scr)
-        if boot < 1: sd.text((30, 30), "Starting Windows XP" + "." * int(T * 4 % 4), font=font(F_MONO, 30), fill=(200, 200, 200))
+        if boot < 1: sd.text((26, 26), "Starting Windows XP" + "." * int(T * 4 % 4), font=font(F_MONO, 26), fill=(200, 200, 200))
         else:
             sd.rectangle((0, 0, scr.width, scr.height), fill=(58, 110, 165)); sd.rectangle((0, scr.height - 26, scr.width, scr.height), fill=(36, 94, 220))
             sd.rounded_rectangle((0, scr.height - 26, 80, scr.height), 10, fill=(60, 160, 60)); sd.text((40, scr.height - 13), "start", font=font(F_SANSB, 16), fill=WHITE, anchor="mm")
-            scan(scr, 30)
+        scan(scr, 30)
         c.alpha_composite(scr, (int(x0), int(y0)))
     else:
-        put(c, "monitor_grande", 960, 470, .62); dark(c, 60)
+        c.alpha_composite(scr, (int(x0), int(y0))); dark(c, 60)
     if T >= WT("N12", "fan"):
         d = ImageDraw.Draw(c)
         for k2 in range(4):
             a = (T * 2.5 + k2 / 4) % 1
-            d.arc((1400 - 60 - a * 80, 640 - 60 - a * 80, 1400 + 60 + a * 80, 640 + 60 + a * 80), 220, 320, fill=(255, 255, 255, int(200 * (1 - a))), width=5)
-        stamp(c, T, WT("N12", "jet"), "VRRRRRRR", 1560, 380, CYAN, 8, 80)
+            d.arc((960 - 60 - a * 80, 700 - 60 - a * 80, 960 + 60 + a * 80, 700 + 60 + a * 80), 220, 320, fill=(255, 255, 255, int(200 * (1 - a))), width=5)
+        stamp(c, T, WT("N12", "jet"), "VRRRRRRR", 800, 250, CYAN, 8, 70)
     ta = WT("N12", "asleep")
-    if T >= ta and T < WT("N12", "turn"): etiqueta(c, T, ta, "EVERYONE'S ASLEEP", 960, 300, (40, 44, 70), WHITE, 34)
+    if ta <= T < WT("N12", "turn"): etiqueta(c, T, ta, "EVERYONE'S ASLEEP", W / 2, 260, (40, 44, 70), WHITE, 32)
     return c
 
 def ventana(sd, x, y, w, h, title):
@@ -606,136 +598,131 @@ def ventana(sd, x, y, w, h, title):
     sd.rounded_rectangle((x + w - 36, y + 7, x + w - 8, y + 33), 5, fill=(224, 80, 50), outline=WHITE, width=2)
     sd.text((x + w - 22, y + 20), "x", font=font(F_SANSB, 18), fill=WHITE, anchor="mm")
 
-def sc_pc(T):
-    """Primer plano del monitor: correo de la lista, descarga, Bitcoin v0.1 y el mensaje."""
-    s0 = S("N13")
-    gl = T >= WT("N16", "flickers") and T < S("N16") + 99
-    c = Image.new("RGBA", (W, H), (8, 10, 20, 255))
-    z = 1.0 + .04 * ease_io((T - s0) / 20)
-    mon = scaled("monitor_grande", round(.9 * z, 3)); mx, my = (W - mon.width) // 2, 150 - int(40 * z)
-    c.alpha_composite(mon, (mx, my))
-    k = mon.width / 1580; sw, sh = int(1380 * k - 12), int(820 * k - 12); sx, sy = int(mx + 100 * k + 6), int(my + 80 * k + 6)
+def pantalla_pc(T):
+    sw, sh = REF_SW, REF_SH
     sc = Image.new("RGBA", (sw, sh), (58, 110, 165, 255)); d = ImageDraw.Draw(sc)
-    d.rectangle((0, sh - 40, sw, sh), fill=(36, 94, 220)); d.rounded_rectangle((0, sh - 40, 120, sh), 14, fill=(60, 160, 60))
-    d.text((60, sh - 20), "start", font=font(F_SANSB, 24), fill=WHITE, anchor="mm")
+    d.rectangle((0, sh - 44, sw, sh), fill=(36, 94, 220)); d.rounded_rectangle((0, sh - 44, 130, sh), 14, fill=(60, 160, 60))
+    d.text((65, sh - 22), "start", font=font(F_SANSB, 26), fill=WHITE, anchor="mm")
     reloj = "11:52 PM" if T < S("N16") else "3:12 AM"
-    d.text((sw - 20, sh - 20), reloj, font=font(F_SANS, 22), fill=WHITE, anchor="rm")
+    d.text((sw - 20, sh - 22), reloj, font=font(F_SANS, 24), fill=WHITE, anchor="rm")
     if T < S("N14"):
-        ventana(d, 40, 30, sw - 80, sh - 110, "Inbox - cryptography@metzdowd.com - Mozilla Thunderbird")
-        rows = [("Satoshi Nakamoto", "Bitcoin v0.1 released", "1/8/2009"), ("J. Smith", "Re: digital cash ideas", "1/7/2009"),
-                ("Mailing list", "Weekly digest", "1/5/2009")]
+        ventana(d, 30, 24, sw - 60, sh - 90, "Inbox - cryptography@metzdowd.com")
+        rows = [("Satoshi Nakamoto", "Bitcoin v0.1 released", "1/8/2009"), ("J. Smith", "Re: digital cash ideas", "1/7/2009"), ("Mailing list", "Weekly digest", "1/5/2009")]
         for i, (a, b, cc) in enumerate(rows):
-            yy = 110 + i * 54; sel = i == 0 and T >= WT("N13", "bitcoin")
-            if sel: d.rectangle((50, yy - 24, sw - 50, yy + 24), fill=(49, 106, 197))
+            yy = 104 + i * 58; sel = i == 0 and T >= WT("N13", "bitcoin")
+            if sel: d.rectangle((40, yy - 26, sw - 40, yy + 26), fill=(49, 106, 197))
             col = WHITE if sel else (20, 20, 30)
-            d.text((70, yy), a, font=font(F_SANSB if i == 0 else F_SANS, 24), fill=col, anchor="lm")
-            d.text((380, yy), b, font=font(F_SANSB if i == 0 else F_SANS, 24), fill=col, anchor="lm")
-            d.text((sw - 70, yy), cc, font=font(F_SANS, 22), fill=col, anchor="rm")
+            d.text((60, yy), a, font=font(F_SANSB if i == 0 else F_SANS, 28), fill=col, anchor="lm")
+            d.text((400, yy), b, font=font(F_SANSB if i == 0 else F_SANS, 28), fill=col, anchor="lm")
+            d.text((sw - 60, yy), cc, font=font(F_SANS, 26), fill=col, anchor="rm")
         if T >= WT("N13", "bitcoin"):
-            yb = 300; d.line((50, yb - 20, sw - 50, yb - 20), fill=(160, 160, 160), width=2)
-            d.text((70, yb + 10), "From: Satoshi Nakamoto", font=font(F_SANSB, 24), fill=(20, 20, 30), anchor="lm")
-            d.text((70, yb + 50), "Subject: Bitcoin v0.1 released", font=font(F_SANSB, 24), fill=(20, 20, 30), anchor="lm")
-            d.text((70, yb + 110), "A new electronic cash system. No central server.", font=font(F_SANS, 24), fill=(40, 40, 50), anchor="lm")
-            d.text((70, yb + 150), "Download: bitcoin-0.1.0.rar", font=font(F_SANS, 24), fill=(0, 70, 200), anchor="lm")
+            yb = 300; d.line((40, yb - 22, sw - 40, yb - 22), fill=(160, 160, 160), width=2)
+            d.text((60, yb + 14), "From: Satoshi Nakamoto", font=font(F_SANSB, 30), fill=(20, 20, 30), anchor="lm")
+            d.text((60, yb + 60), "Subject: Bitcoin v0.1 released", font=font(F_SANSB, 30), fill=(20, 20, 30), anchor="lm")
+            d.text((60, yb + 130), "A new electronic cash system. No central server.", font=font(F_SANS, 30), fill=(40, 40, 50), anchor="lm")
+            d.text((60, yb + 180), "Download: bitcoin-0.1.0.rar", font=font(F_SANS, 30), fill=(0, 70, 200), anchor="lm")
     else:
-        ventana(d, 120, 40, sw - 240, sh - 130, "Bitcoin")
-        d.text((140, 102), "File   Settings   Help", font=font(F_SANS, 22), fill=(20, 20, 30), anchor="lm")
+        ventana(d, 80, 30, sw - 160, sh - 100, "Bitcoin")
+        d.text((100, 94), "File   Settings   Help", font=font(F_SANS, 26), fill=(20, 20, 30), anchor="lm")
         tg = WT("N14", "generate"); gen = T >= tg + .25
-        d.rectangle((150, 130, 172, 152), fill=WHITE, outline=(20, 20, 30), width=2)
-        if gen: d.line((153, 141, 160, 149, 170, 133), fill=(0, 140, 0), width=4)
-        d.text((186, 141), "Generate Coins", font=font(F_SANSB, 24), fill=(20, 20, 30), anchor="lm")
+        d.rectangle((110, 124, 138, 152), fill=WHITE, outline=(20, 20, 30), width=2)
+        if gen: d.line((114, 138, 123, 148, 136, 128), fill=(0, 140, 0), width=5)
+        d.text((152, 138), "Generate Coins", font=font(F_SANSB, 30), fill=(20, 20, 30), anchor="lm")
         tf = WT("N14", "50"); bal = 50 if T >= tf else 0
-        d.text((150, 200), "Balance:", font=font(F_SANS, 26), fill=(20, 20, 30), anchor="lm")
-        d.text((280, 200), f"{bal:.2f}", font=font(F_SANSB, int(34 * popscale(T, tf) if T >= tf else 34)), fill=(0, 120, 0) if bal else (20, 20, 30), anchor="lm")
-        d.text((150, 250), "Status: " + ("Generating..." if gen else "Idle"), font=font(F_SANS, 22), fill=(80, 80, 90), anchor="lm")
-        d.rectangle((150, 290, sw - 150, sh - 120), fill=WHITE, outline=(150, 150, 160))
+        d.text((110, 204), "Balance:", font=font(F_SANS, 32), fill=(20, 20, 30), anchor="lm")
+        d.text((265, 204), f"{bal:.2f}", font=font(F_SANSB, int(42 * popscale(T, tf) if T >= tf else 42)), fill=(0, 120, 0) if bal else (20, 20, 30), anchor="lm")
+        d.text((110, 258), "Status: " + ("Generating..." if gen else "Idle"), font=font(F_SANS, 26), fill=(80, 80, 90), anchor="lm")
+        d.rectangle((110, 296, sw - 110, sh - 90), fill=WHITE, outline=(150, 150, 160))
         if T >= tf:
-            d.text((170, 320), "Date            Description              Credit", font=font(F_MONO, 20), fill=(80, 80, 90), anchor="lm")
-            d.text((170, 360), "1/9/2009 23:58  Generated (50 matures) +50.00", font=font(F_MONO, 20), fill=(20, 20, 30), anchor="lm")
-        if T < tg + .6 and T >= tg - .4:   # cursor que hace clic
-            u = ease((T - tg + .4) / .5); cx, cy = 400 - 240 * u, 300 - 160 * u
-            d.polygon([(cx, cy), (cx, cy + 34), (cx + 9, cy + 26), (cx + 16, cy + 40), (cx + 22, cy + 37), (cx + 15, cy + 24), (cx + 26, cy + 24)], fill=WHITE, outline=(0, 0, 0))
+            d.text((130, 330), "Date             Description        Credit", font=font(F_MONO, 24), fill=(80, 80, 90), anchor="lm")
+            d.text((130, 372), "1/9/2009 23:58   Generated          +50.00", font=font(F_MONO, 24), fill=(20, 20, 30), anchor="lm")
+        if tg - .4 <= T < tg + .6:
+            u = ease((T - tg + .4) / .5); cx, cy = 400 - 270 * u, 330 - 190 * u
+            d.polygon([(cx, cy), (cx, cy + 40), (cx + 10, cy + 31), (cx + 19, cy + 48), (cx + 26, cy + 44), (cx + 18, cy + 28), (cx + 31, cy + 28)], fill=WHITE, outline=(0, 0, 0))
         if T >= S("N16"):
             tm = WT("N16", "appears")
             if T >= tm:
-                u = popscale(T, tm, .3)
-                bw, bh = int(720 * u), int(300 * u)
+                u = popscale(T, tm, .3); bw, bh = int(900 * u), int(330 * u)
                 bx, by = sw // 2 - bw // 2, sh // 2 - bh // 2 - 20
                 if bw > 40:
                     ventana(d, bx, by, bw, bh, "New message" if u > .7 else "")
                     if u > .9:
-                        d.text((bx + 30, by + 80), "From: (unknown)", font=font(F_SANS, 22), fill=(110, 110, 120), anchor="lm")
+                        d.text((bx + 30, by + 84), "From: (unknown)", font=font(F_SANS, 28), fill=(110, 110, 120), anchor="lm")
                         msg = "I know where you came from."
                         t17 = S("N17"); n = int(len(msg) * clamp((T - t17 + .1) / max(.3, E("N17") - t17)))
-                        d.text((bx + 30, by + 170), msg[:n] + ("|" if int(T * 3) % 2 and n < len(msg) else ""), font=font(F_SANSB, 40), fill=(150, 10, 10), anchor="lm")
+                        d.text((bx + 30, by + 190), msg[:n] + ("|" if int(T * 3) % 2 and n < len(msg) else ""), font=font(F_SANSB, 52), fill=(150, 10, 10), anchor="lm")
     scan(sc, 20)
-    if gl:   # glitch del 3:12 (sin destellos rojos)
+    if WT("N16", "flickers") <= T < WT("N16", "appears") + .2:
         g = int(T * 30)
-        if g % 5 in (0, 1) and T < WT("N16", "appears") + .2:
+        if g % 5 in (0, 1):
             arr = np.array(sc); sh_ = (g * 37) % 40 - 20
             for band in range(6):
                 y1 = (g * 53 + band * 97) % sh; y2 = min(sh, y1 + 18)
                 arr[y1:y2] = np.roll(arr[y1:y2], sh_ * (band + 1), axis=1)
             sc = Image.fromarray(arr)
-    c.alpha_composite(sc, (sx, sy))
+    return sc
+
+def sc_pc(T):
+    c = Image.new("RGBA", (W, H), (8, 10, 20, 255))
+    sx, sy, sw, sh = monitor(c, T, S("N13"))
+    c.alpha_composite(pantalla_pc(T).resize((sw, sh), Image.LANCZOS), (sx, sy))
     return c
 
 def sc_cara(T, nombre, t0, luz=True, latido=False):
     c = bg("bg_noche", T, t0, 1.35, 1.45, 5, .5, .5).filter(ImageFilter.GaussianBlur(6))
     pul = 1 + (.025 * max(0, math.sin(T * 2 * PI_ * 1.1)) ** 8 if latido else 0)
-    put(c, nombre, W / 2, 720, 1.3 * pul)
+    put(c, nombre, W / 2, 760, 1.25 * pul)
     if luz:
         ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-        od.ellipse((W / 2 - 700, 200, W / 2 + 700, 1300), fill=CYAN + (60,))
+        od.ellipse((W / 2 - 520, 250, W / 2 + 520, 1300), fill=CYAN + (60,))
         c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(80)))
     if latido: c.alpha_composite(VIG_HARD)
     return c
 
 def sc_decidido(T):
     c = sc_cara(T, "heroe_decidido", S("N15"))
-    stamp(c, T, WT("N15", "missing"), "NOT THIS TIME", 1500, 300, ORG, -8, 90)
+    stamp(c, T, WT("N15", "missing"), "NOT THIS TIME", 800, 300, ORG, -8, 64)
     return c
 
 def sc_miedo(T):
     c = sc_cara(T, "heroe_miedo", S("N18"), True, True)
-    d = ImageDraw.Draw(c)
-    if T >= WT("N18", "nobody"):
-        etiqueta(c, T, WT("N18", "nobody"), "NOBODY KNOWS.", 380, 420, WHITE, OL, 40)
-    if T >= WT("N18", "nobody", 2):
-        etiqueta(c, T, WT("N18", "nobody", 2), "NOBODY CAN KNOW.", 1540, 420, RED, WHITE, 40)
+    if T >= WT("N18", "nobody"): etiqueta(c, T, WT("N18", "nobody"), "NOBODY KNOWS.", 220, 300, WHITE, OL, 32)
+    if T >= WT("N18", "nobody", 2): etiqueta(c, T, WT("N18", "nobody", 2), "NOBODY CAN KNOW.", 850, 300, RED, WHITE, 32)
     return c
 
 def sc_voto(T):
     s0 = S("N19")
     c = Image.new("RGBA", (W, H), (12, 10, 24, 255)); d = ImageDraw.Draw(c)
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    od.ellipse((-200, 100, 900, 1000), fill=(60, 140, 255, 60)); od.ellipse((1020, 100, 2120, 1000), fill=(255, 80, 80, 50))
-    c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(120)))
-    text(d, (W / 2, 120), "WHAT DO YOU DO?", 96 * popscale(T, s0), WHITE, stroke=8)
+    od.ellipse((-300, 150, 600, 950), fill=(60, 140, 255, 60)); od.ellipse((480, 150, 1380, 950), fill=(255, 80, 80, 50))
+    c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(110)))
+    text(d, (W / 2, 150), "WHAT DO YOU DO?", 92 * popscale(T, s0), WHITE, stroke=8)
     ta, tb = WT("N19", "a"), WT("N19", "b")
-    for (t, lab, sub, cx, col) in ((ta, "A", "REPLY", 500, (60, 140, 255)), (tb, "B", "DELETE IT", 1420, (255, 90, 90))):
+    for (t, lab, sub, l2, cx, col) in ((ta, "A", "REPLY", "find out who knows\nyour secret", 280, (60, 140, 255)),
+                                       (tb, "B", "DELETE IT", "keep mining like\nnothing happened", 800, (255, 90, 90))):
         if T < t: continue
-        u = popscale(T, t); w, h = 700 * u, 520 * u
-        panel(c, (cx - w / 2, 560 - h / 2, cx + w / 2, 560 + h / 2), (24, 22, 44), 245, 36, col, 8)
+        u = popscale(T, t); w, h = 470 * u, 540 * u
+        panel(c, (cx - w / 2, 540 - h / 2, cx + w / 2, 540 + h / 2), (24, 22, 44), 245, 36, col, 8)
         if u > .6:
-            d.ellipse((cx - 90, 360, cx + 90, 540), fill=col, outline=WHITE, width=6)
-            text(d, (cx, 450), lab, 130, WHITE)
-            text(d, (cx, 640), sub, 84, WHITE)
-            text(d, (cx, 730), "find out who knows your secret" if lab == "A" else "keep mining like nothing happened", 30, GRIS, f=F_UI)
+            d.ellipse((cx - 85, 330, cx + 85, 500), fill=col, outline=WHITE, width=6)
+            text(d, (cx, 415), lab, 120, WHITE)
+            text(d, (cx, 585), sub, 72, WHITE)
+            d.multiline_text((cx, 690), l2, font=font(F_UI, 28), fill=GRIS, anchor="mm", align="center", spacing=8)
     tc = WT("N20", "comment")
     if T >= tc:
         u = popscale(T, tc)
-        d.rounded_rectangle((W / 2 - 430 * u, 900 - 64 * u, W / 2 + 430 * u, 900 + 64 * u), 30, fill=YEL, outline=OL, width=6)
+        d.rounded_rectangle((W / 2 - 400 * u, 920 - 64 * u, W / 2 + 400 * u, 920 + 64 * u), 30, fill=YEL, outline=OL, width=6)
         if u > .6:
-            text(d, (W / 2 - 30, 902), "COMMENT  A  OR  B", 70, OL)
+            text(d, (W / 2 - 30, 922), "COMMENT  A  OR  B", 66, OL)
             bob = 8 * math.sin(T * 6)
-            d.polygon([(W / 2 + 330, 880 + bob), (W / 2 + 380, 880 + bob), (W / 2 + 355, 925 + bob)], fill=OL)
+            d.polygon([(W / 2 + 300, 900 + bob), (W / 2 + 350, 900 + bob), (W / 2 + 325, 945 + bob)], fill=OL)
     return c
 
 SCENES = [(0.0, sc_hook), (S("N02") - .35, sc_alarma), (S("N03") - .1, sc_cuarto), (S("N04") - .15, sc_movil),
           (S("N05") - .2, sc_espejo), (S("N06") - .2, sc_salon_tv), (S("N07") - .25, sc_satoshi), (S("N09") - .2, sc_precio),
           (S("N10") - .2, sc_banco), (S("Y01") - .25, sc_papa), (S("N12") - .5, sc_noche), (S("N13") - .25, sc_pc),
           (S("N15") - .2, sc_decidido), (S("N16") - .3, sc_pc), (S("N18") - .2, sc_miedo), (S("N19") - .3, sc_voto)]
+
 TW = .32
 
 def hblur(im, k):

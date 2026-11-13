@@ -85,6 +85,9 @@ def bg_bedroom():
     b += crt(1300, 244, 0.95, "#0e1a2a")
     b += cel('<rect x="1330" y="606" width="330" height="34" rx="6"/>', "#e6dec6", "#bfb497", None, -6, -2, 5)
     for i in range(10): b += f'<rect x="{1342+i*31}" y="614" width="24" height="18" rx="3" fill="#cfc6ac"/>'
+    # móvil de tapa cerrado sobre la mesa
+    b += cel('<rect x="1236" y="596" width="56" height="44" rx="10"/>', "#3b3f4e", "#24272f", "#5a6070", -8, -3, 5)
+    b += f'<rect x="1252" y="606" width="24" height="10" rx="3" fill="#9fd0ff" stroke="{OL}" stroke-width="2"/>'
     # torre del PC
     b += cel('<rect x="1690" y="420" width="130" height="220" rx="12"/>', "#e6dec6", "#bfb497", "#f5efdc", -14, -4, 6)
     b += f'<rect x="1712" y="450" width="86" height="16" rx="4" fill="#bfb497" stroke="{OL}" stroke-width="3"/><circle cx="1755" cy="600" r="12" fill="#cfc6ac" stroke="{OL}" stroke-width="4"/>'
