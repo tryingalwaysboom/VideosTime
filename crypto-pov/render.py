@@ -83,8 +83,10 @@ def timeline():
         if lid in CLIPS:
             p = os.path.join(AUD, CLIPS[lid])
             if os.path.exists(p):
-                d = dur_audio(p); ww = whisper(CLIPS[lid]) or []
-                words = [(w["p"], t + w["inicio"], t + w["fin"]) for w in ww]
+                d = dur_audio(p); ww = whisper(CLIPS[lid])
+                if ww: words = [(w["p"], t + w["inicio"], t + w["fin"]) for w in ww]
+                else:
+                    tw = txt.split(); words = [(w, t + d * i / len(tw), t + d * (i + 1) / len(tw)) for i, w in enumerate(tw)]
                 tl[lid] = (t, t + d, 0.0, CLIPS[lid], words)
             else:
                 d = HUECO_SIN_AUDIO[lid]; tw = txt.split(); words = []

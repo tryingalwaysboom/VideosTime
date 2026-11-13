@@ -7,10 +7,10 @@ import render as R
 SR = 44100
 AUD = R.AUD
 
-def load(name):
+def load(name, af=None):
     p = os.path.join(AUD, name)
     if not os.path.exists(p): return None
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", p, "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"], capture_output=True).stdout
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", p] + (["-af", af] if af else []) + ["-f", "f32le", "-ac", "1", "-ar", str(SR), "-"], capture_output=True).stdout
     return np.frombuffer(raw, np.float32).copy()
 
 def fade(x, ms=12):
@@ -27,6 +27,8 @@ narr = load("narr.mp3")
 for lid, (t0, t1, s0, src, ws) in R.TL.items():
     if src == "narr.mp3":
         add(fade(narr[int(s0 * SR):int((s0 + t1 - t0) * SR)].copy()), t0)
+    elif src == "tv.mp3":   # suena a tele de tubo
+        add(fade(load(src, "highpass=f=300,lowpass=f=3400,aecho=0.8:0.5:18:0.2")), t0, .9)
     elif src:
         add(fade(load(src)), t0, 1.0)
 
