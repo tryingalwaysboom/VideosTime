@@ -34,10 +34,10 @@ for lid, (t0, t1, s0, src, ws) in R.TL.items():
 
 voz_rms = np.sqrt(np.mean(out[out != 0] ** 2))
 # efectos (sólo los que existan en descargas/crypto_ep1), ganancias por debajo de la voz
-SFX = [("sfx_whoosh.mp3", R.WT("N01", "2009") - .6, .14), ("sfx_alarm.mp3", R.S("N02") - .3, .13), ("sfx_alarm.mp3", R.S("N02") + 1.6, .10),
-       ("sfx_steps.mp3", R.WT("N05", "run"), .14), ("sfx_spill.mp3", R.S("D02") + .4, .35),
-       ("sfx_pc.mp3", R.WT("N12", "turn"), .28), ("sfx_click.mp3", R.WT("N14", "generate") + .2, .3),
-       ("sfx_glitch.mp3", R.WT("N16", "flickers"), .32), ("sfx_heart.mp3", R.S("N18") - .3, .35)]
+SFX = [("sfx_whoosh.mp3", R.WT("N01", "2009") - .6, .095), ("sfx_alarm.mp3", R.S("N02") - .3, .17), ("sfx_alarm.mp3", R.S("N02") + 1.6, .13),
+       ("sfx_steps.mp3", R.WT("N05", "run"), .45), ("sfx_spill.mp3", R.S("D02") + .4, .35),
+       ("sfx_pc.mp3", R.WT("N12", "turn"), .62), ("sfx_click.mp3", R.WT("N14", "generate") + .2, .3),
+       ("sfx_glitch.mp3", R.WT("N16", "flickers"), .25), ("sfx_heart.mp3", R.S("N18") - .3, .21)]
 MAXDUR = {"sfx_spill.mp3": 2.2, "sfx_pc.mp3": 2.0}
 for name, t, g in SFX:
     x = load(name)
