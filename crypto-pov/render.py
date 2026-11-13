@@ -10,7 +10,7 @@ from guion import LINEAS, CLIPS, HUECO_SIN_AUDIO
 HERE = os.path.dirname(os.path.abspath(__file__))
 W, H, FPS = 1080, 1080, 30
 BW, BH = 1920, 1080   # tamaño de los fondos dibujados (a 1x)
-COLD = 3.4            # arranque en frío (gancho mudo que explica la serie)
+COLD = 2.5            # arranque en frío (gancho mudo que explica la serie)
 LAY = os.path.join(HERE, "layers"); AUD = os.path.join(HERE, "..", "descargas", "crypto_ep1"); TMP = os.path.join(HERE, "tmp")
 os.makedirs(TMP, exist_ok=True)
 FONTS = os.path.join(HERE, "..", "taller-pov", "fonts")
@@ -335,9 +335,9 @@ def cold_base(T):
     c.alpha_composite(mon, (mx, my)); k = mon.width / 1580
     sx, sy, sw, sh = int(mx + 100 * k + 4), int(my + 80 * k + 4), int(1380 * k - 8), int(820 * k - 8)
     sc = pantalla_pc(E("N17") + 1.5)
-    beat = [0.0, .55, 1.25, 1.75, 2.45]
+    beat = [.3, .95, 1.55]
     g = int(T * 30)
-    if any(0 < T - b < .12 for b in beat) or 1.3 < T < 1.5:
+    if any(0 < T - b < .12 for b in beat) or .32 < T < .5:
         arr = np.array(sc); sh_ = (g * 37) % 40 - 20
         for band in range(6):
             y1 = (g * 53 + band * 97) % REF_SH; y2 = min(REF_SH, y1 + 18)
@@ -345,8 +345,8 @@ def cold_base(T):
         sc = Image.fromarray(arr)
     sc = sc.resize((sw, sh), Image.LANCZOS)
     # reflejo de alguien detrás de ti en la pantalla (aparece tras el zoom out)
-    if T >= 1.55:
-        a = .5 * ease((T - 1.55) / .5) * (.85 + .15 * math.sin(T * 23))
+    if T >= .7:
+        a = .5 * ease((T - .7) / .4) * (.85 + .15 * math.sin(T * 23))
         fig = scaled("nakamoto", .55).copy(); fig.putalpha(fig.getchannel("A").point(lambda v: int(v * a)))
         sc.alpha_composite(fig, (int(sw * .62), int(sh - fig.height * .8)))
     c.alpha_composite(sc, (sx, sy))
@@ -361,9 +361,9 @@ def sc_cold(T):
     c, (sx, sy, sw, sh), beat = cold_base(T)
     # cámara: muy cerca del texto rojo, se acerca despacio; a 1.25s tirón hacia atrás
     fx_, fy_ = sx + sw * .5, sy + sh * .48
-    if T < 1.25: zc = 1.38 + .22 * ease_io(T / 1.25)
-    elif T < 1.55: zc = 1.6 - .57 * ease((T - 1.25) / .3)
-    else: zc = 1.03 + .05 * (T - 1.55)
+    if T < .3: zc = 1.45 + .1 * T / .3
+    elif T < .55: zc = 1.55 - .52 * ease((T - .3) / .25)
+    else: zc = 1.03 + .05 * (T - .55)
     cw, chh = W / zc, H / zc
     x0 = min(max(0, fx_ - cw / 2), W - cw); y0 = min(max(0, fy_ - chh / 2), H - chh)
     c = c.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + chh))
@@ -377,18 +377,18 @@ def sc_cold(T):
     d = ImageDraw.Draw(c)
     d.rounded_rectangle((W / 2 - 70, 26, W / 2 + 70, 70), 14, fill=ORG)
     d.text((W / 2, 48), "PART 1", font=font(F_ANTON, 32), fill=OL, anchor="mm")
-    hit = 1 + .14 * math.sin(clamp((T - 1.25) / .25) * PI_) if T >= 1.25 else 1
+    hit = 1 + .14 * math.sin(clamp((T - .3) / .25) * PI_) if T >= .3 else 1
     text(d, (W / 2, 128), "POV: YOU WAKE UP IN 2009", 76 * hit, WHITE, stroke=6)
     text(d, (W / 2, 212), "KNOWING BITCOIN'S FUTURE", 76 * hit, ORG, stroke=6)
     pul = 1 + .05 * pulse
     bw, bh = 470 * pul, 52 * pul
     d.rounded_rectangle((W / 2 - bw, 935 - bh, W / 2 + bw, 935 + bh), 30, fill=YEL, outline=OL, width=6)
     text(d, (W / 2, 937), "YOU DECIDE WHAT HAPPENS NEXT", 60 * pul, OL)
-    if 1.75 <= T < 2.6: etiqueta(c, T, 1.75, "SOMEONE IS WATCHING", W / 2, 820, (20, 18, 34), WHITE, 34)
-    if T >= 2.6:
-        dark(c, 185 * ease((T - 2.6) / .2))
-        stamp(c, T, 2.6, "19 HOURS EARLIER...", W / 2, 560, YEL, -4, 84)
-    amp = sum(14 * math.exp(-(T - ti) * 9) for ti in (1.25, 2.6) if T >= ti) + 3 * pulse
+    if .9 <= T < 1.8: etiqueta(c, T, .9, "SOMEONE IS WATCHING", W / 2, 820, (20, 18, 34), WHITE, 34)
+    if T >= 1.8:
+        dark(c, 185 * ease((T - 1.8) / .15))
+        stamp(c, T, 1.8, "19 HOURS EARLIER...", W / 2, 560, YEL, -4, 84)
+    amp = sum(14 * math.exp(-(T - ti) * 9) for ti in (.3, 1.8) if T >= ti) + 3 * pulse
     if amp > .8:
         z = 1.03; cc = c.resize((int(W * z), int(H * z)), Image.BILINEAR)
         ox = (cc.width - W) / 2 + amp * math.sin(T * 95); oy = (cc.height - H) / 2 + amp * math.cos(T * 71)
