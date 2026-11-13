@@ -153,6 +153,10 @@ def heroe(expr="shock", luz=None):
         b += '<path d="M280 266 Q305 274 332 268 M372 268 Q398 274 424 266" stroke="#2f1d15" stroke-width="11" fill="none" stroke-linecap="round"/>'
         b += f'<path d="M326 392 Q338 382 351 390 Q364 382 378 392" stroke="{OL}" stroke-width="6" fill="none" stroke-linecap="round"/>'
         b += '<path d="M462 268 Q474 296 464 314 Q452 296 462 268Z" fill="#9fdcff" stroke="#1d1630" stroke-width="3"/>'
+    elif expr == "dormido":
+        b += f'<path d="M286 302 Q305 316 326 302 M378 302 Q398 316 418 302" stroke="{OL}" stroke-width="7" fill="none" stroke-linecap="round"/>'
+        b += '<path d="M280 274 Q305 268 332 274 M372 274 Q398 268 424 274" stroke="#2f1d15" stroke-width="10" fill="none" stroke-linecap="round"/>'
+        b += f'<ellipse cx="352" cy="390" rx="12" ry="9" fill="#6a2a2a" stroke="{OL}" stroke-width="5"/>'
     else:  # decidido
         b += eye(305, 296, 13) + eye(398, 296, 13)
         b += '<path d="M276 262 Q305 254 334 268 M370 268 Q398 254 428 262" stroke="#2f1d15" stroke-width="11" fill="none" stroke-linecap="round"/>'
@@ -168,6 +172,7 @@ def heroe(expr="shock", luz=None):
 def heroe_shock(): return heroe("shock")
 def heroe_miedo(): return heroe("miedo")
 def heroe_decidido(): return heroe("decidido")
+def heroe_dormido(): return heroe("dormido")
 
 
 def bg_espejo():
@@ -301,7 +306,7 @@ def btc_coin():
 
 
 LAYERS = {"bg_bedroom": bg_bedroom, "alarma": alarma, "movil": movil, "heroe_shock": heroe_shock,
-          "heroe_miedo": heroe_miedo, "heroe_decidido": heroe_decidido, "bg_espejo": bg_espejo, "bg_salon": bg_salon,
+          "heroe_miedo": heroe_miedo, "heroe_decidido": heroe_decidido, "heroe_dormido": heroe_dormido, "bg_espejo": bg_espejo, "bg_salon": bg_salon,
           "papa_serio": papa_serio, "papa_risa": papa_risa, "taza": taza, "bg_noche": bg_noche,
           "monitor_grande": monitor_grande, "nakamoto": nakamoto, "btc_coin": btc_coin}
 

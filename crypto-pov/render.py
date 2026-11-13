@@ -326,68 +326,142 @@ def draw_hud(canvas, T):
     d.text((786, y2 + 13), money(int(340 * ease((T - t_c) / .8))) if hc else "?", font=font(F_ANTON, 32 * pop(t_c)), fill=WHITE if hc else GRIS, anchor="lm")
 
 # ---------------------------------------------------------------- escenas (1080x1080)
-def sc_cold(T):
-    """Gancho mudo: el clímax (el mensaje) + texto que explica la serie desde el fotograma 0."""
-    c = Image.new("RGBA", (W, H), (8, 10, 20, 255))
-    z = 1.08 + .05 * T / COLD
-    mon = scaled("monitor_grande", round(.66 * z, 3)); mx, my = (W - mon.width) // 2, 300 - int(20 * z)
+def cold_base(T):
+    """Monitor a las 3:12 con el mensaje, en una habitación a oscuras (sin texto encima)."""
+    c = Image.new("RGBA", (W, H), (5, 6, 14, 255))
+    mon = scaled("monitor_grande", .66); mx, my = (W - mon.width) // 2, 290
     c.alpha_composite(mon, (mx, my)); k = mon.width / 1580
     sx, sy, sw, sh = int(mx + 100 * k + 4), int(my + 80 * k + 4), int(1380 * k - 8), int(820 * k - 8)
     sc = pantalla_pc(E("N17") + 1.5)
+    beat = [0.0, .55, 1.25, 1.75, 2.45]
     g = int(T * 30)
-    if .15 < T < .5 or 1.6 < T < 1.8:
+    if any(0 < T - b < .12 for b in beat) or 1.3 < T < 1.5:
         arr = np.array(sc); sh_ = (g * 37) % 40 - 20
         for band in range(6):
             y1 = (g * 53 + band * 97) % REF_SH; y2 = min(REF_SH, y1 + 18)
             arr[y1:y2] = np.roll(arr[y1:y2], sh_ * (band + 1), axis=1)
         sc = Image.fromarray(arr)
-    c.alpha_composite(sc.resize((sw, sh), Image.LANCZOS), (sx, sy))
+    sc = sc.resize((sw, sh), Image.LANCZOS)
+    # reflejo de alguien detrás de ti en la pantalla (aparece tras el zoom out)
+    if T >= 1.55:
+        a = .5 * ease((T - 1.55) / .5) * (.85 + .15 * math.sin(T * 23))
+        fig = scaled("nakamoto", .55).copy(); fig.putalpha(fig.getchannel("A").point(lambda v: int(v * a)))
+        sc.alpha_composite(fig, (int(sw * .62), int(sh - fig.height * .8)))
+    c.alpha_composite(sc, (sx, sy))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    od.ellipse((W / 2 - 600, sy - 200, W / 2 + 600, sy + sh + 200), fill=CYAN + (40,))
+    od.ellipse((W / 2 - 620, sy - 220, W / 2 + 620, sy + sh + 220), fill=CYAN + (55,))
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(90)))
+    return c, (sx, sy, sw, sh), beat
+
+def sc_cold(T):
+    """Gancho: suspense. Primerísimo plano del mensaje que se acerca lento con el latido, tirón atrás,
+    alguien se refleja en la pantalla, '19 HOURS EARLIER'. La premisa está escrita desde el fotograma 0."""
+    c, (sx, sy, sw, sh), beat = cold_base(T)
+    # cámara: muy cerca del texto rojo, se acerca despacio; a 1.25s tirón hacia atrás
+    fx_, fy_ = sx + sw * .5, sy + sh * .48
+    if T < 1.25: zc = 1.38 + .22 * ease_io(T / 1.25)
+    elif T < 1.55: zc = 1.6 - .57 * ease((T - 1.25) / .3)
+    else: zc = 1.03 + .05 * (T - 1.55)
+    cw, chh = W / zc, H / zc
+    x0 = min(max(0, fx_ - cw / 2), W - cw); y0 = min(max(0, fy_ - chh / 2), H - chh)
+    c = c.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + chh))
+    # latido: la viñeta se cierra en cada golpe (sin destellos de color)
+    pulse = sum(math.exp(-(T - b) * 7) for b in beat if T >= b)
     c.alpha_composite(VIG)
-    # franja superior con la premisa (legible sin sonido, desde el primer fotograma)
-    top = Image.new("RGBA", (W, H), (0, 0, 0, 0)); td = ImageDraw.Draw(top)
-    for y in range(0, 300): td.line((0, y, W, y), fill=(6, 5, 14, int(250 * (1 - max(0, y - 230) / 70))))
-    c.alpha_composite(top)
+    if pulse > .05:
+        v = VIG_HARD.copy(); v.putalpha(v.getchannel("A").point(lambda x: int(x * min(1, .55 * pulse))))
+        c.alpha_composite(v)
+    c.alpha_composite(_cold_top())
     d = ImageDraw.Draw(c)
     d.rounded_rectangle((W / 2 - 70, 26, W / 2 + 70, 70), 14, fill=ORG)
     d.text((W / 2, 48), "PART 1", font=font(F_ANTON, 32), fill=OL, anchor="mm")
-    text(d, (W / 2, 128), "POV: YOU WAKE UP IN 2009", 76, WHITE, stroke=6)
-    text(d, (W / 2, 212), "KNOWING BITCOIN'S FUTURE", 76, ORG, stroke=6)
-    # abajo: es interactivo
-    pul = 1 + .03 * math.sin(T * 6)
+    hit = 1 + .14 * math.sin(clamp((T - 1.25) / .25) * PI_) if T >= 1.25 else 1
+    text(d, (W / 2, 128), "POV: YOU WAKE UP IN 2009", 76 * hit, WHITE, stroke=6)
+    text(d, (W / 2, 212), "KNOWING BITCOIN'S FUTURE", 76 * hit, ORG, stroke=6)
+    pul = 1 + .05 * pulse
     bw, bh = 470 * pul, 52 * pul
     d.rounded_rectangle((W / 2 - bw, 935 - bh, W / 2 + bw, 935 + bh), 30, fill=YEL, outline=OL, width=6)
-    text(d, (W / 2, 937), "YOU DECIDE WHAT HAPPENS NEXT", 60, OL)
-    if T >= 2.3:
-        dark(c, 170 * ease((T - 2.3) / .2))
-        stamp(c, T, 2.3, "19 HOURS EARLIER...", W / 2, 560, YEL, -4, 84)
+    text(d, (W / 2, 937), "YOU DECIDE WHAT HAPPENS NEXT", 60 * pul, OL)
+    if 1.75 <= T < 2.6: etiqueta(c, T, 1.75, "SOMEONE IS WATCHING", W / 2, 820, (20, 18, 34), WHITE, 34)
+    if T >= 2.6:
+        dark(c, 185 * ease((T - 2.6) / .2))
+        stamp(c, T, 2.6, "19 HOURS EARLIER...", W / 2, 560, YEL, -4, 84)
+    amp = sum(14 * math.exp(-(T - ti) * 9) for ti in (1.25, 2.6) if T >= ti) + 3 * pulse
+    if amp > .8:
+        z = 1.03; cc = c.resize((int(W * z), int(H * z)), Image.BILINEAR)
+        ox = (cc.width - W) / 2 + amp * math.sin(T * 95); oy = (cc.height - H) / 2 + amp * math.cos(T * 71)
+        c = cc.crop((int(ox), int(oy), int(ox) + W, int(oy) + H))
     return c
 
+@lru_cache(1)
+def _cold_top():
+    top = Image.new("RGBA", (W, H), (0, 0, 0, 0)); td = ImageDraw.Draw(top)
+    for y in range(0, 300): td.line((0, y, W, y), fill=(6, 5, 14, int(250 * (1 - max(0, y - 230) / 70))))
+    return top
 
 def sc_hook(T):
+    """'You go to sleep in 2026' (te ves dormido con el móvil) -> túnel del tiempo con años volando -> 2009."""
+    t09 = WT("N01", "2009"); tb = WT("N01", "bitcoin"); s0 = COLD
+    if T < t09 - .25:
+        c = bg("bg_noche", T, s0, 1.25, 1.45, 3, .5, .6).filter(ImageFilter.GaussianBlur(3))
+        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+        od.ellipse((W / 2 - 420, 380, W / 2 + 420, 1200), fill=(150, 170, 255, 70))
+        c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(70)))
+        z = 1.0 + .12 * ease_io((T - s0) / 2.2)
+        put(c, "heroe_dormido", W / 2, 840 + 20 * math.sin(T * 1.6), 1.15 * z)
+        d = ImageDraw.Draw(c)
+        for i in range(3):   # zzz que suben
+            ph = (T * .6 + i / 3) % 1
+            text(d, (W / 2 + 220 + ph * 90, 430 - ph * 200), "Z", 40 + 30 * ph, (230, 235, 255), stroke=4)
+        # móvil de 2026 brillando en la mano
+        py = 640 + 6 * math.sin(T * 2)
+        gl2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl2).ellipse((W / 2 - 460, py - 60, W / 2 - 200, py + 240), fill=(120, 170, 255, 90))
+        c.alpha_composite(gl2.filter(ImageFilter.GaussianBlur(40))); d = ImageDraw.Draw(c)
+        d.rounded_rectangle((W / 2 - 380, py, W / 2 - 280, py + 170), 18, fill=(20, 22, 30), outline=OL, width=5)
+        d.rounded_rectangle((W / 2 - 372, py + 12, W / 2 - 288, py + 158), 12, fill=(120, 170, 255))
+        d.text((W / 2 - 330, py + 60), "11:59", font=font(F_ANTON, 26), fill=WHITE, anchor="mm")
+        d.text((W / 2 - 330, py + 95), "2026", font=font(F_UI, 16), fill=WHITE, anchor="mm")
+        etiqueta(c, T, s0 + .1, "YOU GO TO SLEEP", W / 2, 230, CYAN, OL, 40)
+        u = popscale(T, WT("N01", "2026"))
+        text(d, (W / 2, 340), "2026", 120 * max(u, .01), WHITE, stroke=8) if T >= WT("N01", "2026") else None
+        return c
+    # túnel del tiempo
     c = Image.new("RGBA", (W, H), (10, 9, 22, 255))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
-    for i in range(14):
-        ph = ((T * .55 + i / 14) % 1); r = 40 + ph ** 2 * 1100
-        a = int(150 * math.sin(ph * PI_))
-        od.ellipse((W / 2 - r * 1.2, H / 2 - r, W / 2 + r * 1.2, H / 2 + r), outline=ORG + (a,) if i % 2 else CYAN + (a // 2,), width=4)
+    sp = 2.2 if T < t09 + .8 else .8
+    for i in range(18):
+        ph = ((T * sp + i / 18) % 1); r = 30 + ph ** 2 * 1100
+        a = int(190 * math.sin(ph * PI_))
+        od.ellipse((W / 2 - r * 1.2, H / 2 - r, W / 2 + r * 1.2, H / 2 + r), outline=ORG + (a,) if i % 2 else CYAN + (a,), width=6)
     c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(2)))
-    t09 = WT("N01", "2009")
-    if T < t09: yr = "2026"
-    else: yr = str(int(round(2026 - 17 * ease(clamp((T - t09) / .7)))))
+    u2 = clamp((T - (t09 - .25)) / .9)
+    yr_now = int(round(2026 - 17 * ease(u2)))
+    # tarjetas de calendario con años que vuelan hacia la cámara
+    if u2 < 1:
+        for k in range(6):
+            ph = ((T * 2.6 + k / 6) % 1); sc_ = .3 + ph * 2.6
+            ang = k * 1.05 + T * .8; rx = math.cos(ang) * 380 * ph; ry = math.sin(ang) * 330 * ph
+            card = Image.new("RGBA", (220, 160), (0, 0, 0, 0)); cd = ImageDraw.Draw(card)
+            cd.rounded_rectangle((4, 4, 216, 156), 14, fill=(246, 243, 234), outline=OL, width=5)
+            cd.rectangle((4, 4, 216, 46), fill=(198, 47, 47))
+            cd.text((110, 102), str(max(2009, yr_now + k)), font=font(F_ANTON, 64), fill=OL, anchor="mm")
+            card = card.resize((int(220 * sc_), int(160 * sc_)), Image.BILINEAR).rotate(ang * 20 % 40 - 20, expand=True)
+            card.putalpha(card.getchannel("A").point(lambda v: int(v * min(1, (1 - ph) * 2.5))))
+            c.alpha_composite(card, (int(W / 2 + rx - card.width / 2), int(H / 2 + ry - card.height / 2)))
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(gl)
-    gd.text((W / 2, 470), yr, font=font(F_ANTON, 300), fill=ORG + (255,), anchor="mm")
+    big = 300 * (1 + .25 * math.sin(clamp((T - t09) / .3) * PI_)) if T >= t09 else 300
+    gd.text((W / 2, 470), str(yr_now), font=font(F_ANTON, big), fill=ORG + (255,), anchor="mm")
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(18))); c.alpha_composite(gl)
     d = ImageDraw.Draw(c)
-    d.text((W / 2, 470), yr, font=font(F_ANTON, 300), fill=WHITE, anchor="mm")
-    if T < t09: etiqueta(c, T, -1, "YOU GO TO SLEEP", W / 2, 200, CYAN, OL, 40)
-    else: etiqueta(c, T, t09, "YOU WAKE UP", W / 2, 200, YEL, OL, 40)
-    tb = WT("N01", "bitcoin")
+    d.text((W / 2, 470), str(yr_now), font=font(F_ANTON, big), fill=WHITE, anchor="mm")
+    etiqueta(c, T, t09, "YOU WAKE UP", W / 2, 200, YEL, OL, 40)
     if T >= tb:
         u = popscale(T, tb, .5)
-        put(c, "btc_coin", 180, 760, .6 * u, rot=8 * math.sin(T * 2)); put(c, "btc_coin", W - 180, 760, .6 * u, rot=-8 * math.sin(T * 2))
+        for k in range(5):   # monedas que caen girando
+            x = 120 + k * 210; y = 640 + ((T - tb) * 260 + k * 90) % 300
+            put(c, "btc_coin", x, y, .4 * u, rot=(T * 180 + k * 70) % 360)
+    if u2 < 1:   # remolino: rota todo un poco mientras viajas
+        c = c.rotate(8 * math.sin(T * 9) * (1 - u2), resample=Image.BILINEAR, center=(W / 2, H / 2), fillcolor=(10, 9, 22))
     return c
 
 def sc_alarma(T):
@@ -770,7 +844,7 @@ def hblur(im, k):
     if k <= 1: return im
     return im.resize((max(1, W // k), H), Image.BILINEAR).resize((W, H), Image.BILINEAR)
 
-IMPACTS = [WT("N01", "2009"), WT("N04", "2009"), WT("N05", "19"), WT("N09", "hundred"), S("D02") + .35, S("N17")]
+IMPACTS = [WT("N01", "2009") + .02, WT("N01", "2026"), WT("N04", "2009"), WT("N05", "19"), WT("N09", "hundred"), S("D02") + .35, S("N17")]
 
 def frame(T):
     idx = max(i for i, (t, f) in enumerate(SCENES) if T >= t)
