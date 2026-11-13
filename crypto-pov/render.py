@@ -10,6 +10,7 @@ from guion import LINEAS, CLIPS, HUECO_SIN_AUDIO
 HERE = os.path.dirname(os.path.abspath(__file__))
 W, H, FPS = 1080, 1080, 30
 BW, BH = 1920, 1080   # tamaño de los fondos dibujados (a 1x)
+COLD = 3.4            # arranque en frío (gancho mudo que explica la serie)
 LAY = os.path.join(HERE, "layers"); AUD = os.path.join(HERE, "..", "descargas", "crypto_ep1"); TMP = os.path.join(HERE, "tmp")
 os.makedirs(TMP, exist_ok=True)
 FONTS = os.path.join(HERE, "..", "taller-pov", "fonts")
@@ -78,7 +79,7 @@ def fix_words(ws):
 
 def timeline():
     """TL[lid] = (t0, t1, src0, archivo, palabras con tiempos absolutos)"""
-    t, tl = -0.12, {}
+    t, tl = COLD - 0.12, {}
     for lid, who, txt in LINEAS:
         t += GAP.get(lid, .25)
         if lid in CLIPS:
@@ -291,7 +292,7 @@ def barra_base():
     return im
 
 def draw_hud(canvas, T):
-    if T >= S("N19") - .1: return
+    if T >= S("N19") - .1 or T < COLD: return
     canvas.alpha_composite(barra_base()); d = ImageDraw.Draw(canvas)
     def pop(t): return 1 + .28 * math.sin(clamp((T - t) / .3) * PI_) if 0 <= T - t < .3 else 1
     t_fecha = WT("N04", "january")
@@ -325,6 +326,46 @@ def draw_hud(canvas, T):
     d.text((786, y2 + 13), money(int(340 * ease((T - t_c) / .8))) if hc else "?", font=font(F_ANTON, 32 * pop(t_c)), fill=WHITE if hc else GRIS, anchor="lm")
 
 # ---------------------------------------------------------------- escenas (1080x1080)
+def sc_cold(T):
+    """Gancho mudo: el clímax (el mensaje) + texto que explica la serie desde el fotograma 0."""
+    c = Image.new("RGBA", (W, H), (8, 10, 20, 255))
+    z = 1.08 + .05 * T / COLD
+    mon = scaled("monitor_grande", round(.66 * z, 3)); mx, my = (W - mon.width) // 2, 300 - int(20 * z)
+    c.alpha_composite(mon, (mx, my)); k = mon.width / 1580
+    sx, sy, sw, sh = int(mx + 100 * k + 4), int(my + 80 * k + 4), int(1380 * k - 8), int(820 * k - 8)
+    sc = pantalla_pc(E("N17") + 1.5)
+    g = int(T * 30)
+    if .15 < T < .5 or 1.6 < T < 1.8:
+        arr = np.array(sc); sh_ = (g * 37) % 40 - 20
+        for band in range(6):
+            y1 = (g * 53 + band * 97) % REF_SH; y2 = min(REF_SH, y1 + 18)
+            arr[y1:y2] = np.roll(arr[y1:y2], sh_ * (band + 1), axis=1)
+        sc = Image.fromarray(arr)
+    c.alpha_composite(sc.resize((sw, sh), Image.LANCZOS), (sx, sy))
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    od.ellipse((W / 2 - 600, sy - 200, W / 2 + 600, sy + sh + 200), fill=CYAN + (40,))
+    c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(90)))
+    c.alpha_composite(VIG)
+    # franja superior con la premisa (legible sin sonido, desde el primer fotograma)
+    top = Image.new("RGBA", (W, H), (0, 0, 0, 0)); td = ImageDraw.Draw(top)
+    for y in range(0, 300): td.line((0, y, W, y), fill=(6, 5, 14, int(250 * (1 - max(0, y - 230) / 70))))
+    c.alpha_composite(top)
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((W / 2 - 70, 26, W / 2 + 70, 70), 14, fill=ORG)
+    d.text((W / 2, 48), "PART 1", font=font(F_ANTON, 32), fill=OL, anchor="mm")
+    text(d, (W / 2, 128), "POV: YOU WAKE UP IN 2009", 76, WHITE, stroke=6)
+    text(d, (W / 2, 212), "KNOWING BITCOIN'S FUTURE", 76, ORG, stroke=6)
+    # abajo: es interactivo
+    pul = 1 + .03 * math.sin(T * 6)
+    bw, bh = 470 * pul, 52 * pul
+    d.rounded_rectangle((W / 2 - bw, 935 - bh, W / 2 + bw, 935 + bh), 30, fill=YEL, outline=OL, width=6)
+    text(d, (W / 2, 937), "YOU DECIDE WHAT HAPPENS NEXT", 60, OL)
+    if T >= 2.3:
+        dark(c, 170 * ease((T - 2.3) / .2))
+        stamp(c, T, 2.3, "19 HOURS EARLIER...", W / 2, 560, YEL, -4, 84)
+    return c
+
+
 def sc_hook(T):
     c = Image.new("RGBA", (W, H), (10, 9, 22, 255))
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
@@ -718,7 +759,7 @@ def sc_voto(T):
             d.polygon([(W / 2 + 300, 900 + bob), (W / 2 + 350, 900 + bob), (W / 2 + 325, 945 + bob)], fill=OL)
     return c
 
-SCENES = [(0.0, sc_hook), (S("N02") - .35, sc_alarma), (S("N03") - .1, sc_cuarto), (S("N04") - .15, sc_movil),
+SCENES = [(0.0, sc_cold), (COLD, sc_hook), (S("N02") - .35, sc_alarma), (S("N03") - .1, sc_cuarto), (S("N04") - .15, sc_movil),
           (S("N05") - .2, sc_espejo), (S("N06") - .2, sc_salon_tv), (S("N07") - .25, sc_satoshi), (S("N09") - .2, sc_precio),
           (S("N10") - .2, sc_banco), (S("Y01") - .25, sc_papa), (S("N12") - .5, sc_noche), (S("N13") - .25, sc_pc),
           (S("N15") - .2, sc_decidido), (S("N16") - .3, sc_pc), (S("N18") - .2, sc_miedo), (S("N19") - .3, sc_voto)]
