@@ -1,1 +1,1 @@
-crypto_ep1/sfx_heart.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/uQXSyNE7yagdeidqwmdy/qEgBAn53PFn3rzfYPkUo/content.mp3?Expires=1794564000&KeyName=assets-cdn-key-1&Signature=SJ3tfoXzY0L9GOWG5Zv1ClxAyjU=
+taller_ep1/T02.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/UDuSQiVMv29q1TqZvFrg/Vp7vK6xA3ZO9AIwjFQrr/content.mp3?Expires=1794628800&KeyName=assets-cdn-key-1&Signature=p_0FqhP2aNY7K-pWAkXuL4gNRBI=
