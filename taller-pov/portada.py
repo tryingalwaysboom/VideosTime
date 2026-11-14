@@ -78,27 +78,27 @@ if __name__ == "__main__" and not os.environ.get("SERIE"):
 def _neon_titulo(c, y=330):
     """Cartel 'EL TALLER DE RUBÉN' en neón (mismo estilo que el logo)."""
     lay = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    d.rounded_rectangle((110, y - 150, 970, y + 170), 34, fill=(14, 10, 28, 235), outline=(20, 16, 36), width=10)
+    d.rounded_rectangle((220, y - 115, 860, y + 125), 28, fill=(14, 10, 28, 235), outline=(20, 16, 36), width=8)
     glow = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(glow)
-    g.rounded_rectangle((130, y - 130, 950, y + 150), 26, outline=r.CYAN + (255,), width=10)
-    r.text(g, (540, y - 60), "EL TALLER DE", 76, r.CYAN)
-    r.text(g, (540, y + 60), "RUBÉN", 170, r.MAG)
+    g.rounded_rectangle((236, y - 99, 844, y + 109), 22, outline=r.CYAN + (255,), width=8)
+    r.text(g, (540, y - 45), "EL TALLER DE", 56, r.CYAN)
+    r.text(g, (540, y + 45), "RUBÉN", 126, r.MAG)
     lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(16)))
     lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(4)))
     d = ImageDraw.Draw(lay)
-    d.rounded_rectangle((130, y - 130, 950, y + 150), 26, outline=(200, 250, 255), width=3)
-    r.text(d, (540, y - 60), "EL TALLER DE", 76, (140, 248, 255))
-    r.text(d, (540, y + 60), "RUBÉN", 170, (255, 120, 228))
+    d.rounded_rectangle((236, y - 99, 844, y + 109), 22, outline=(200, 250, 255), width=3)
+    r.text(d, (540, y - 45), "EL TALLER DE", 56, (140, 248, 255))
+    r.text(d, (540, y + 45), "RUBÉN", 126, (255, 120, 228))
     c.alpha_composite(lay)
 
 def _parte_n(c, n, y=1560):
     lay = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    d.rounded_rectangle((250, y - 85, 830, y + 85), 42, fill=r.YEL + (255,))
+    d.rounded_rectangle((340, y - 58, 740, y + 58), 30, fill=r.YEL + (255,))
     sh = lay.filter(ImageFilter.GaussianBlur(18))
     c.alpha_composite(Image.eval(sh, lambda v: v) if False else sh)
     d2 = ImageDraw.Draw(c)
-    d2.rounded_rectangle((250, y - 85, 830, y + 85), 42, fill=r.YEL, outline=r.OL, width=8)
-    r.text(d2, (540, y + 2), f"PARTE {n}", 130, r.OL)
+    d2.rounded_rectangle((340, y - 58, 740, y + 58), 30, fill=r.YEL, outline=r.OL, width=6)
+    r.text(d2, (540, y + 2), f"PARTE {n}", 88, r.OL)
 
 def _suelo_reflejo(c, name, x, y, s):
     """Coche con reflejo en el suelo mojado."""
@@ -116,9 +116,9 @@ def serie_A(n, out):
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
     g.ellipse((-100, 1020, 1180, 1520), fill=r.MAG + (95,)); g.ellipse((200, 700, 880, 1100), fill=r.CYAN + (50,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
-    _suelo_reflejo(c, "deportivo", 540, 1070, 1.05)
-    _neon_titulo(c, 580)
-    _parte_n(c, n, 1560)
+    _suelo_reflejo(c, "deportivo", 540, 1060, .85)
+    _neon_titulo(c, 700)
+    _parte_n(c, n, 1450)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 def serie_B(n, out):
@@ -128,11 +128,11 @@ def serie_B(n, out):
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
     g.rectangle((150, 830, 930, 1400), fill=(255, 220, 160, 60)); g.ellipse((0, 1250, 1080, 1650), fill=r.MAG + (80,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(40)))
-    _suelo_reflejo(c, "deportivo", 540, 1130, 1.0)
-    band = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); ImageDraw.Draw(band).rectangle((0, 340, r.W, 820), fill=(8, 6, 20, 150))
+    _suelo_reflejo(c, "deportivo", 540, 1150, .85)
+    band = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); ImageDraw.Draw(band).rectangle((0, 560, r.W, 830), fill=(8, 6, 20, 235))
     c.alpha_composite(band.filter(ImageFilter.GaussianBlur(30)))
-    _neon_titulo(c, 580)
-    _parte_n(c, n, 1560)
+    _neon_titulo(c, 690)
+    _parte_n(c, n, 1450)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 def serie_C(n, out):
@@ -141,11 +141,11 @@ def serie_C(n, out):
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
     g.ellipse((-200, 300, 900, 900), fill=r.CYAN + (70,)); g.ellipse((200, 1000, 1300, 1600), fill=r.MAG + (80,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))
-    co = r.scaled("coche_negro", .95).transpose(Image.FLIP_LEFT_RIGHT)
-    c.alpha_composite(co, (int(560 - co.width / 2), int(560 - co.height / 2)))
-    _suelo_reflejo(c, "deportivo", 520, 1170, .92)
-    _neon_titulo(c, 870)
-    _parte_n(c, n, 1560)
+    co = r.scaled("coche_negro", .75).transpose(Image.FLIP_LEFT_RIGHT)
+    c.alpha_composite(co, (int(560 - co.width / 2), int(640 - co.height / 2)))
+    _suelo_reflejo(c, "deportivo", 530, 1180, .75)
+    _neon_titulo(c, 930)
+    _parte_n(c, n, 1450)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 if __name__ == "__main__" and os.environ.get("SERIE"):
