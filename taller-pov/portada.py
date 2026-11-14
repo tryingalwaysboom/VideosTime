@@ -23,7 +23,6 @@ def portada(out):
     d.rounded_rectangle((540 - pw / 2, 1460, 540 + pw / 2, 1610), 36, fill=r.RED, outline=r.WHITE, width=8)
     r.text(d, (540, 1537), "PARTE 1", 120, r.WHITE, stroke=6)
     # sello
-    r.stamp(c, 1, 0, "¿A o B?", 540, 800, r.CYAN, -6, 70)
     c.alpha_composite(r.VIG)
     c.convert("RGB").save(out, quality=93)
 
