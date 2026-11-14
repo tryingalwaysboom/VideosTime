@@ -68,7 +68,88 @@ def portada_lona(out):
     _parte(c)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=93)
 
-if __name__ == "__main__":
+if __name__ == "__main__" and not os.environ.get("SERIE"):
     portada(os.path.join(r.HERE, "portada_1.jpg"))
     portada_nitro(os.path.join(r.HERE, "portada_2.jpg"))
     portada_lona(os.path.join(r.HERE, "portada_3.jpg"))
+
+
+# ---------------------------------------------------------------- portada fija de la serie (solo cambia el número)
+def _neon_titulo(c, y=330):
+    """Cartel 'EL TALLER DE RUBÉN' en neón (mismo estilo que el logo)."""
+    lay = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle((110, y - 150, 970, y + 170), 34, fill=(14, 10, 28, 235), outline=(20, 16, 36), width=10)
+    glow = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(glow)
+    g.rounded_rectangle((130, y - 130, 950, y + 150), 26, outline=r.CYAN + (255,), width=10)
+    r.text(g, (540, y - 60), "EL TALLER DE", 76, r.CYAN)
+    r.text(g, (540, y + 60), "RUBÉN", 170, r.MAG)
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(16)))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(4)))
+    d = ImageDraw.Draw(lay)
+    d.rounded_rectangle((130, y - 130, 950, y + 150), 26, outline=(200, 250, 255), width=3)
+    r.text(d, (540, y - 60), "EL TALLER DE", 76, (140, 248, 255))
+    r.text(d, (540, y + 60), "RUBÉN", 170, (255, 120, 228))
+    c.alpha_composite(lay)
+
+def _parte_n(c, n, y=1560):
+    lay = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle((250, y - 85, 830, y + 85), 42, fill=r.YEL + (255,))
+    sh = lay.filter(ImageFilter.GaussianBlur(18))
+    c.alpha_composite(Image.eval(sh, lambda v: v) if False else sh)
+    d2 = ImageDraw.Draw(c)
+    d2.rounded_rectangle((250, y - 85, 830, y + 85), 42, fill=r.YEL, outline=r.OL, width=8)
+    r.text(d2, (540, y + 2), f"PARTE {n}", 130, r.OL)
+
+def _suelo_reflejo(c, name, x, y, s):
+    """Coche con reflejo en el suelo mojado."""
+    im = r.scaled(name, s)
+    ref = im.transpose(Image.FLIP_TOP_BOTTOM)
+    a = ref.getchannel("A").point(lambda v: int(v * .28))
+    grad = Image.linear_gradient("L").resize(ref.size).point(lambda v: 255 - v)
+    ref.putalpha(Image.composite(a, Image.new("L", ref.size, 0), grad))
+    c.alpha_composite(ref, (int(x - im.width / 2), int(y + im.height / 2 - 40)))
+    r.put(c, name, x, y, s)
+
+def serie_A(n, out):
+    """Taller de noche: cartel de neón arriba, el deportivo con reflejo y luz magenta."""
+    c = r.bg("bg_taller", 0, 0, 1.25, 1.25, 1, .5, .62); r.dark(c, 120)
+    gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
+    g.ellipse((-100, 900, 1180, 1400), fill=r.MAG + (95,)); g.ellipse((200, 600, 880, 1000), fill=r.CYAN + (50,))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
+    _suelo_reflejo(c, "deportivo", 540, 1010, 1.12)
+    _neon_titulo(c, 360)
+    _parte_n(c, n)
+    c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
+
+def serie_B(n, out):
+    """Fachada de noche con todas las letras encendidas y el deportivo saliendo por la persiana."""
+    c = r.bg("bg_fachada", 0, 0, 1.0, 1.0, 1)
+    inner = r.bg("bg_taller", 0, 0, 1.4, 1.4, 1, .5, .6).crop((150, 830, 930, 1400)); c.alpha_composite(inner, (150, 830))
+    gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
+    g.rectangle((150, 830, 930, 1400), fill=(255, 220, 160, 60)); g.ellipse((0, 1250, 1080, 1650), fill=r.MAG + (80,))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(40)))
+    _suelo_reflejo(c, "deportivo", 540, 1230, 1.05)
+    band = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); ImageDraw.Draw(band).rectangle((0, 0, r.W, 560), fill=(8, 6, 20, 150))
+    c.alpha_composite(band.filter(ImageFilter.GaussianBlur(30)))
+    _neon_titulo(c, 380)
+    _parte_n(c, n, 1600)
+    c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
+
+def serie_C(n, out):
+    """Duelo: el deportivo del tío y el coche de Nitro frente a frente, con el cartel en medio."""
+    c = r.bg("bg_noche", 0, 0, 1.0, 1.0, 1)
+    gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
+    g.ellipse((-200, 300, 900, 900), fill=r.CYAN + (70,)); g.ellipse((200, 1000, 1300, 1600), fill=r.MAG + (80,))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))
+    co = r.scaled("coche_negro", .95).transpose(Image.FLIP_LEFT_RIGHT)
+    c.alpha_composite(co, (int(560 - co.width / 2), int(560 - co.height / 2)))
+    _suelo_reflejo(c, "deportivo", 520, 1260, 1.0)
+    _neon_titulo(c, 900)
+    _parte_n(c, n, 1610)
+    c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
+
+if __name__ == "__main__" and os.environ.get("SERIE"):
+    n = int(os.environ.get("PARTE", "1"))
+    serie_A(n, os.path.join(r.HERE, f"portada_serie_A_parte{n}.jpg"))
+    serie_B(n, os.path.join(r.HERE, f"portada_serie_B_parte{n}.jpg"))
+    serie_C(n, os.path.join(r.HERE, f"portada_serie_C_parte{n}.jpg"))
