@@ -20,8 +20,7 @@ def dur_audio(p):
                          capture_output=True, text=True).stdout.strip()
     return float(out)
 
-GAP = {"L02": .35, "L05": .45, "L06": .45, "L07": .3, "L08": .45, "L11": .5, "L12": .5, "L13": .5, "L14": .35,
-       "L15": .3, "L16": .55, "L17": .4}
+GAP = {"N02": .5, "N03": .35, "N04": .35, "N05": .4, "N06": .4, "N07": .55, "N08": .5, "N09": .3, "N10": .35, "N11": .5, "N12": .35, "N13": .4, "N14": .5, "N15": .5, "N16": .55, "N17": .35, "N18": .3, "N19": .35, "N20": .6, "N21": .45}
 
 def timeline():
     t, tl = 0.25, {}
@@ -64,9 +63,85 @@ def put(canvas, name, cx, cy, s=1.0, alpha=1.0, rot=0):
         im = im.copy(); im.putalpha(im.getchannel("A").point(lambda v: int(v * alpha)))
     canvas.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
 
+BLUR = {"bg_vestuario": 3.5, "bg_puerta": 1.6, "bg_notaria": 1.8}
 def bg(name, T, t0, zoom0=1.0, zoom1=1.08, dur=8, fx=0.5, fy=0.5):
-    im = layer(name)
     z = zoom0 + (zoom1 - zoom0) * clamp((T - t0) / dur)
+    if name == "bg_dark": return atmos(T, z)
+    im = layer(name)
+    out = _bg(name, z, fx, fy)
+    return out
+
+@lru_cache(64)
+def _bgc(name, zq, fx, fy):
+    z = zq / 2000
+    im = layer(name)
+    w, h = 2 * W / z, 2 * H / z
+    x0 = (2 * W - w) * fx; y0 = (2 * H - h) * fy
+    out = im.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + w, y0 + h), reducing_gap=2.0)
+    if name in BLUR: out = out.filter(ImageFilter.GaussianBlur(BLUR[name]))
+    return out
+def _bg(name, z, fx, fy): return _bgc(name, round(z * 2000), fx, fy)
+
+_RAY = {}
+def rays(c, T, x, y, ang=90, spread=26, length=1500, col=(255, 236, 190), a=60):
+    k = (int(T * 15), x, y, ang)
+    if k not in _RAY:
+        if len(_RAY) > 16: _RAY.clear()
+        ov = Image.new("RGBA", (W // 4, H // 4), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+        for i in range(7):
+            aa = math.radians(ang - spread / 2 + spread * i / 6 + 2 * math.sin(T * .7 + i))
+            w_ = math.radians(1.6 + 1.2 * math.sin(T * 1.1 + i * 2))
+            p1 = (x / 4 + length / 4 * math.cos(aa - w_), y / 4 + length / 4 * math.sin(aa - w_))
+            p2 = (x / 4 + length / 4 * math.cos(aa + w_), y / 4 + length / 4 * math.sin(aa + w_))
+            d.polygon([(x / 4, y / 4), p1, p2], fill=col + (int(a * (.6 + .4 * math.sin(T * .9 + i))),))
+        ov = ov.filter(ImageFilter.GaussianBlur(6)).resize((W, H), Image.BILINEAR)
+        g = np.linspace(1, 0, H)[:, None] ** 1.4 * np.ones((1, W))
+        al = np.asarray(ov.getchannel("A")).astype(np.float32) * g
+        ov.putalpha(Image.fromarray(al.astype(np.uint8)))
+        _RAY[k] = ov
+    c.alpha_composite(_RAY[k])
+
+_ATM = {}
+def atmos(T, z=1.0):
+    """Fondo nocturno de estadio: degradado, niebla, focos que barren y bokeh de luces."""
+    k = int(T * 30)
+    if k in _ATM: return _ATM[k]
+    if len(_ATM) > 8: _ATM.clear()
+    w, h = W // 4, H // 4
+    y = np.linspace(0, 1, h)[:, None]
+    base = np.zeros((h, w, 3), np.float32)
+    top, bot = np.array([10, 16, 38]), np.array([26, 20, 46])
+    base[:] = top * (1 - y[..., None]) + bot * y[..., None]
+    im = Image.fromarray(base.astype(np.uint8)).resize((W, H), Image.BICUBIC).convert("RGBA")
+    ov = Image.new("RGBA", (W // 2, H // 2), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    for i, (sx, ph) in enumerate(((-80, 0), (620, 2.1))):
+        ang = math.radians(70 + (-1) ** i * (14 + 9 * math.sin(T * .35 + ph)))
+        L_ = 1500; sp = math.radians(9)
+        x0, y0 = sx, -40
+        p1 = (x0 + L_ * math.cos(ang - sp), y0 + L_ * math.sin(ang - sp)); p2 = (x0 + L_ * math.cos(ang + sp), y0 + L_ * math.sin(ang + sp))
+        if i: p1 = (2 * x0 - p1[0] + 0, p1[1]); p2 = (2 * x0 - p2[0], p2[1])
+        d.polygon([(x0, y0), p1, p2], fill=(170, 200, 255, 38))
+        d.ellipse((x0 - 40, y0 - 10, x0 + 40, y0 + 70), fill=(235, 245, 255, 200))
+    ov = ov.filter(ImageFilter.GaussianBlur(18)).resize((W, H), Image.BILINEAR)
+    im.alpha_composite(ov)
+    # niebla baja
+    fog = Image.new("RGBA", (W // 8, H // 8), (0, 0, 0, 0)); fd = ImageDraw.Draw(fog)
+    for j in range(5):
+        cx = (j * 37 + T * 3) % (W // 8 + 60) - 30
+        fd.ellipse((cx - 50, H // 8 - 70 + j * 6, cx + 50, H // 8 - 20 + j * 6), fill=(120, 130, 180, 40))
+    im.alpha_composite(fog.filter(ImageFilter.GaussianBlur(10)).resize((W, H), Image.BILINEAR))
+    # bokeh: luces lejanas desenfocadas
+    bo = Image.new("RGBA", (W // 2, H // 2), (0, 0, 0, 0)); bd = ImageDraw.Draw(bo)
+    rr = np.random.default_rng(3)
+    for j in range(22):
+        bx = rr.uniform(0, W // 2); by = rr.uniform(H * .1, H * .45); r = rr.uniform(8, 26)
+        by += 6 * math.sin(T * .6 + j)
+        a = int(40 + 50 * (.5 + .5 * math.sin(T * 1.3 + j * 1.7)))
+        col = [(255, 200, 120), (140, 180, 255), (255, 240, 220)][j % 3]
+        bd.ellipse((bx - r, by - r, bx + r, by + r), fill=col + (a,))
+    im.alpha_composite(bo.filter(ImageFilter.GaussianBlur(3)).resize((W, H), Image.BILINEAR))
+    _ATM[k] = im.convert("RGB")
+    return _ATM[k]
     w, h = 2 * W / z, 2 * H / z
     x0 = (2 * W - w) * fx; y0 = (2 * H - h) * fy
     return im.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + w, y0 + h), reducing_gap=2.0)
@@ -91,6 +166,8 @@ VIG = vignette()
 
 # ---------------------------------------------------------------- subtítulos
 import difflib, unicodedata
+import look
+look.LOOK = os.environ.get('LOOK', 'cine')
 def _norm(w):
     w = unicodedata.normalize("NFD", w.lower()); w = "".join(c for c in w if unicodedata.category(c) != "Mn")
     return "".join(c for c in w if c.isalnum())
@@ -221,9 +298,9 @@ def led_img(txt, size, col=AMBER, boost=0):
     return out
 
 def hud_vals(T):
-    caja = None if T < WT("L11", "312") else int(312 * ease((T - WT("L11", "312")) / .8))
-    jug = None if T < WT("L08", "tres.") else 3
-    dias = None if T < S("L04") + .25 else max(21, 30 - int((T - S("L04") - .25) / .1))
+    caja = None if T < WT("N14", "312") else int(312 * ease((T - WT("N14", "312")) / .8))
+    jug = None if T < WT("N11", "tres.") else 3
+    dias = None if T < S("N05") + .25 else max(21, 30 - int((T - S("N05") - .25) / .1))
     return caja, jug, dias
 
 EPISODIO, DIA, DIAS_TOTAL = 1, 1, 21
@@ -291,11 +368,11 @@ def barra_base():
     return im
 
 def draw_hud(canvas, T):
-    if T >= S("L16") - .1: return
+    if T >= S("N20") - .1: return
     canvas.alpha_composite(barra_base())
     d = ImageDraw.Draw(canvas)
     x0, y0, x1 = 36, 168, 1044
-    t_deuda, t_caja, t_jug, t_obj = WT("L03", "182.400"), WT("L11", "312"), WT("L08", "tres."), WT("L04", "11")
+    t_deuda, t_caja, t_jug, t_obj = WT("N01", "182.400"), WT("N14", "312"), WT("N11", "tres."), WT("N05", "11")
     def pop(t): return 1 + .28 * math.sin(clamp((T - t) / .3) * math.pi) if 0 <= T - t < .3 else 1
     jug = "?" if T < t_jug else "3/11"
     caja = "?" if T < t_caja else euros(int(312 * ease((T - t_caja) / .8)))
@@ -334,11 +411,58 @@ def stamp(canvas, T, t0, label, cx, cy, col=RED, rot=-12, size=120):
     if u < 1: im.putalpha(im.getchannel("A").point(lambda v: int(v * u)))
     canvas.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
 
+def sc_hook(T):
+    s0, e0 = TL["N01"]
+    z = 1.32 - .32 * ease(T / .45) + .1 * clamp((T - .45) / (e0 - .45))
+    c = bg("bg_campo", T, 0, z, z, 1, .5, .55).convert("RGBA")
+    put(c, "cabra", 560, 1290, 1.0)
+    c.alpha_composite(scaled("hierba", 1.0), (0, 0))
+    d = ImageDraw.Draw(c)
+    tc, td, t21 = WT("N01", "cabra"), WT("N01", "182.400"), WT("N01", "21")
+    if tc <= T < td:
+        u = popscale(T, tc)
+        d.rounded_rectangle((540 - 230 * u, 880, 540 + 230 * u, 960), 18, fill=YEL)
+        if u > .5: text(d, (540, 920), "LA CAPITANA", 52, OL)
+    if td <= T < t21:
+        k = popscale(T, td, .3)
+        c.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 110))); d = ImageDraw.Draw(c)
+        text(d, (540, 760), "-182.400 €", 150 * max(k, .01), RED, stroke=10)
+        if k > .6: text(d, (540, 900), "DE DEUDA", 64, WHITE, stroke=6)
+    if T >= t21:
+        k = popscale(T, t21, .3)
+        c.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 130))); d = ImageDraw.Draw(c)
+        text(d, (540, 720), "21", 300 * max(k, .01), YEL, stroke=12)
+        if k > .6: text(d, (540, 920), "DÍAS PARA SALVARLO", 66, WHITE, stroke=6)
+    return c
+
+def phone_img(u):
+    w, h = 470, 840
+    im = Image.new("RGBA", (w + 40, h + 40), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.rounded_rectangle((20, 20, 20 + w, 20 + h), 60, fill=(16, 16, 22), outline=(70, 72, 82), width=6)
+    d.rounded_rectangle((38, 38, 2 + w, 2 + h), 46, fill=(28, 34, 52))
+    d.rounded_rectangle((w / 2 - 50, 52, w / 2 + 90, 82), 15, fill=(10, 10, 14))
+    d.text((w / 2 + 20, 140), "Llamadas recientes", font=font(F_UI, 30), fill=(200, 205, 220), anchor="mm")
+    foto = scaled("abuelo_foto", .28)
+    im.alpha_composite(foto, (int(w / 2 + 20 - foto.width / 2), 190))
+    d.text((w / 2 + 20, 440), "Abuelo", font=font(F_ANTON, 64), fill=WHITE, anchor="mm")
+    d.text((w / 2 + 20, 510), "Última llamada:", font=font(F_UI, 28), fill=(160, 166, 185), anchor="mm")
+    d.text((w / 2 + 20, 560), "hace 10 años", font=font(F_UI, 40), fill=(255, 100, 90), anchor="mm")
+    d.ellipse((w / 2 - 40, 650, w / 2 + 80, 770), fill=(46, 170, 90))
+    d.text((w / 2 + 20, 710), "LLAMAR", font=font(F_UI, 22), fill=WHITE, anchor="mm")
+    return im
+
 def sc_notaria(T):
-    c = bg("bg_notaria", T, 0, 1.12, 1.0, 5).convert("RGBA")
-    u = ease((T - .1) / .9)
-    put(c, "manos", 540, 960 + 400 * (1 - u))
-    th = WT("L01", "testamento,")
+    s2 = S("N02"); s3 = S("N03")
+    c = bg("bg_notaria", T, s2, 1.12, 1.0, 6).convert("RGBA")
+    u = ease((T - s3 + .2) / .8)
+    put(c, "manos", 540, 960 + 900 * (1 - u))
+    tp = WT("N02", "Hacía")
+    if tp - .2 <= T < s3 + .4:
+        a_ = ease((T - tp + .2) / .5); b_ = ease((T - s3) / .4)
+        ph = phone_img(1)
+        c.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, int(120 * a_ * (1 - b_)))))
+        c.alpha_composite(ph, (int(540 - ph.width / 2), int(330 + 1200 * (1 - a_) + 1400 * b_)))
+    th = WT("N03", "testamento,")
     if T >= th - .1:
         hl = highlight_img(clamp((T - th + .1) / .9))
         c.alpha_composite(hl, (540 - hl.width // 2, 905 - hl.height // 2))
@@ -359,35 +483,45 @@ def crest(d, cx, cy, s):
     text(d, (cx, cy + 90 * s), "1931", 60 * s, YEL)
 
 def sc_club(T):
-    c = bg("bg_dark", T, S("L02"), 1.0, 1.06, 6).convert("RGBA"); d = ImageDraw.Draw(c)
-    t0c = WT("L01", "Un")
+    c = bg("bg_dark", T, S("N04"), 1.0, 1.06, 6).convert("RGBA"); d = ImageDraw.Draw(c)
+    t0c = WT("N03", "Un")
     s = popscale(T, t0c, .35)
     if s > 0:
         put(c, "escudo", 540, 690, 1.05 * max(s, .02), rot=3 * math.sin(T * 1.3))
         stamp(c, T, t0c + .55, "HEREDADO", 540, 640, RED, -14, 110)
     d = ImageDraw.Draw(c)
-    t1 = WT("L02", "Última")
+    t1 = WT("N04", "Última")
     if T >= t1:
         u = popscale(T, t1)
         d.rounded_rectangle((540 - 260 * u, 1080, 540 + 260 * u, 1170), 16, fill=RED)
         if u > .5: text(d, (540, 1125), "ÚLTIMA DIVISIÓN", 58, WHITE)
+    t43 = WT("N04", "43")
+    if T >= t43:
+        k = popscale(T, t43)
+        panel(c, (250, 1200, 830, 1330), alpha=int(235 * min(1, k)))
+        d = ImageDraw.Draw(c)
+        if k > .5:
+            text(d, (400, 1265), "43", 100, RED)
+            text(d, (620, 1265), "PARTIDOS SIN GANAR", 30, WHITE, "mm", F_UI)
     return c
 
-def sc_stats(T):
-    c = bg("bg_dark", T, S("L03"), 1.04, 1.0, 10).convert("RGBA"); d = ImageDraw.Draw(c)
-    s0, e0 = TL["L03"]; L = e0 - s0
-    items = [(s0 + .1, "DEUDA HEREDADA", -182400, "€", RED), (WT("L03", "43"), "PARTIDOS SEGUIDOS SIN GANAR", 43, "", WHITE),
-             (WT("L03", "cero"), "AFICIONADOS EN EL ÚLTIMO PARTIDO", 0, "", YEL)]
-    for i, (t, lab, val, suf, col) in enumerate(items):
-        if T < t: continue
-        y = 430 + i * 270
-        a = ease((T - t) / .3)
-        panel(c, (90 + 60 * (1 - a), y - 110, 990 - 60 * (1 - a), y + 120), alpha=int(230 * a))
-        d = ImageDraw.Draw(c)
-        text(d, (540, y - 62), lab, 32, (180, 186, 210), "mm", F_UI)
-        cnt = val * ease((T - t) / .9)
-        num = (f"-{abs(int(cnt)):,}".replace(",", ".") + " €") if val < 0 else str(int(round(cnt)))
-        text(d, (540, y + 32), num, 118, col)
+def sc_tease(T):
+    s0, e0 = TL["N06"]
+    c = bg("bg_puerta", T, s0, 1.2, 1.3, e0 - s0 + 1).convert("RGBA")
+    c.alpha_composite(Image.new("RGBA", (W, H), (5, 6, 18, 175)))
+    u = ease((T - s0) / (e0 - s0 + .6))
+    cx = 1500 - 900 * u
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    d.polygon([(cx - 470, 1290), (cx - 1200, 1100), (cx - 1200, 1500)], fill=(255, 240, 190, 70))
+    c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(25)))
+    car = scaled("coche", 1.0).copy()
+    car = Image.composite(Image.new("RGBA", car.size, (8, 8, 12, 255)), car, Image.new("L", car.size, 90))
+    car.putalpha(scaled("coche", 1.0).getchannel("A"))
+    c.alpha_composite(car, (int(cx - car.width / 2), 1290 - car.height // 2))
+    d = ImageDraw.Draw(c)
+    d.ellipse((cx - 470, 1260, cx - 420, 1300), fill=(255, 245, 210))
+    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((cx - 520, 1220, cx - 380, 1340), fill=(255, 240, 200, 200))
+    c.alpha_composite(glow.filter(ImageFilter.GaussianBlur(20)))
     return c
 
 def shirt(d, cx, cy, s, fill, outline):
@@ -395,7 +529,7 @@ def shirt(d, cx, cy, s, fill, outline):
     d.polygon([(cx + x * s, cy + y * s) for x, y in p], fill=fill, outline=outline, width=max(2, int(4 * s)))
 
 def sc_ultimatum(T):
-    s0, e0 = TL["L04"]
+    s0, e0 = TL["N05"]
     c = bg("bg_dark", T, s0, 1.0, 1.05, 6).convert("RGBA"); d = ImageDraw.Draw(c)
     n = max(21, 30 - int(max(0, T - s0 - .25) / .1))
     flip = ((T - s0 - .25) % .1) / .1 if n > 21 else 1
@@ -414,7 +548,7 @@ def sc_ultimatum(T):
         hh = int((h - 120) * (1 - flip))
         if hh > 4:
             d.rectangle((cx - w/2 + 8, cy - h/2 + 112, cx + w/2 - 8, cy - h/2 + 112 + hh), fill=(236, 230, 216), outline=(180, 170, 150))
-    tj = WT("L04", "11") if True else None
+    tj = WT("N05", "11") if True else None
     if T >= tj:
         u = ease((T - tj) / .5)
         text(d, (540, 1000), "JUGADORES CON FICHA", 40, (190, 196, 215), "mm", F_UI)
@@ -423,25 +557,25 @@ def sc_ultimatum(T):
             if a_ <= 0: continue
             row, col_ = (0, i) if i < 6 else (1, i - 6)
             x = 540 + (col_ - (2.5 if row == 0 else 2)) * 128; y = 1090 + row * 110
-            red = T >= WT("L04", "desaparece.")
+            red = T >= WT("N05", "desaparece.")
             shirt(d, x, y, .9 * (0.6 + .4 * back(a_)), None, (255, 80, 60) if red else (120, 128, 150))
-        text(d, (540, 1300), "0 / 11", 64, (255, 80, 60) if T >= WT("L04", "desaparece.") else WHITE)
+        text(d, (540, 1300), "0 / 11", 64, (255, 80, 60) if T >= WT("N05", "desaparece.") else WHITE)
     return c
 
 def sc_campo(T):
-    s0, e0 = TL["L05"]; L = e0 - s0
+    s0, e0 = TL["N07"]; L = e0 - s0
     z = 1.10 - 0.10 * clamp((T - s0) / (L + .5))
     c = bg("bg_campo", T, s0, 1.10, 1.0, L + .5, .5, .45).convert("RGBA")
     def scr(px, py): return z * px - (z * W - W) * .5, z * py - (z * H - H) * .45
-    tg = WT("L05", "cabra")
+    tg = WT("N07", "cabra")
     if T >= tg:
         k = popscale(T, tg, .45)
         hop = 40 * abs(math.sin((T - tg) * 4)) * math.exp(-(T - tg) * 1.5)
         put(c, "cabra", 560, 1290 - hop, 1.0 * max(k, .02))
     c.alpha_composite(scaled("hierba", 1.0), (0, int(60 * (1 - ease((T - s0) / 2.5)))))
     d = ImageDraw.Draw(c)
-    if WT("L05", "porterías") <= T < tg:  # porterías
-        u = popscale(T, WT("L05", "porterías"))
+    if WT("N07", "porterías") <= T < tg:  # porterías
+        u = popscale(T, WT("N07", "porterías"))
         for gx in (180, 900):
             cx, cy = scr(gx, 1300)
             rx, ry = 165 * z * u, 120 * z * u
@@ -475,13 +609,15 @@ def dust(c, T, n=45):
     c.alpha_composite(ov)
 
 def sc_paco(T):
-    s0 = S("L06"); e7 = E("L07")
+    s0 = S("N08"); e7 = E("N10")
     c = bg("bg_vestuario", T, s0, 1.0, 1.08, e7 - s0).convert("RGBA")
-    tp = s0 + (E("L06") - s0) * .18
+    rays(c, T, 540, 120, 90, 46, 1700, (255, 232, 180), 70)
+    tp = s0 + (E("N08") - s0) * .18
     if T >= tp:
         u = ease((T - tp) / .5)
         bob = 6 * math.sin((T - tp) * 2.2)
-        talk = 8 * abs(math.sin(T * 11)) if S("L07") <= T < E("L07") else 0
+        habla = (S("N09") <= T < E("N09")) or (S("N10") <= T < E("N10"))
+        talk = 8 * abs(math.sin(T * 11)) if habla else 0
         px, py = 540 + 600 * (1 - u), 1320 + bob - talk
         put(c, "paco", px, py, 1.0)
         d = ImageDraw.Draw(c); ox, oy = px - 400, py - 700
@@ -489,11 +625,11 @@ def sc_paco(T):
             for ex in (350, 450):
                 d.ellipse((ox + ex - 19, oy + 436 - 17, ox + ex + 19, oy + 436 + 17), fill=(243, 194, 155))
                 d.line((ox + ex - 17, oy + 438, ox + ex + 17, oy + 438), fill=OL, width=4)
-        if S("L07") <= T < E("L07"):
+        if habla:
             m = 6 + 14 * abs(math.sin(T * 13))
             d.ellipse((ox + 378, oy + 566 - 2, ox + 422, oy + 566 + m), fill=(120, 30, 40), outline=OL, width=4)
     dust(c, T)
-    ficha(c, T, s0 + (E("L06") - s0) * .3, 60, 520, "PACO", "UTILLERO DESDE 1985", "9 MESES SIN COBRAR")
+    ficha(c, T, s0 + (E("N08") - s0) * .3, 60, 520, "PACO", "UTILLERO DESDE 1985", "9 MESES SIN COBRAR")
     return c
 
 def slot_grid(c, T, t0, filled):
@@ -513,17 +649,17 @@ def slot_grid(c, T, t0, filled):
     if T >= t0 + .9: text(d, (540, y0 + 3 * (cs + gp) + 40), f"{filled} DE 18", 54, RED)
 
 def sc_plantilla(T):
-    s8, e10 = S("L08"), E("L10")
+    s8, e10 = S("N11"), E("N13")
     c = bg("bg_dark", T, s8, 1.0, 1.04, e10 - s8).convert("RGBA")
-    s9, e9 = TL["L09"]; L9 = e9 - s9
+    s9, e9 = TL["N12"]; L9 = e9 - s9
     if T < s9:
-        slot_grid(c, T, s8 + .1, 3 if T >= WT("L08", "tres.") else 0)
+        slot_grid(c, T, s8 + .1, 3 if T >= WT("N11", "tres.") else 0)
         return c
-    if T < E("L09") + .15:
+    if T < E("N12") + .15:
         slot_grid(c, T, -99, 3)
         cards = [("ramon", "RAMÓN", "44 AÑOS · PORTERO", "RODILLA DE TITANIO", s9),
-                 ("josito", "JOSITO", "17 AÑOS", "NUNCA HA JUGADO", WT("L09", "Josito:")),
-                 ("primo", "EL PRIMO", "¿PRIMO DE QUIÉN?", "NADIE LO SABE", WT("L09", "el"))]
+                 ("josito", "JOSITO", "17 AÑOS", "NUNCA HA JUGADO", WT("N12", "Josito:")),
+                 ("primo", "EL PRIMO", "¿PRIMO DE QUIÉN?", "NADIE LO SABE", WT("N12", "el"))]
         for i, (lay, nm, a1, a2, t) in enumerate(cards):
             if T < t: continue
             nxt = cards[i + 1][4] if i < 2 else 1e9
@@ -541,30 +677,30 @@ def sc_plantilla(T):
         return c
     # L10: menos de 7
     d = ImageDraw.Draw(c)
-    k = popscale(T, E("L09") + .15, .4)
+    k = popscale(T, E("N12") + .15, .4)
     text(d, (540, 650), "MENOS DE 7", 150 * max(k, .01), WHITE, stroke=8)
     if k > .6: text(d, (540, 820), "= NO HAY PARTIDO", 80, RED, stroke=6)
-    if T > WT("L10", "Ni"):
+    if T > WT("N13", "Ni"):
         x = 540
         for i in range(3):
             put(c, ["ramon", "josito", "primo"][i], 300 + i * 240, 1050, .45)
     return c
 
 def sc_caja(T):
-    s0, e0 = TL["L11"]; L = e0 - s0
-    zt = WT("L11", "sobre")
+    s0, e0 = TL["N14"]; L = e0 - s0
+    zt = WT("N14", "sobre")
     z = 1.0 + 0.9 * ease((T - zt) / 1.2) if T > zt else 1.0
     c = bg("bg_dark", T, s0, 1.0, 1.0, 1).convert("RGBA")
     u = ease((T - s0) / .5)
     k = (z - 1) / .9
     put(c, "caja", 540 - k * (380 - 540) * z, 900 + 100 * (1 - u) - k * (850 - 550) * z, 1.0 * z)
     d = ImageDraw.Draw(c)
-    if T >= WT("L11", "312") and T < zt:
-        k = popscale(T, WT("L11", "312"))
+    if T >= WT("N14", "312") and T < zt:
+        k = popscale(T, WT("N14", "312"))
         d.rounded_rectangle((330, 400, 750, 500), 16, fill=(40, 120, 70))
         if k > .5: text(d, (540, 450), "312 €", 80, WHITE)
-    if T >= WT("L11", "bocadillo") and T < zt:
-        k = popscale(T, WT("L11", "bocadillo"))
+    if T >= WT("N14", "bocadillo") and T < zt:
+        k = popscale(T, WT("N14", "bocadillo"))
         d.rounded_rectangle((560, 1240, 920, 1310), 12, fill=YEL)
         if k > .5: text(d, (740, 1275), "CADUCADO EN 2019", 30, OL, "mm", F_UI)
     if T >= zt + .9:
@@ -573,8 +709,8 @@ def sc_caja(T):
 
 HAND = ["Si lees esto, te van a ofrecer", "dinero por el campo.", "No lo vendas.", "Debajo del vestuario", "está la razón por la que", "este club nunca", "debe morir.", "", "         — Tu abuelo"]
 def sc_carta(T):
-    s0, e0 = TL["L12"]; L = e0 - s0
-    tb = WT("L12", "Debajo") - .2
+    s0, e0 = TL["N15"]; L = e0 - s0
+    tb = WT("N15", "Debajo") - .2
     if T >= tb + .2 and T < e0 + .3:
         z = 1.0 + .25 * clamp((T - tb) / (e0 - tb))
         c = bg("baldosas", T, tb, 1.0 + .0, 1.25, e0 - tb).convert("RGBA")
@@ -597,31 +733,38 @@ def sc_carta(T):
     return c
 
 def sc_coche(T):
-    s0, e0 = TL["L13"]
+    s0, e0 = TL["N16"]
     c = bg("bg_puerta", T, s0, 1.0, 1.05, 4).convert("RGBA")
     u = ease((T - s0 - .2) / 1.4)
     put(c, "coche", 540 + 900 * (1 - u), 1170, 1.0)
     return c
 
 def sc_arturo(T):
-    s0 = S("L14"); e15 = E("L15")
+    s0 = S("N17"); e15 = E("N19")
     c = bg("bg_puerta", T, s0, 1.5, 1.56, e15 - s0, .5, 1.0).convert("RGBA")
     c.alpha_composite(Image.new("RGBA", (W, H), (10, 10, 20, 110)))
     u = ease((T - s0) / .5)
-    talk = 6 * abs(math.sin(T * 10)) if S("L14") <= T < E("L14") else 0
+    talk = 6 * abs(math.sin(T * 10)) if (S("N17") <= T < E("N17") or S("N19") <= T < E("N19")) else 0
     put(c, "arturo", 540, 720 + 300 * (1 - u) - talk + 3 * math.sin(T * 1.8), 1.0)
     put(c, "coche", 540, 1050, 1.0)
     d = ImageDraw.Draw(c)
-    if T < E("L14") + .2:
+    if T < E("N17") + .2:
         k = popscale(T, s0 + .1, .4)
         d.rounded_rectangle((200, 280, 880, 430), 20, fill=(40, 120, 70), outline=OL, width=6)
         if k > .5:
             text(d, (540, 355), "250.000 €", 120 * min(1.1, k), WHITE, stroke=6)
-        if T >= WT("L14", "pisos."):
-            stamp(c, T, WT("L14", "pisos."), "PISOS DE LUJO", 540, 520, YEL, 6, 80)
+        if T >= WT("N17", "pisos."):
+            stamp(c, T, WT("N17", "pisos."), "PISOS DE LUJO", 540, 520, YEL, 6, 80)
+    elif T >= S("N19") - .1:
+        tv, tb = WT("N19", "viejo."), WT("N19", "banco")
+        if T >= tv:
+            k = popscale(T, tv)
+            d.rounded_rectangle((180, 290, 900, 420), 20, fill=(40, 120, 70), outline=OL, width=6)
+            if k > .5: text(d, (540, 355), "+ LO QUE LE DEBES A PACO", 50, WHITE, stroke=4)
+        if T >= tb: stamp(c, T, tb, "EMBARGO MAÑANA", 540, 540, RED, -8, 76)
     else:
-        ficha(c, T, S("L15"), 50, 280, "ARTURO FERRÁN", "PRESIDENTE · ATLÉTICO VALLE", "EL QUE ARRUINÓ A TU ABUELO")
-        tr = WT("L15", "presidente")
+        ficha(c, T, S("N18"), 50, 280, "ARTURO FERRÁN", "PRESIDENTE · ATLÉTICO VALLE", "EL QUE ARRUINÓ A TU ABUELO")
+        tr = WT("N18", "presidente")
         if T >= tr:
             k = popscale(T, tr)
             d = ImageDraw.Draw(c)
@@ -641,32 +784,38 @@ def option(c, T, t0, x, letter, lines, col, hi):
     d.ellipse((x - 60, box[1] + 40, x + 60, box[1] + 160), fill=OL)
     text(d, (x, box[1] + 100), letter, 90, WHITE)
     for i, (l, cc) in enumerate(lines):
-        text(d, (x, box[1] + 230 + i * 58), l, 36, cc, "mm", F_UI)
+        if i == 0: text(d, (x, box[1] + 225), l, 64, cc)
+        else: text(d, (x, box[1] + 250 + i * 64), l, 40, cc, "mm", F_UI)
 
 def sc_decision(T):
-    s0, e0 = TL["L16"]; L = e0 - s0
+    s0, e0 = TL["N20"]; L = e0 - s0
     c = bg("bg_dark", T, s0, 1.0, 1.04, 10).convert("RGBA"); d = ImageDraw.Draw(c)
     k = popscale(T, s0, .4)
     beat = 1 + .05 * max(0, math.sin(T * 7.5)) ** 8
     text(d, (540, 250), "¿QUÉ HARÍAS TÚ?", 110 * max(k, .01) * beat, YEL, stroke=8)
-    ta, tb = WT("L16", "A:"), WT("L16", "B:")
+    ta, tb = WT("N20", "A:"), WT("N20", "B:")
     hiA = ta <= T < tb; hiB = tb <= T < e0
-    option(c, T, ta, 290, "A", [("VENDES EL", (40, 40, 60)), ("TERRENO", (40, 40, 60)), ("", OL), ("+68.000 €", (30, 130, 70)),
-                                 ("pero derriban", (200, 50, 50)), ("el campo", (200, 50, 50))], (248, 246, 240), hiA)
-    option(c, T, tb, 790, "B", [("ROMPES EL", OL), ("CONTRATO", OL), ("", OL), ("312 €", OL), ("3 jugadores", OL), ("21 días", OL)],
-           YEL, hiB)
-    if T >= S("L17"):
-        u = popscale(T, WT("L17", "Comenta"))
+    G, Rr = (30, 130, 70), (200, 50, 50)
+    option(c, T, ta, 290, "A", [("ACEPTAS", OL), ("", OL), ("+ Paco cobra", G), ("+ Deuda pagada", G), ("- Lejos de casa", Rr), ("- Campo derribado", Rr)], (248, 246, 240), hiA)
+    option(c, T, tb, 790, "B", [("RECHAZAS", OL), ("", OL), ("+ Campo y secreto", G), ("- Sin un euro", Rr), ("- Paco sin cobrar", Rr), ("- Arturo en guerra", Rr)], YEL, hiB)
+    if T >= S("N21"):
+        u = popscale(T, WT("N21", "comentarios"))
         if u > 0:
             d = ImageDraw.Draw(c)
             d.rounded_rectangle((540 - 300 * u, 1120, 540 + 300 * u, 1210), 45, fill=WHITE)
             if u > .5: text(d, (540, 1165), "COMENTA  A  o  B", 56, OL)
+            tm = WT("N21", "Mañana,")
+            if T >= tm:
+                k = popscale(T, tm)
+                d.rounded_rectangle((540 - 230 * k, 1240, 540 + 230 * k, 1310), 20, fill=RED)
+                if k > .5: text(d, (540, 1275), "PARTE 2 · MAÑANA", 40, WHITE)
     return c
 
 SCENES = [  # (inicio, función)
-    (0, sc_notaria), (WT("L01", "Un") - .12, sc_club), (S("L03") - .15, sc_stats), (S("L04") - .15, sc_ultimatum),
-    (S("L05") - .2, sc_campo), (S("L06") - .2, sc_paco), (S("L08") - .2, sc_plantilla), (S("L11") - .2, sc_caja),
-    (S("L12") - .2, sc_carta), (S("L13") - .2, sc_coche), (S("L14") - .15, sc_arturo), (S("L16") - .25, sc_decision),
+    (0, sc_hook), (S("N02") - .2, sc_notaria), (WT("N03", "Un") - .12, sc_club), (S("N05") - .15, sc_ultimatum),
+    (S("N06") - .15, sc_tease), (S("N07") - .2, sc_campo), (S("N08") - .2, sc_paco), (S("N11") - .2, sc_plantilla),
+    (S("N14") - .2, sc_caja), (S("N15") - .2, sc_carta), (S("N16") - .2, sc_coche), (S("N17") - .15, sc_arturo),
+    (S("N20") - .25, sc_decision),
 ]
 
 def hblur(im, k):
@@ -676,7 +825,7 @@ def hblur(im, k):
 IMPACTS = []
 def _impacts():
     global IMPACTS
-    IMPACTS = [WT("L01", "Un"), WT("L01", "Un") + .55, S("L04") + .05, E("L09") + .15, WT("L14", "pisos."), S("L16")]
+    IMPACTS = [WT("N01", "Heredas") + .05, WT("N03", "Un"), WT("N03", "Un") + .55, S("N05") + .05, E("N12") + .15, WT("N17", "pisos."), WT("N19", "banco"), S("N20")]
 _impacts()
 
 @lru_cache(1)
@@ -707,6 +856,7 @@ def frame(T):
         dx = amp * math.sin(T * 95); dy = amp * math.cos(T * 71)
         ox = (cc.width - W) / 2 + dx; oy = (cc.height - H) / 2 + dy
         c = cc.crop((int(ox), int(oy), int(ox) + W, int(oy) + H))
+    c = look.apply(c, T, min(1, amp / 16))
     c.alpha_composite(VIG)
     c.alpha_composite(grains()[int(T * 24) % 4])
     draw_hud(c, T)
