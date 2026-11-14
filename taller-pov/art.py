@@ -6,6 +6,8 @@ from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "club-pov"))
 from art2 import cel, svg, sky, eye, face, neck, SK, SKS, SKH  # noqa: E402
+sys.path.insert(0, HERE)
+import cars  # noqa: E402
 
 OUT = os.path.join(HERE, "layers"); os.makedirs(OUT, exist_ok=True)
 OL = "#1d1630"
@@ -482,10 +484,14 @@ def tio_foto():
     b += '<text x="200" y="410" font-family="Caveat" font-weight="700" font-size="48" text-anchor="middle" fill="#2a2a5a">Rubén · 2022</text>'
     return svg(400, 470, b)
 
+def deportivo_hd(): d, b = cars.deportivo(); return svg(1080, 580, b, d)
+def coche_negro_hd(): d, b = cars.coche_negro(); return svg(1080, 580, b, d)
+def utilitario_hd(): d, b = cars.utilitario(); return svg(1080, 580, b, d)
+
 LAYERS = {"bg_mesa": bg_mesa, "bg_noche": bg_noche, "bg_fachada": bg_fachada, "persiana": persiana, "aviso": aviso,
-          "bg_taller": bg_taller, "motor": motor, "gato": gato, "manolo": manolo, "lona": lona, "deportivo": deportivo,
-          "movil": movil, "coche_negro": coche_negro, "faros": faros, "nitro": nitro, "llaves": llaves,
-          "icon_elevador": icon_elevador, "icon_caja": icon_caja, "icon_utilitario": icon_utilitario, "tio_foto": tio_foto}
+          "bg_taller": bg_taller, "motor": motor, "gato": gato, "manolo": manolo, "lona": lona, "deportivo": deportivo_hd,
+          "movil": movil, "coche_negro": coche_negro_hd, "faros": faros, "nitro": nitro, "llaves": llaves,
+          "icon_elevador": icon_elevador, "icon_caja": icon_caja, "icon_utilitario": utilitario_hd, "tio_foto": tio_foto}
 
 FONT_CSS = ("@font-face{font-family:Anton;src:url(file://%s/fonts/Anton-Regular.ttf)}"
             "@font-face{font-family:Caveat;font-weight:700;src:url(file://%s/fonts/Caveat.ttf)}") % (HERE, HERE)

@@ -421,7 +421,7 @@ def sc_manolo(T):
 def card(c, T, t, lay, nm, a1, a2):
     k = popscale(T, t, .4)
     panel(c, (110, 820, 970, 1250), fill=(250, 246, 235), alpha=250, rad=26, outline=OL, ow=6)
-    put(c, lay, 330, 1035, .9 * max(k, .02))
+    put(c, lay, 330, 1035, (.36 if lay == "icon_utilitario" else .9) * max(k, .02))
     d = ImageDraw.Draw(c)
     text(d, (540, 940), nm, 64, OL, "lm")
     text(d, (540, 1030), a1, 30, (90, 80, 100), "lm", F_UI)
@@ -443,7 +443,7 @@ def sc_inventario(T):
              ("icon_utilitario", "SEAT IBIZA 98", "DE UN CLIENTE", "NO HA VUELTO EN 2 AÑOS", WT("T09", "Seat"))]
     # miniaturas de lo ya visto
     for i, (lay, nm, a1, a2, t) in enumerate(cards):
-        if T >= t: put(c, lay, 260 + i * 280, 600, .55)
+        if T >= t: put(c, lay, 260 + i * 280, 600, .24 if lay == "icon_utilitario" else .55)
     if T < S("T10"):
         cur = max(i for i, x in enumerate(cards) if T >= x[4])
         card(c, T, *[cards[cur][4], *cards[cur][:4]])
@@ -475,14 +475,28 @@ def sc_reveal(T):
     s0 = S("T13"); tg = WT("T13", "guantera...")
     c = bg("bg_taller", T, s0, 1.25, 1.18, 4, .5, .7)
     neon_flicker(c, T, (200, 700, 880, 1300), MAG, 5)
-    put(c, "deportivo", 540, 1060, 1.0)
+    tz0 = WT("T13", "restaurar.") - .2
+    if tz0 <= T < tg:   # plano detalle: la cámara recorre el coche de morro a alerón
+        p = ease((T - tz0) / max(.5, tg - tz0))
+        z = 1.75
+        dark(c, 90)
+        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ov).ellipse((-200, 700, 1280, 1500), fill=(255, 230, 190, 60))
+        c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(60)))
+        put(c, "deportivo", 540 + 470 - 940 * p, 1000, z)
+        sh = int(255 * clamp(1 - abs(((T * .9) % 2) - 1) * 3))   # destello que recorre la chapa
+        if sh > 0:
+            gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); x = int(-300 + 1700 * ((T * .45) % 1))
+            ImageDraw.Draw(gl).polygon([(x, 700), (x + 60, 700), (x - 140, 1300), (x - 200, 1300)], fill=(255, 255, 255, 50))
+            c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(12)))
+        etiqueta(c, T, WT("T13", "motor,"), "MOTOR SIN TERMINAR", 540, 640, CYAN, OL)
+        return c
+    put(c, "deportivo", 540, 1050, 1.12)
     # la lona sale volando hacia arriba a la derecha
     u = ease((T - s0) / .9)
     if u < 1: put(c, "lona", 540 + 700 * u, 1060 - 900 * u, 1.0, alpha=1 - u * .6, rot=-25 * u)
     if T >= s0 + .9: dust(c, T, 40, (255, 150, 240))
     if T < tg:
         ficha(c, T, WT("T13", "deportivo"), 60, 440, "¿¿ ??", "POTENCIA: DESCONOCIDA", "ESTADO: 40 %", 480)
-        if T >= WT("T13", "motor,"): etiqueta(c, T, WT("T13", "motor,"), "MOTOR SIN TERMINAR", 540, 1300, CYAN, OL)
         return c
     # zoom a la guantera → móvil
     z = ease((T - tg) / .8)
