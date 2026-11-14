@@ -803,28 +803,65 @@ def option(c, T, t0, x, letter, lines, col, hi):
         if i == 0: text(d, (x, box[1] + 225), l, 64, cc)
         else: text(d, (x, box[1] + 250 + i * 62), l, 35, cc, "mm", F_UI)
 
+_SPLIT = {}
+def _lados(T):
+    """Las dos mitades de la pantalla partida: A (Arturo y su dinero) y B (el campo del abuelo)."""
+    s0 = S("N20"); z = 1.0 + .04 * clamp((T - s0) / 10)
+    key = round(z, 3)
+    if key not in _SPLIT:
+        if len(_SPLIT) > 4: _SPLIT.clear()
+        A = bg("bg_puerta", T, 0, 1.5 * z, 1.5 * z, 1, .5, 1.0).convert("RGBA")
+        put(A, "arturo", 300, 900, .9 * z); put(A, "coche", 250, 1200, .9 * z)
+        A.alpha_composite(Image.new("RGBA", (W, H), (10, 40, 22, 95)))
+        B = bg("bg_campo", T, 0, 1.25 * z, 1.25 * z, 1).convert("RGBA")
+        put(B, "cabra", 800, 1150, .8 * z)
+        B.alpha_composite(Image.new("RGBA", (W, H), (45, 18, 8, 70)))
+        _SPLIT[key] = (A, B)
+    return _SPLIT[key]
+
+RAYO = [(600, 0), (560, 520), (612, 560), (522, 1100), (578, 1132), (480, H)]
 def sc_decision(T):
-    s0, e0 = TL["N20"]; L = e0 - s0
-    c = bg("bg_dark", T, s0, 1.0, 1.04, 10).convert("RGBA"); d = ImageDraw.Draw(c)
-    k = popscale(T, s0, .4)
-    beat = 1 + .05 * max(0, math.sin(T * 7.5)) ** 8
-    text(d, (487, 330), "¿QUÉ HARÍAS TÚ?", 110 * max(k, .01) * beat, YEL, stroke=8)
-    ta, tb = WT("N20", "A:"), WT("N20", "B:")
+    s0, e0 = TL["N20"]
+    A, B = _lados(T)
+    u = ease((T - s0 + .25) / .45)                       # las mitades entran desde los lados
+    ta, tb = WT("N20", "¿Vendes"), WT("N20", "luchas")
     hiA = ta <= T < tb; hiB = tb <= T < e0
-    G, Rr = (30, 130, 70), (200, 50, 50)
-    option(c, T, ta, 272, "A", [("ACEPTAS", OL), ("", OL), ("+ Paco cobra", G), ("+ Deuda pagada", G), ("+ Club vivo", G), ("- Campo derribado", Rr)], (248, 246, 240), hiA)
-    option(c, T, tb, 702, "B", [("RECHAZAS", OL), ("", OL), ("+ Campo y secreto", G), ("- Sin un euro", Rr), ("- Paco sin cobrar", Rr), ("- Arturo en guerra", Rr)], YEL, hiB)
-    if T >= S("N21"):
-        u = popscale(T, WT("N21", "comentarios"))
-        if u > 0:
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    Bv = B if not hiA else Image.blend(B, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)
+    Av = A if not hiB else Image.blend(A, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)
+    c.alpha_composite(Bv, (int(500 * (1 - u)), 0))
+    mask = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO + [(0, H)], fill=255)
+    c.paste(Av, (int(-700 * (1 - u)), 0), mask)
+    d = ImageDraw.Draw(c)
+    if u > .9:                                           # rayo que parpadea
+        fl = 1 if (T * 12) % 1 > .15 else .6
+        d.line(RAYO, fill=WHITE, width=int(18 * fl), joint="curve"); d.line(RAYO, fill=YEL, width=8, joint="curve")
+        if T - s0 < .35:
+            c.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(200 * (1 - (T - s0) / .35)))))
             d = ImageDraw.Draw(c)
-            d.rounded_rectangle((487 - 290 * u, 1140, 487 + 290 * u, 1216), 38, fill=WHITE)
-            if u > .5: text(d, (487, 1178), "COMENTA  A  o  B", 56, OL)
-            tm = WT("N21", "Mañana,")
-            if T >= tm:
-                k = popscale(T, tm)
-                d.rounded_rectangle((487 - 220 * k, 1230, 487 + 220 * k, 1288), 18, fill=RED)
-                if k > .5: text(d, (487, 1259), "PARTE 2 · MAÑANA", 36, WHITE)
+    G = (46, 160, 90)
+    for cx, L_, t1, t2, t3, col, t0 in ((270, "A", "VENDER", "+ 250.000 €", "- Campo derribado", G, ta),
+                                        (800, "B", "LUCHAR", "+ El secreto", "- Sin un euro", RED, tb)):
+        k = popscale(T, t0, .35)
+        if k <= 0: continue
+        big = 1.08 if ((L_ == "A" and hiA) or (L_ == "B" and hiB)) else 1.0
+        r = 85 * k * big
+        d.ellipse((cx - r, 420 - r, cx + r, 420 + r), fill=col, outline=WHITE, width=8)
+        text(d, (cx, 420), L_, 120 * k * big, WHITE)
+        if k > .5:
+            text(d, (cx, 570), t1, 84 * big, WHITE, stroke=8)
+            text(d, (cx, 648), t2, 40, YEL, "mm", F_UI, stroke=5)
+            text(d, (cx, 698), t3, 34, (255, 150, 140), "mm", F_UI, stroke=5)
+    if T >= S("N21") - .05:
+        u2 = popscale(T, S("N21"))
+        d.rounded_rectangle((487 - 300 * u2, 1110, 487 + 300 * u2, 1186), 38, fill=WHITE)
+        if u2 > .5: text(d, (487, 1148), "COMENTA  A  o  B", 56, OL)
+        tm = WT("N21", "parte")
+        if T >= tm:
+            k = popscale(T, tm)
+            d.rounded_rectangle((487 - 220 * k, 1200, 487 + 220 * k, 1258), 18, fill=RED)
+            if k > .5: text(d, (487, 1229), "PARTE 2 · MAÑANA", 36, WHITE)
     return c
 
 SCENES = [  # (inicio, función)

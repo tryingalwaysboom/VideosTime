@@ -155,13 +155,14 @@ at("stamp", R.WT("N19", "banco") + .18, "peak")
 # ---------- decisión
 at("riser", R.S("N20") - .05, "end")
 at("boom", R.S("N20") + .02, "peak")
-at("pop", R.WT("N20", "A:") + .2, "peak")
-at("pop", R.WT("N20", "B:") + .2, "peak")
+at("stamp", R.S("N20") - .05, "peak", d=-4)
+at("pop", R.WT("N20", "¿Vendes") + .2, "peak")
+at("pop", R.WT("N20", "luchas") + .2, "peak")
 x = sfx("latido", "lowpass=f=900")
 if x is not None:
     put(fx, norm(loop(x, R.TOTAL - R.S("N20") - .4, .3), L["latido"]), R.S("N20") + .4, -4)
-at("pop", R.WT("N21", "comentarios") + .2, "peak", d=-2)
-at("pop", R.WT("N21", "Mañana,") + .2, "peak", d=-2)
+at("pop", R.S("N21") + .2, "peak", d=-2)
+at("pop", R.WT("N21", "parte") + .2, "peak", d=-2)
 
 # ------------------------------------------------------------ música (muy de fondo)
 m = sfx("musica", "highpass=f=60")
