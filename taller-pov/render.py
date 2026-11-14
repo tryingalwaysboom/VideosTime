@@ -22,13 +22,12 @@ def dur_audio(p):
                          capture_output=True, text=True).stdout.strip()
     return float(out)
 
-GAP = {"T02": .35, "T05": .45, "T06": .45, "T07": .3, "T08": .45, "T11": .5, "T13": .45, "T14": .5, "T15": .5,
-       "T16": .35, "T17": .3, "T18": .55, "T19": .4}
+GAP = {"T05": .2, "T11": .25, "T13": .2, "T14": .3, "T15": .3, "T18": .3, "T19": .2}
 
 def timeline():
     t, tl = 0.25, {}
     for lid, who, tts, cap in LINEAS:
-        t += GAP.get(lid, .3) if tl else 0
+        t += GAP.get(lid, .1) if tl else 0
         p = os.path.join(VOZ, lid + ".wav")
         d = dur_audio(p) if os.path.exists(p) else len(tts) / 14.5
         tl[lid] = (t, t + d)
@@ -104,7 +103,8 @@ def _whisper(lid):
     raw = json.load(open(p, encoding="utf-8")); out = []
     po = os.path.join(VOZ, "offsets.json")
     o = json.load(open(po)).get(lid, 0) if os.path.exists(po) else 0
-    raw = [dict(w, inicio=max(0, w["inicio"] - o), fin=max(0, w["fin"] - o)) for w in raw]
+    if not isinstance(o, dict): o = {"off": o, "tempo": 1.0}
+    raw = [dict(w, inicio=max(0, w["inicio"] - o["off"]) / o["tempo"], fin=max(0, w["fin"] - o["off"]) / o["tempo"]) for w in raw]
     for w in raw:
         if out and w["p"][:1] in ".,-" and any(ch.isdigit() for ch in w["p"]):
             out[-1] = {"p": out[-1]["p"] + w["p"], "inicio": out[-1]["inicio"], "fin": w["fin"]}
@@ -637,7 +637,7 @@ def grains():
         out.append(Image.fromarray(a, "RGBA").resize((W, H), Image.NEAREST))
     return out
 
-TW = .32
+TW = .22
 def frame(T):
     idx = max(i for i, (t, f) in enumerate(SCENES) if T >= t)
     t0, fn = SCENES[idx]
@@ -650,6 +650,16 @@ def frame(T):
         canvas.alpha_composite(hblur(prev, k), (int(-W * e), 0))
         canvas.alpha_composite(hblur(c, k), (int(W * (1 - e)), 0))
         c = canvas
+    # golpe de zoom en cada frase de subtítulo + empuje continuo + flash en cada corte
+    punch = sum(.035 * math.exp(-(T - ch[0]) * 9) for ch in CH if 0 <= T - ch[0] < .5)
+    drift = .02 * ((T - t0) / 6 % 1)
+    zz = 1 + punch + drift
+    if zz > 1.002:
+        cc = c.resize((int(W * zz), int(H * zz)), Image.BILINEAR)
+        ox = (cc.width - W) / 2 + 6 * math.sin(T * .7); oy = (cc.height - H) / 2 + 5 * math.cos(T * .5)
+        c = cc.crop((int(ox), int(oy), int(ox) + W, int(oy) + H))
+    if idx > 0 and 0 <= T - t0 < .16:
+        c.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(110 * (1 - (T - t0) / .16)))))
     amp = sum(16 * math.exp(-(T - ti) * 7) for ti in IMPACTS if 0 <= T - ti < .7)
     if amp > .6:
         z = 1.04; cc = c.resize((int(W * z), int(H * z)), Image.BILINEAR)
