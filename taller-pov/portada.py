@@ -148,8 +148,11 @@ def serie_C(n, out):
     _parte_n(c, n, 1450)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
+def a_34(path):
+    """Recorta al formato 3:4 (1080x1440) de la cuadrícula del perfil de TikTok e Instagram."""
+    im = Image.open(path); im.crop((0, 240, 1080, 1680)).save(path, quality=94)
+
 if __name__ == "__main__" and os.environ.get("SERIE"):
     n = int(os.environ.get("PARTE", "1"))
-    serie_A(n, os.path.join(r.HERE, f"portada_serie_A_parte{n}.jpg"))
-    serie_B(n, os.path.join(r.HERE, f"portada_serie_B_parte{n}.jpg"))
-    serie_C(n, os.path.join(r.HERE, f"portada_serie_C_parte{n}.jpg"))
+    for k, fn in (("A", serie_A), ("B", serie_B), ("C", serie_C)):
+        p = os.path.join(r.HERE, f"portada_serie_{k}_parte{n}.jpg"); fn(n, p); a_34(p)
