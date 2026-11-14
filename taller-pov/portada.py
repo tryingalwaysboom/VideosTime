@@ -114,11 +114,11 @@ def serie_A(n, out):
     """Taller de noche: cartel de neón arriba, el deportivo con reflejo y luz magenta."""
     c = r.bg("bg_taller", 0, 0, 1.25, 1.25, 1, .5, .62); r.dark(c, 120)
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
-    g.ellipse((-100, 900, 1180, 1400), fill=r.MAG + (95,)); g.ellipse((200, 600, 880, 1000), fill=r.CYAN + (50,))
+    g.ellipse((-100, 1020, 1180, 1520), fill=r.MAG + (95,)); g.ellipse((200, 700, 880, 1100), fill=r.CYAN + (50,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
-    _suelo_reflejo(c, "deportivo", 540, 1010, 1.12)
-    _neon_titulo(c, 360)
-    _parte_n(c, n)
+    _suelo_reflejo(c, "deportivo", 540, 1070, 1.05)
+    _neon_titulo(c, 580)
+    _parte_n(c, n, 1560)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 def serie_B(n, out):
@@ -128,11 +128,11 @@ def serie_B(n, out):
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
     g.rectangle((150, 830, 930, 1400), fill=(255, 220, 160, 60)); g.ellipse((0, 1250, 1080, 1650), fill=r.MAG + (80,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(40)))
-    _suelo_reflejo(c, "deportivo", 540, 1230, 1.05)
-    band = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); ImageDraw.Draw(band).rectangle((0, 0, r.W, 560), fill=(8, 6, 20, 150))
+    _suelo_reflejo(c, "deportivo", 540, 1130, 1.0)
+    band = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); ImageDraw.Draw(band).rectangle((0, 340, r.W, 820), fill=(8, 6, 20, 150))
     c.alpha_composite(band.filter(ImageFilter.GaussianBlur(30)))
-    _neon_titulo(c, 380)
-    _parte_n(c, n, 1600)
+    _neon_titulo(c, 580)
+    _parte_n(c, n, 1560)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 def serie_C(n, out):
@@ -143,9 +143,9 @@ def serie_C(n, out):
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))
     co = r.scaled("coche_negro", .95).transpose(Image.FLIP_LEFT_RIGHT)
     c.alpha_composite(co, (int(560 - co.width / 2), int(560 - co.height / 2)))
-    _suelo_reflejo(c, "deportivo", 520, 1260, 1.0)
-    _neon_titulo(c, 900)
-    _parte_n(c, n, 1610)
+    _suelo_reflejo(c, "deportivo", 520, 1170, .92)
+    _neon_titulo(c, 870)
+    _parte_n(c, n, 1560)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 if __name__ == "__main__" and os.environ.get("SERIE"):
