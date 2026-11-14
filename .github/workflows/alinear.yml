@@ -33,4 +33,4 @@ jobs:
           git config user.email "actions@github.com"
           git add descargas
           git commit -m "Tiempos por palabra" || exit 0
-          git push
+          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push && exit 0; sleep 5; done; exit 1
