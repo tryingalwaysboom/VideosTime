@@ -25,7 +25,7 @@ def dur_audio(p):
 GAP = {"T05": .2, "T11": .25, "T13": .2, "T14": .3, "T15": .3, "T18": .3, "T19": .2}
 
 def timeline():
-    t, tl = 0.95, {}
+    t, tl = 0.1, {}
     for lid, who, tts, cap in LINEAS:
         t += GAP.get(lid, .1) if tl else 0
         p = os.path.join(VOZ, lid + ".wav")
@@ -165,6 +165,7 @@ def WT(lid, palabra, n=1):
 NOMBRE = {"M": "MANOLO", "T": "TÍO RUBÉN · NOTA DE VOZ", "X": "NITRO"}
 
 def draw_caption(canvas, T):
+    if "T19" in TL and T >= WT("T19", "Comenta") - .05: return   # el botón COMENTA sustituye al subtítulo
     for idx, (t0, t1, g, who, lid) in enumerate(CH):
         nxt0 = CH[idx + 1][0] if idx + 1 < len(CH) else 1e9
         if not (t0 - .04 <= T < t1 + .35) or T >= nxt0 - .04: continue
@@ -235,9 +236,8 @@ def barra_base():
 
 def draw_hud(canvas, T):
     if T >= S("T18") - .1: return
-    if T < .35: return
-    if T < .75:   # la barra entra deslizando desde arriba
-        k = ease((T - .35) / .4)
+    if T < .25:   # la barra entra deslizando desde arriba
+        k = ease(T / .25)
         canvas.alpha_composite(barra_base().crop((0, 0, W, 300)), (0, int(-300 * (1 - k))))
         return
     canvas.alpha_composite(barra_base())
@@ -311,8 +311,8 @@ def neon_flicker(c, T, box, col, seed=0):
 # ---------------------------------------------------------------- escenas
 def sc_llaves(T):
     c = bg("bg_mesa", T, 0, 1.3, 1.0, 2.2)
-    u = ease((T - .05) / .5)
-    bounce = 30 * abs(math.sin((T - .55) * 9)) * math.exp(-(T - .55) * 4) if T > .55 else 0
+    u = ease(T / .3)
+    bounce = 30 * abs(math.sin((T - .3) * 9)) * math.exp(-(T - .3) * 4) if T > .3 else 0
     put(c, "llaves", 560, 980 - 900 * (1 - u) - bounce, 1.15, rot=-8 + 14 * (1 - u))
     ficha(c, T, WT("T01", "Rubén"), 60, 330, "TÍO RUBÉN", "DESAPARECIDO HACE 2 AÑOS", "NADIE SABE DÓNDE ESTÁ", 560)
     if T >= WT("T01", "Rubén") + .2: put(c, "tio_foto", 860, 470, .55, rot=7)
@@ -618,6 +618,137 @@ def sc_decision(T):
             d.rounded_rectangle((540 - 300 * u, 1120, 540 + 300 * u, 1210), 45, fill=WHITE)
             if u > .5: text(d, (540, 1165), "COMENTA  A  o  B", 56, OL)
     return c
+
+# ---------------------------------------------------------------- pantallas finales (3 propuestas)
+G_ = (46, 160, 90)
+RAYO = [(600, 0), (560, 520), (612, 560), (522, 1100), (578, 1132), (480, H)]
+_FC = {}
+def _lado(name, T):
+    if name in _FC: return _FC[name]
+    if name == "A":
+        A = bg("bg_fachada", T, 0, 1.5, 1.5, 1, .5, 1.0).convert("RGBA"); dark(A, 70)
+        put(A, "nitro", 300, 820, .9); put(A, "coche_negro", 330, 1150, .9)
+        A.alpha_composite(Image.new("RGBA", (W, H), (10, 40, 22, 95)))
+    else:
+        A = bg("bg_taller", T, 0, 1.25, 1.25, 1, .5, .7).convert("RGBA")
+        put(A, "deportivo", 780, 1080, .95); put(A, "gato", 900, 830, .45)
+        A.alpha_composite(Image.new("RGBA", (W, H), (60, 10, 50, 80)))
+    _FC[name] = A
+    return A
+
+def _texto_opcion(d, cx, cy, letra, t1, t2, t3, col, k, big=1.0):
+    r = 82 * k * big
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=col, outline=WHITE, width=8)
+    text(d, (cx, cy), letra, 116 * k * big, WHITE)
+    if k > .5:
+        text(d, (cx, cy + 150), t1, 80 * big, WHITE, stroke=8)
+        text(d, (cx, cy + 228), t2, 40, YEL, "mm", F_UI, stroke=5)
+        text(d, (cx, cy + 278), t3, 34, (255, 150, 140), "mm", F_UI, stroke=5)
+
+def _comenta(c, T, y=1150):
+    if T < S("T19"): return
+    u = popscale(T, WT("T19", "Comenta"))
+    if u <= 0: return
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((470 - 300 * u, y - 40, 470 + 300 * u, y + 40), 40, fill=WHITE)
+    if u > .5: text(d, (470, y), "COMENTA  A  o  B", 56, OL)
+
+def _hi(T):
+    s0, e0 = TL["T18"]; ta, tb = WT("T18", "A:"), WT("T18", "B:")
+    return ta, tb, ta <= T < tb, tb <= T < e0
+
+def sc_final1(T):
+    """Pantalla partida con rayo de neón: A = Nitro y su dinero, B = el coche del tío."""
+    s0, e0 = TL["T18"]; ta, tb, hiA, hiB = _hi(T)
+    A, B = _lado("A", T), _lado("B", T)
+    u = ease((T - s0 + .25) / .45)
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    Bv = B if not hiA else Image.blend(B, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)
+    Av = A if not hiB else Image.blend(A, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)
+    c.alpha_composite(Bv, (int(500 * (1 - u)), 0))
+    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO + [(0, H)], fill=255)
+    c.paste(Av, (int(-700 * (1 - u)), 0), mask)
+    d = ImageDraw.Draw(c)
+    if u > .9:
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(RAYO, fill=CYAN + (255,), width=40, joint="curve")
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(14))); d = ImageDraw.Draw(c)
+        d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=CYAN, width=5, joint="curve")
+    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "VENDER", "+ 25.700 €", "- El coche, para Nitro", G_, ta, hiA),
+                                           (790, "B", "QUEDARTE", "+ El coche del tío", "- Solo 410 €", MAG, tb, hiB)):
+        k = popscale(T, t0, .35)
+        if k > 0: _texto_opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
+    _comenta(c, T, 1440)
+    return c
+
+def sc_final2(T):
+    """Cara a cara (arriba/abajo): Nitro y su coche contra el deportivo del tío, con VS en el centro."""
+    s0, e0 = TL["T18"]; ta, tb, hiA, hiB = _hi(T)
+    c = Image.new("RGBA", (W, H), (8, 6, 18, 255))
+    top = bg("bg_fachada", T, 0, 1.9, 1.9, 1, .5, .95).convert("RGBA"); dark(top, 60)
+    put(top, "coche_negro", 600, 760, .9); put(top, "nitro", 250, 640, .7)
+    top.alpha_composite(Image.new("RGBA", (W, H), (10, 50, 26, 90)))
+    bot = bg("bg_taller", T, 0, 1.4, 1.4, 1, .5, .75).convert("RGBA")
+    put(bot, "deportivo", 560, 1520, .85); put(bot, "gato", 880, 1280, .4)
+    bot.alpha_composite(Image.new("RGBA", (W, H), (60, 10, 50, 70)))
+    u = ease((T - s0 + .25) / .45)
+    c.alpha_composite((top if not hiB else Image.blend(top, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)).crop((0, 0, W, 960)), (int(-W * (1 - u)), 0))
+    c.alpha_composite((bot if not hiA else Image.blend(bot, Image.new("RGBA", (W, H), (0, 0, 0, 255)), .45)).crop((0, 960, W, H)), (int(W * (1 - u)), 960))
+    d = ImageDraw.Draw(c)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line((0, 960, W, 960), fill=CYAN + (255,), width=30)
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(12))); d = ImageDraw.Draw(c)
+    d.line((0, 960, W, 960), fill=WHITE, width=8)
+    k = popscale(T, s0 + .3, .4)
+    if k > 0:
+        d.ellipse((470 - 95 * k, 960 - 95 * k, 470 + 95 * k, 960 + 95 * k), fill=(20, 16, 34), outline=YEL, width=8)
+        text(d, (470, 962), "VS", 90 * k, YEL)
+    for y, L_, t1, t2, t3, col, t0, h in ((300, "A", "VENDER", "+ 25.700 €", "- El coche, para Nitro", G_, ta, hiA),
+                                          (1170, "B", "QUEDARTE", "+ El coche del tío", "- Solo 410 €", MAG, tb, hiB)):
+        kk = popscale(T, t0, .35)
+        if kk <= 0: continue
+        big = 1.08 if h else 1.0
+        panel(c, (60, y - 70, 560, y + 230), fill=(14, 12, 26), alpha=200, rad=26, outline=col, ow=5); d = ImageDraw.Draw(c)
+        r = 58 * kk * big; d.ellipse((130 - r, y - r + 20, 130 + r, y + r + 20), fill=col, outline=WHITE, width=6)
+        text(d, (130, y + 20), L_, 80 * kk * big, WHITE)
+        if kk > .5:
+            text(d, (215, y + 20), t1, 70 * big, WHITE, "lm", stroke=6)
+            text(d, (95, y + 120), t2, 36, YEL, "lm", F_UI, stroke=4)
+            text(d, (95, y + 175), t3, 32, (255, 150, 140), "lm", F_UI, stroke=4)
+    _comenta(c, T, 1095)
+    return c
+
+def sc_final3(T):
+    """Menú de videojuego: el deportivo bajo un foco y dos botones grandes de elección con temporizador."""
+    s0, e0 = TL["T18"]; ta, tb, hiA, hiB = _hi(T)
+    c = bg("bg_taller", T, s0, 1.3, 1.36, 12, .5, .72); dark(c, 130)
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ov).polygon([(420, 0), (660, 0), (1000, 900), (80, 900)], fill=(255, 230, 170, 55))
+    c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(30)))
+    put(c, "deportivo", 480, 700, 1.0)
+    d = ImageDraw.Draw(c)
+    k = popscale(T, s0, .4)
+    text(d, (470, 300), "ELIGE TU DESTINO", 92 * max(k, .01), YEL, stroke=8)
+    for y, L_, t1, sub, col, t0, h in ((1000, "A", "VENDER A NITRO", "+25.700 € · pierdes el coche", G_, ta, hiA),
+                                       (1210, "B", "CERRARLE LA PERSIANA", "410 € · te quedas el coche", MAG, tb, hiB)):
+        kk = popscale(T, t0, .35)
+        if kk <= 0: continue
+        sc = 1.05 if h else 1.0
+        x0, x1 = 470 - 400 * kk * sc, 470 + 400 * kk * sc
+        if h:
+            gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).rounded_rectangle((x0, y - 85, x1, y + 85), 30, outline=col + (255,), width=20)
+            c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(12)))
+        panel(c, (x0, y - 85, x1, y + 85), fill=(16, 14, 30), alpha=235, rad=30, outline=col, ow=6); d = ImageDraw.Draw(c)
+        if kk > .5:
+            d.rounded_rectangle((x0 + 22, y - 55, x0 + 132, y + 55), 22, fill=col)
+            text(d, (x0 + 77, y), L_, 80, WHITE)
+            text(d, (x0 + 160, y - 22), t1, 50, WHITE, "lm")
+            text(d, (x0 + 160, y + 35), sub, 30, YEL, "lm", F_UI)
+    if T >= tb:   # barra de tiempo como en un juego
+        p = clamp((T - tb) / max(.5, E("T19") - tb))
+        d.rounded_rectangle((90, 1340, 850, 1362), 11, fill=(40, 36, 60))
+        d.rounded_rectangle((90, 1340, 90 + 760 * (1 - p), 1362), 11, fill=YEL)
+    _comenta(c, T, 1440)
+    return c
+
+sc_decision = {"1": sc_final1, "2": sc_final2, "3": sc_final3}[os.environ.get("FINAL", "1")]
 
 SCENES = [
     (0, sc_llaves), (S("T02") - .15, sc_fachada), (S("T03") - .15, sc_stats), (S("T04") - .15, sc_aviso),
