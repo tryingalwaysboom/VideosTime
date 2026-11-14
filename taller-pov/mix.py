@@ -7,7 +7,7 @@ def main(out):
     for i, lid in enumerate(TL):
         ins += ["-i", os.path.join(VOZ, lid + ".wav")]
         ms = int(TL[lid][0] * 1000)
-        flt.append(f"[{i}:a]aresample=48000,adelay={ms}|{ms},apad[a{i}]")
+        flt.append(f"[{i}:a]aresample=48000,afade=t=in:d=0.015,adelay={ms}|{ms},apad[a{i}]")
     n = len(TL)
     flt.append("".join(f"[a{i}]" for i in range(n)) + f"amix=inputs={n}:normalize=0:duration=longest,atrim=0:{TOTAL:.2f},"
                "acompressor=threshold=-18dB:ratio=3:attack=5:release=120,loudnorm=I=-15:TP=-1.5:LRA=9[voz]")

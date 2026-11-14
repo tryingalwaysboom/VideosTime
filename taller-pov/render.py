@@ -25,7 +25,7 @@ def dur_audio(p):
 GAP = {"T05": .2, "T11": .25, "T13": .2, "T14": .3, "T15": .3, "T18": .3, "T19": .2}
 
 def timeline():
-    t, tl = 0.25, {}
+    t, tl = 0.95, {}
     for lid, who, tts, cap in LINEAS:
         t += GAP.get(lid, .1) if tl else 0
         p = os.path.join(VOZ, lid + ".wav")
@@ -235,6 +235,11 @@ def barra_base():
 
 def draw_hud(canvas, T):
     if T >= S("T18") - .1: return
+    if T < .35: return
+    if T < .75:   # la barra entra deslizando desde arriba
+        k = ease((T - .35) / .4)
+        canvas.alpha_composite(barra_base().crop((0, 0, W, 300)), (0, int(-300 * (1 - k))))
+        return
     canvas.alpha_composite(barra_base())
     d = ImageDraw.Draw(canvas)
     x0, y0, x1 = 36, 168, 1044
@@ -305,9 +310,9 @@ def neon_flicker(c, T, box, col, seed=0):
 
 # ---------------------------------------------------------------- escenas
 def sc_llaves(T):
-    c = bg("bg_mesa", T, 0, 1.12, 1.0, 5)
-    u = ease((T - .15) / .55)
-    bounce = 30 * abs(math.sin((T - .7) * 9)) * math.exp(-(T - .7) * 4) if T > .7 else 0
+    c = bg("bg_mesa", T, 0, 1.3, 1.0, 2.2)
+    u = ease((T - .05) / .5)
+    bounce = 30 * abs(math.sin((T - .55) * 9)) * math.exp(-(T - .55) * 4) if T > .55 else 0
     put(c, "llaves", 560, 980 - 900 * (1 - u) - bounce, 1.15, rot=-8 + 14 * (1 - u))
     ficha(c, T, WT("T01", "Rubén"), 60, 330, "TÍO RUBÉN", "DESAPARECIDO HACE 2 AÑOS", "NADIE SABE DÓNDE ESTÁ", 560)
     if T >= WT("T01", "Rubén") + .2: put(c, "tio_foto", 860, 470, .55, rot=7)
