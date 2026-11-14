@@ -30,7 +30,7 @@ def timeline():
         d = dur_audio(p) if os.path.exists(p) else len(tts) / 14.5
         tl[lid] = (t, t + d)
         t += d
-    return tl, t + 2.2
+    return tl, t + .9
 
 TL, TOTAL = timeline()
 def S(l): return TL[l][0]
@@ -796,7 +796,7 @@ def sc_decision(T):
     ta, tb = WT("N20", "A:"), WT("N20", "B:")
     hiA = ta <= T < tb; hiB = tb <= T < e0
     G, Rr = (30, 130, 70), (200, 50, 50)
-    option(c, T, ta, 290, "A", [("ACEPTAS", OL), ("", OL), ("+ Paco cobra", G), ("+ Deuda pagada", G), ("- Lejos de casa", Rr), ("- Campo derribado", Rr)], (248, 246, 240), hiA)
+    option(c, T, ta, 290, "A", [("ACEPTAS", OL), ("", OL), ("+ Paco cobra", G), ("+ Deuda pagada", G), ("+ Club vivo", G), ("- Campo derribado", Rr)], (248, 246, 240), hiA)
     option(c, T, tb, 790, "B", [("RECHAZAS", OL), ("", OL), ("+ Campo y secreto", G), ("- Sin un euro", Rr), ("- Paco sin cobrar", Rr), ("- Arturo en guerra", Rr)], YEL, hiB)
     if T >= S("N21"):
         u = popscale(T, WT("N21", "comentarios"))

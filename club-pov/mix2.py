@@ -85,7 +85,7 @@ if x is not None: add(fx, loop(x, R.TOTAL - R.S("N20")), R.S("N20"), .45)
 # ducking: música y ambiente bajan cuando hay voz; efectos nunca por encima de la voz
 env = np.convolve(np.abs(voice), np.ones(2205) / 2205, mode="same")
 talk = np.clip(env * 10, 0, 1)
-bed = mus * (0.30 - 0.20 * talk) + amb * (0.55 - 0.30 * talk)
+bed = mus * (0.12 - 0.08 * talk) + amb * (0.55 - 0.30 * talk)
 fxm = fx * (0.55 - 0.25 * talk)
 mix = voice + bed + fxm
 mix = mix / max(1.0, np.abs(mix).max() / 0.95)

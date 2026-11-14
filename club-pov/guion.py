@@ -41,8 +41,8 @@ LINEAS = [
      "Es Arturo Ferrán, presidente del Atlético Valle. El mismo hombre que arruinó a tu abuelo hace 20 años."),
     ("N19", "R", "Y os pago también lo que le debéis al viejo. Piénsalo bien... o mañana el banco os embarga hasta las porterías.",
      "Y os pago también lo que le debéis al viejo. Piénsalo bien... o mañana el banco os embarga hasta las porterías."),
-    ("N20", "N", "Tienes dos opciones. A: aceptas. Paco cobra, la deuda desaparece y el San Lorenzo sigue vivo... pero lejos de casa, y el campo de tu abuelo será derribado. B: rompes el contrato. Te quedas el campo y su secreto... pero sin un euro, con Paco sin cobrar, y con Arturo en guerra contra ti.",
-     "Tienes dos opciones. A: aceptas. Paco cobra, la deuda desaparece y el San Lorenzo sigue vivo... pero lejos de casa, y el campo de tu abuelo será derribado. B: rompes el contrato. Te quedas el campo y su secreto... pero sin un euro, con Paco sin cobrar, y con Arturo en guerra contra ti."),
+    ("N20", "N", "Tienes dos opciones. A: aceptas. Paco cobra, y el San Lorenzo sigue vivo... pero el campo de tu abuelo será derribado. B: rompes el contrato. Te quedas el campo y su secreto... pero sin un euro, y con Arturo en guerra contra ti.",
+     "Tienes dos opciones. A: aceptas. Paco cobra, y el San Lorenzo sigue vivo... pero el campo de tu abuelo será derribado. B: rompes el contrato. Te quedas el campo y su secreto... pero sin un euro, y con Arturo en guerra contra ti."),
     ("N21", "N", "La opción con más comentarios decide la parte dos. Mañana, a esta hora. ¿A... o B?",
      "La opción con más comentarios decide la parte 2. Mañana, a esta hora. ¿A... o B?"),
 ]
