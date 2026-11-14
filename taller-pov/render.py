@@ -102,6 +102,9 @@ def _whisper(lid):
     p = os.path.join(VOZ, lid + ".json")
     if not os.path.exists(p): return []
     raw = json.load(open(p, encoding="utf-8")); out = []
+    po = os.path.join(VOZ, "offsets.json")
+    o = json.load(open(po)).get(lid, 0) if os.path.exists(po) else 0
+    raw = [dict(w, inicio=max(0, w["inicio"] - o), fin=max(0, w["fin"] - o)) for w in raw]
     for w in raw:
         if out and w["p"][:1] in ".,-" and any(ch.isdigit() for ch in w["p"]):
             out[-1] = {"p": out[-1]["p"] + w["p"], "inicio": out[-1]["inicio"], "fin": w["fin"]}
