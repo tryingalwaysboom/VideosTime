@@ -1,0 +1,50 @@
+name: fotos
+on:
+  push:
+    paths: ["descargas/**/fotos.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q requests pillow
+      - name: Buscar fotos libres (Openverse CC0 / dominio publico)
+        run: |
+          python - <<'PY'
+          import glob, os, io, json, requests
+          from PIL import Image
+          H={"User-Agent":"VideosTime/1.0 (recetas)"}
+          for marca in glob.glob("descargas/**/fotos.txt", recursive=True):
+              out=os.path.dirname(marca)
+              for linea in open(marca, encoding="utf-8"):
+                  linea=linea.strip()
+                  if not linea or "|" not in linea: continue
+                  clave, q = [s.strip() for s in linea.split("|",1)]
+                  try:
+                      r=requests.get("https://api.openverse.org/v1/images/",params={"q":q,"license":"cc0,pdm","page_size":8,"mature":"false"},headers=H,timeout=30).json()
+                  except Exception as e:
+                      print("err",q,e); continue
+                  meta=[]
+                  for i,it in enumerate(r.get("results",[])):
+                      try:
+                          b=requests.get(it["url"],headers=H,timeout=40).content
+                          im=Image.open(io.BytesIO(b)).convert("RGB")
+                          if min(im.size)<700: continue
+                          im.thumbnail((1800,1800))
+                          f=f"{out}/{clave}_{i}.jpg"; im.save(f,quality=88)
+                          meta.append({"f":f,"titulo":it.get("title"),"fuente":it.get("foreign_landing_url"),"licencia":it.get("license")})
+                          print("ok",f)
+                      except Exception as e: print("skip",e)
+                  json.dump(meta,open(f"{out}/{clave}.json","w"),ensure_ascii=False,indent=1)
+          PY
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add descargas
+          git commit -m "Fotos libres" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push && exit 0; sleep 5; done; exit 1
