@@ -171,10 +171,10 @@ def bg_noche():
     return svg(1080, 1920, b, d)
 
 # ============================================================ PERSONAJES
-def _mateo_cuerpo():
+def _mateo_cuerpo(lapiz=False):
     b = ''
     # camiseta verde con dino
-    torso = '<path d="M150 1500 L160 900 Q170 760 300 720 Q400 700 500 720 Q630 760 640 900 L650 1500Z"/>'
+    torso = '<path d="M150 1900 L160 900 Q170 760 300 720 Q400 700 500 720 Q630 760 640 900 L650 1900Z"/>'
     b += cel(torso, TEE, TEES, TEEH, -46, -8, 8)
     b += (f'<path d="M300 960 Q320 880 400 890 Q420 850 460 856 Q492 864 480 890 L456 894 Q470 950 430 968 L430 1000 M350 968 L350 1000 M300 960 Q280 940 284 916" '
           f'stroke="#f6efe2" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
@@ -182,9 +182,9 @@ def _mateo_cuerpo():
     b += cel('<path d="M330 712 Q400 760 470 712 L462 700 Q400 732 338 700Z"/>', TEES, "#2c7040", None, -4, 0, 5)
     # brazos
     b += cel('<path d="M170 800 Q110 900 120 1010 L180 1016 Q186 920 220 860Z"/>', TEE, TEES, None, 10, 0, 7)
-    b += cel('<path d="M630 800 Q690 900 680 1010 L620 1016 Q614 920 580 860Z"/>', TEE, TEES, None, -10, 0, 7)
+    if not lapiz: b += cel('<path d="M630 800 Q690 900 680 1010 L620 1016 Q614 920 580 860Z"/>', TEE, TEES, None, -10, 0, 7)
     b += cel('<ellipse cx="150" cy="1036" rx="42" ry="40"/>', SK, SKS, None, 8, -4, 6)
-    b += cel('<ellipse cx="650" cy="1036" rx="42" ry="40"/>', SK, SKS, None, -8, -4, 6)
+    if not lapiz: b += cel('<ellipse cx="650" cy="1036" rx="42" ry="40"/>', SK, SKS, None, -8, -4, 6)
     return b
 
 def _mateo_cabeza():
@@ -240,13 +240,29 @@ def _boca(kind):
         "timido": '<path d="M372 556 Q400 574 428 556" stroke="#1d1630" stroke-width="8" fill="none" stroke-linecap="round"/>',
     }[kind]
 
-def mateo(kind="neutral", hablando=False):
+def _brazo_lapiz():
+    """Brazo derecho doblado: codo abajo, puño delante del pecho apretando el lápiz (punta arriba)."""
+    def tubo(d, w, col):
+        return (f'<path d="{d}" stroke="{OL}" stroke-width="{w + 14}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+                f'<path d="{d}" stroke="{col}" stroke-width="{w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
+    b = tubo("M680 880 L712 1010 L620 900", 58, SK)                      # brazo y antebrazo
+    b += f'<path d="M680 880 L712 1010 L620 900" stroke="{SK}" stroke-width="58" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+    b += cel('<path d="M596 772 Q700 780 718 860 L726 930 L650 950 L624 880Z"/>', TEE, TEES, None, -10, 0, 7)   # manga corta
+    b += _lapiz_diag(585, 1010, 650, 560, 46)
+    b += cel('<path d="M572 900 Q560 830 620 818 Q690 812 694 872 Q700 940 640 948 Q590 952 572 900Z"/>', SK, SKS, SKH, -10, -8, 7)
+    for (x, y) in ((584, 842), (586, 876), (594, 910)):
+        b += cel(f'<ellipse cx="{x}" cy="{y}" rx="30" ry="20"/>', SK, SKS, None, -4, -4, 5)
+    return b
+
+def mateo(kind="neutral", hablando=False, lapiz=False):
     """Mateo, 5 años y medio. hablando=True deja la boca vacía para animarla en el montaje (centro 400,560)."""
     h = _mateo_cabeza() + _cejas(kind) + _ojos(kind)
     if not hablando: h += _boca(kind)
     # cabeza grande de niño pequeño (boca hablando en 400,606)
-    b = _mateo_cuerpo() + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>'
-    return svg(800, 1500, b)
+    cuerpo = _mateo_cuerpo(lapiz)   # con lápiz: sin el brazo derecho estirado (va doblado)
+    b = cuerpo + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>'
+    if lapiz: b += _brazo_lapiz()
+    return svg(800, 1900, b)
 
 def abuela(hablando=False):
     """Abuela Pilar: moño canoso, lentes, rebeca morada, collar de perlas, cara de 'en mis tiempos'."""
@@ -310,8 +326,8 @@ def nota():
 def hoja():
     """Hoja blanca con pauta para escribir el nombre (las letras se dibujan en el montaje)."""
     b = '<rect x="20" y="20" width="900" height="640" rx="8" fill="#fffef8" stroke="#1d1630" stroke-width="7" filter="url(#drop)"/>'
-    for y0 in (110, 400):
-        b += f'<path d="M60 {y0} L880 {y0}" stroke="#8ab7e8" stroke-width="4"/><path d="M60 {y0+110} L880 {y0+110}" stroke="#d96a6a" stroke-width="4" stroke-dasharray="18 12"/><path d="M60 {y0+220} L880 {y0+220}" stroke="#8ab7e8" stroke-width="4"/>'
+    for y0 in (120, 380):
+        b += f'<path d="M60 {y0} L880 {y0}" stroke="#8ab7e8" stroke-width="4"/><path d="M60 {y0+80} L880 {y0+80}" stroke="#d96a6a" stroke-width="4" stroke-dasharray="18 12"/><path d="M60 {y0+160} L880 {y0+160}" stroke="#8ab7e8" stroke-width="4"/>'
     return svg(940, 680, b)
 
 def lapiz():
@@ -393,7 +409,7 @@ def _lapiz_diag(x0, y0, x1, y1, w=58, rota=False):
 
 def mano_lapiz(rota=False):
     """Vista cenital: el puño de Mateo (manga verde) apretando el lápiz con la punta sobre el papel. Punta en (150,830)."""
-    b = cel('<path d="M980 1000 L1000 700 Q860 600 700 640 L560 760 L760 1000Z"/>', TEE, TEES, TEEH, -18, -10, 8)
+    b = cel('<path d="M1800 1500 L1800 1100 L760 600 Q680 610 640 700 L600 800 L1500 1800 L1800 1800Z"/>', TEE, TEES, TEEH, -18, -10, 8)
     b += cel('<path d="M700 640 Q760 700 700 790 L640 820 Q600 760 650 690Z"/>', TEES, "#2c7040", None, -6, 0, 6)
     b += _lapiz_diag(860, 170, 150, 830, 62, rota)
     # puño: palma redondeada + 4 nudillos sobre el lápiz + pulgar
@@ -402,14 +418,14 @@ def mano_lapiz(rota=False):
         b += cel(f'<ellipse cx="{x}" cy="{y}" rx="46" ry="34" transform="rotate(-38 {x} {y})"/>', SK, SKS, None, -6, -6, 6)
     b += cel('<path d="M560 450 Q500 400 450 440 Q430 470 470 488 Q520 470 590 500Z"/>', SK, SKS, None, -6, -4, 6)
     b += '<path d="M600 620 Q640 600 660 560" stroke="#d8996f" stroke-width="6" fill="none"/>'
-    return svg(1000, 1000, b)
+    return svg(1800, 1800, b)
 
 def lapiz_v():
     """Lápiz en vertical, punta abajo (para el plano medio con Mateo)."""
     return svg(200, 700, _lapiz_diag(100, 20, 100, 680, 60))
 
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
-          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v,
+          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
           "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
 for k in ("neutral", "enojado", "llora", "triste", "timido"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)
