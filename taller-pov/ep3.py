@@ -10,7 +10,10 @@ from render import (Image, ImageDraw, ImageFilter, W, H, bg, put, scaled, text, 
 # pausas propias del Ep.3 y línea de tiempo recalculada
 R.GAP.update({"F01": 0, "F03": .3, "F05": .35, "F06": .3, "F07": 1.6, "F08": .2, "F10": .35, "F11": .2, "F12": .35,
               "F13": .25, "F14": .45, "F15": .3, "F16": .45, "F17": .5, "F18": .3, "F19": .25, "F20": .3, "F21": .5, "F22": .3})
-R.TL, R.TOTAL = R.timeline(); R.CH = R.chunks()
+R.TL, R.TOTAL = R.timeline()
+# sin hueco al inicio: la voz arranca en el frame 0
+R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL -= .1
+R.CH = R.chunks()
 TL = R.TL
 R.EPISODIO, R.DIA = 3, 3
 G_ = (46, 160, 90); AZ = (60, 110, 220)
@@ -21,9 +24,7 @@ def talk(lid, T): return S(lid) <= T < E(lid)
 def draw_hud(canvas, T):
     if T >= S("F21") - .1: return
     base = R.barra_base()
-    if T < .25:
-        k = ease(T / .25); canvas.alpha_composite(base.crop((0, 0, W, 300)), (0, int(-300 * (1 - k)))); return
-    canvas.alpha_composite(base)
+    canvas.alpha_composite(base)   # sin animación de entrada: visible desde el frame 0
     d = ImageDraw.Draw(canvas); x0, y0, x1 = 36, 168, 1044
     t_cen = WT("F13", "centralita.")
     def pop(t): return 1 + .28 * math.sin(clamp((T - t) / .3) * math.pi) if 0 <= T - t < .3 else 1
@@ -93,9 +94,8 @@ def sc_intro(T):
     c = bg("bg_noche", T, 0, 1.0, 1.08, 6)
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((160, 640, 920, 1300), fill=(242, 190, 60, 70))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(60)))
-    k = popscale(T, .05, .45)
-    put(c, "llave_nave7", 540, 900 + 10 * math.sin(T * 1.6), 1.3 * max(k, .02), rot=-8 + 6 * math.sin(T * 1.2))
-    stamp(c, T, .15, "GANÓ LA A · 78 %", 540, 470, YEL, -6, 100)
+    put(c, "llave_nave7", 540, 900 + 10 * math.sin(T * 1.6), 1.3, rot=-8 + 6 * math.sin(T * 1.2))
+    stamp(c, T, -1, "GANÓ LA A · 78 %", 540, 470, YEL, -6, 100)
     d = ImageDraw.Draw(c)
     if T >= WT("F01", "Medianoche."): text(d, (540, 640), "00:00", 110 * popscale(T, WT("F01", "Medianoche."), .3), CYAN, stroke=8)
     if T >= WT("F01", "final,"): etiqueta(c, T, WT("F01", "final,"), "QUÉDATE HASTA EL FINAL", 540, 1140, RED, WHITE, 44)
