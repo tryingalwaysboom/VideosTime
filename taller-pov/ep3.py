@@ -103,7 +103,7 @@ def confeti(c, T, t0, n=70):
 
 def barra_voto(c, T, y, L_, txt, pct, col, win, t0):
     d = ImageDraw.Draw(c)
-    p = pct * (.55 + .45 * ease(clamp((T - t0) / .7)))
+    p = pct * (.7 + .3 * ease(clamp((T - t0) / .4)))
     panel(c, (90, y - 75, 990, y + 75), fill=(16, 14, 30), alpha=235, rad=28, outline=col if win else (70, 70, 90), ow=6 if win else 3)
     d = ImageDraw.Draw(c)
     d.rounded_rectangle((112, y - 52, 212, y + 48), 22, fill=col)
@@ -115,7 +115,7 @@ def barra_voto(c, T, y, L_, txt, pct, col, win, t0):
 
 def sc_intro(T):
     """F01: resultado de la votación (A 78 %) con confeti; luego medianoche y la llave. Gancho: quédate hasta el final."""
-    tm = WT("F01", "Medianoche.") - .15
+    tm = WT("F01", "Llevas") - .15
     if T < tm:
         c = bg("bg_poligono", T, 0, 1.2, 1.3, tm, .5, .4); dark(c, 120)
         gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
@@ -128,6 +128,7 @@ def sc_intro(T):
         R.estrella(ImageDraw.Draw(c), 960, 560, 30 * (1 + .15 * math.sin(T * 8)), (242, 190, 60))
         stamp(c, T, .5, "¡GANA LA A!", 540, 1080, YEL, -6, 130)
         confeti(c, T, .5)
+        if T >= WT("F01", "Medianoche."): etiqueta(c, T, WT("F01", "Medianoche."), "00:00 · MEDIANOCHE", 540, 1330, CYAN, OL, 46)
         return c
     c = bg("bg_poligono", T, tm, 1.35, 1.45, 6, .5, .45); dark(c, 150)
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((160, 640, 920, 1200), fill=(242, 190, 60, 90))
@@ -206,7 +207,7 @@ def sc_poligono(T):
     if T >= t6 - .1 and T < tclac + .7:   # primer plano: la llave entra por abajo en el candado, gira y salta el arco
         candado(c, T, t6, tclac)
     if T >= tclac:
-        stamp(c, T, tclac, "CLAC", 540, 420, YEL, -6, 130)
+        stamp(c, T, tclac, "CLAC", 800, 560, YEL, 10, 120)
     return c
 
 def llave_v(sq=1.0):
@@ -548,7 +549,6 @@ if __name__ == "__main__":
             (F("movil"), S("F14") - .35, -2),
             (F("impacto"), WT("F14", "esconde.") - .1, -4),
             (F("impacto"), WT("F15", "depósito.") - .25, -4),
-            (F("tension"), S("F16") - .2, -4),                            # tensión mientras llega Nitro
             (F("nitro_fondo"), S("F16") - .2, 2),                        # motor de Nitro fuera, sin parar
             (F("nitro_ruge"), WT("F19", "ruge.") - .25, 5),               # acelerones
             (F("petardeo"), WT("F19", "ruge.") + .15, -1),
