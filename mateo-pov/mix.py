@@ -24,17 +24,20 @@ def main(out):
         flt.append(f"[{i}:a]aresample=48000,afade=t=in:d=0.015,adelay={ms}|{ms},apad[a{i}]")
     n = len(TL)
     flt.append("".join(f"[a{i}]" for i in range(n)) + f"amix=inputs={n}:normalize=0:duration=longest,atrim=0:{TOTAL:.2f},"
-               "acompressor=threshold=-18dB:ratio=3:attack=5:release=120,loudnorm=I=-15:TP=-1.5:LRA=9,asplit=2[voz][key]")
-    k = n
-    ins += ["-i", os.path.join(SFX, "musica.mp3")]
-    # música a -29 LUFS y, además, se aparta (sidechain) cuando suena la voz; sube un poco en el final A/B
-    flt.append(f"[{k}:a]aresample=48000,atrim=0:{TOTAL:.2f},loudnorm=I=-29:TP=-8,afade=t=out:st={TOTAL - 2.5:.2f}:d=2.5[m0]")
-    flt.append("[m0][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=350[mus]")
-    k += 1
+               "acompressor=threshold=-18dB:ratio=3:attack=5:release=120,loudnorm=I=-15:TP=-1.5:LRA=9,aresample=48000[voz]")
+    vwav = os.path.join(TMP, "voces.wav")   # la voz se mezcla aparte: así nada en la mezcla final puede recortarla
+    subprocess.run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(flt), "-map", "[voz]", "-ar", "48000", "-ac", "1", vwav], check=True)
+    mwav = os.path.join(TMP, "musica_duck.wav")   # música a -29 LUFS que se aparta (sidechain) cuando suena la voz
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(SFX, "musica.mp3"), "-i", vwav, "-filter_complex",
+                    f"[0:a]aresample=48000,atrim=0:{TOTAL:.2f},loudnorm=I=-29:TP=-8,aresample=48000,aformat=channel_layouts=mono,afade=t=out:st={TOTAL - 2.5:.2f}:d=2.5[m0];"
+                    f"[1:a]apad,atrim=0:{TOTAL:.2f}[key];[m0][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=350[mus]",
+                    "-map", "[mus]", "-ar", "48000", "-ac", "1", mwav], check=True)
+    ins, flt = ["-i", vwav, "-i", mwav], [f"[0:a]apad,atrim=0:{TOTAL:.2f}[voz]", f"[1:a]apad,atrim=0:{TOTAL:.2f}[mus]"]
+    k = 2
     parts = ["[voz]", "[mus]"]
     for j, (p, t, db) in enumerate(efectos()):
         ins += ["-i", p]; ms = max(0, int(t * 1000))
-        flt.append(f"[{k}:a]aresample=48000,loudnorm=I=-25:TP=-6,volume={db}dB,adelay={ms}|{ms},apad[s{j}]")
+        flt.append(f"[{k}:a]aresample=48000,loudnorm=I=-25:TP=-6,aresample=48000,volume={db}dB,adelay={ms}|{ms},apad[s{j}]")
         parts.append(f"[s{j}]"); k += 1
     flt.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,alimiter=limit=0.95,apad,atrim=0:{TOTAL:.2f}[mx]")
     wav = os.path.join(TMP, "mezcla.wav")
