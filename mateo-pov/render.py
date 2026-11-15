@@ -464,7 +464,7 @@ def sc_noche(T):
         d = ImageDraw.Draw(c)
         for k in range(3):   # zzz
             ph = ((T * .7) + k / 3) % 1
-            text(d, (600 + 90 * ph + k * 16, 700 - 200 * ph), "z", 54 + 18 * k, (220, 230, 255), stroke=4)
+            text(d, (720 + 80 * ph + k * 18, 860 - 190 * ph), "z", 50 + 16 * k, (220, 230, 255), stroke=4)
         etiqueta(c, T, s0 + .2, "ESA NOCHE", 540, 470, (60, 70, 130), WHITE, 44)
         if T >= WT("F12", "duerme,"): etiqueta(c, T, WT("F12", "duerme,"), "POR FIN SE DUERME", 540, 1330, CREMA, OL, 40)
         return c
