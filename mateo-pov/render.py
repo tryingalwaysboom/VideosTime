@@ -20,6 +20,9 @@ F_ANTON, F_UI, F_HAND = R.F_ANTON, R.F_UI, R.F_HAND
 YEL, WHITE, OL, GRIS = R.YEL, R.WHITE, R.OL, R.GRIS
 ROSA = (255, 120, 150); VERDE = (70, 190, 110); AZ = (70, 130, 230); ROJO = (226, 72, 59); CREMA = (255, 248, 236)
 PI_ = math.pi
+F_ESC = os.path.join(HERE, "fonts", "Andika-Bold.ttf")      # letra escolar (la que escribe mamá)
+F_BAL = os.path.join(HERE, "fonts", "Baloo2-ExtraBold.ttf")  # rótulos de la barra
+NAVY = (44, 36, 78)
 
 # pausas entre frases (respiración dramática donde hace falta)
 R.GAP.update({"F02": .35, "F03": .3, "F04": .4, "F05": .4, "F06": .2, "F07": .25, "F08": .15, "F09": .3, "F10": .45,
@@ -61,30 +64,29 @@ def lagrimas(c, cx, cy, s, T):
             r = (10 + 4 * (1 - ph)) * s
             d.ellipse((x - r * .75, y - r, x + r * .75, y + r), fill=(143, 208, 255), outline=(58, 127, 191), width=3)
 
-# ---------------------------------------------------------------- barra superior de la serie
+# ---------------------------------------------------------------- barra superior (cuaderno acogedor)
+CX0, CY0, CX1, CY1 = 40, 150, 1040, 322
 def barra_base():
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    x0, y0, x1, y1 = 36, 168, 1044, 286
-    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((x0, y0 + 8, x1, y1 + 10), 28, fill=(0, 0, 0, 110))
-    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10)))
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((CX0, CY0 + 10, CX1, CY1 + 12), 34, fill=(40, 20, 40, 95))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(12)))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((x0, y0, x1, y1), 28, fill=(46, 30, 66, 215), outline=ROSA + (170,), width=3)
-    d.line((x0 + 16, y0 + 66, x1 - 16, y0 + 66), fill=(255, 255, 255, 34), width=2)
-    d.text((x0 + 20, y0 + 92), "OBJETIVO", font=font(F_UI, 20), fill=ROSA, anchor="lm")
+    d.rounded_rectangle((CX0, CY0, CX1, CY1), 34, fill=(255, 250, 240, 246), outline=NAVY, width=5)
+    for y in range(CY0 + 84, CY1 - 6, 30): d.line((CX0 + 30, y, CX1 - 30, y), fill=(150, 190, 235, 70), width=2)   # renglones
+    d.line((CX0 + 26, CY0 + 76, CX1 - 26, CY0 + 76), fill=(240, 150, 170, 160), width=3)
+    # cinta adhesiva
+    tp = Image.new("RGBA", (150, 44), (255, 214, 120, 190)); tp = tp.rotate(-8, expand=True, resample=Image.BICUBIC)
+    im.alpha_composite(tp, (CX0 + 410, CY0 - 22))
+    d.text((CX0 + 40, CY0 + 150), "SU NOMBRE", font=font(F_BAL, 17), fill=(150, 130, 160), anchor="lm")
+    d.text((CX0 + 552, CY0 + 150), "ÁNIMO DE MATEO", font=font(F_BAL, 17), fill=(150, 130, 160), anchor="mm")
+    d.text((CX0 + 830, CY0 + 150), "TU PACIENCIA", font=font(F_BAL, 17), fill=(150, 130, 160), anchor="mm")
     return im
 _BB = barra_base()
 
-def corazon(d, cx, cy, r, col):
-    d.ellipse((cx - r, cy - r * .9, cx, cy + r * .1), fill=col); d.ellipse((cx, cy - r * .9, cx + r, cy + r * .1), fill=col)
-    d.polygon([(cx - r * .97, cy - r * .25), (cx + r * .97, cy - r * .25), (cx, cy + r)], fill=col)
-
-def lapicito(d, cx, cy, s=1):
-    d.polygon([(cx - 16 * s, cy + 12 * s), (cx + 10 * s, cy - 14 * s), (cx + 16 * s, cy - 8 * s), (cx - 10 * s, cy + 18 * s)], fill=(242, 200, 75))
-    d.polygon([(cx - 16 * s, cy + 12 * s), (cx - 10 * s, cy + 18 * s), (cx - 22 * s, cy + 22 * s)], fill=(30, 20, 40))
-
-def barra(d, x, y, w, v, col):
-    d.rounded_rectangle((x, y - 9, x + w, y + 9), 9, fill=(255, 255, 255, 40))
-    if v > .02: d.rounded_rectangle((x, y - 9, x + w * v, y + 9), 9, fill=col)
+def corazon(d, cx, cy, r, col, outline=None):
+    pts = [(cx + r * 16 * math.sin(t) ** 3 / 17, cy - r * (13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)) / 17)
+           for t in np.linspace(0, 2 * PI_, 40)]
+    d.polygon(pts, fill=col, outline=outline)
 
 def interp(T, keys):
     """keys: [(t, valor)] -> valor animado (rampa de .6 s en cada cambio)."""
@@ -95,35 +97,45 @@ def interp(T, keys):
 
 def draw_hud(c, T):
     if T >= S("F19") - .3: return
-    if T < .25:
-        k = ease(T / .25); c.alpha_composite(_BB.crop((0, 0, W, 310)), (0, int(-310 * (1 - k)))); return
+    if T < .3:
+        k = ease(T / .3); c.alpha_composite(_BB.crop((0, 0, W, 360)), (0, int(-360 * (1 - k)))); return
     c.alpha_composite(_BB); d = ImageDraw.Draw(c)
-    x0, y0 = 36, 168
-    t_d2 = S("F13")
-    dia = 1 if T < t_d2 else 2
+    t_d2 = S("F13"); dia = 1 if T < t_d2 else 2
     def pop(t): return 1 + .3 * math.sin(clamp((T - t) / .3) * PI_) if 0 <= T - t < .3 else 1
-    d.rounded_rectangle((x0 + 14, y0 + 13, x0 + 118, y0 + 57), 12, fill=ROSA)
-    d.text((x0 + 66, y0 + 35), "EP.1", font=font(F_ANTON, 32), fill=OL, anchor="mm")
-    d.text((x0 + 132, y0 + 36), f"DÍA {dia}", font=font(F_ANTON, 40 * pop(t_d2)), fill=WHITE, anchor="lm")
-    # letras de su nombre
-    lapicito(d, x0 + 290, y0 + 35, 1)
-    t_l = WT("F09", "sola")
-    d.text((x0 + 316, y0 + 36), "0/5", font=font(F_ANTON, 36 * pop(t_l)), fill=(255, 130, 120) if T >= t_l else WHITE, anchor="lm")
-    # ánimo de Mateo y paciencia de mamá
-    an = interp(T, [(0, .7), (S("F06"), .45), (S("F08"), .25), (S("F14"), .12), (S("F15") + .3, .05), (S("F17"), .2), (S("F18"), .32)])
-    pa = interp(T, [(0, .8), (S("F06"), .6), (S("F08"), .5), (S("F11"), .35), (S("F13"), .55), (S("F14"), .2), (S("F15"), .04), (S("F17"), .15)])
-    corazon(d, x0 + 420, y0 + 36, 14, (255, 110, 140)); barra(d, x0 + 446, y0 + 36, 120, an, (255, 110, 140))
-    d.text((x0 + 506, y0 + 58), "MATEO", font=font(F_UI, 14), fill=GRIS, anchor="mm")
-    d.ellipse((x0 + 600, y0 + 22, x0 + 628, y0 + 50), fill=(120, 200, 255)); d.text((x0 + 614, y0 + 37), "M", font=font(F_UI, 17), fill=OL, anchor="mm")
-    barra(d, x0 + 640, y0 + 36, 120, pa, (120, 200, 255))
-    d.text((x0 + 700, y0 + 58), "PACIENCIA", font=font(F_UI, 14), fill=GRIS, anchor="mm")
-    # días que faltan
+    y1 = CY0 + 40
+    d.rounded_rectangle((CX0 + 22, y1 - 24, CX0 + 120, y1 + 24), 24, fill=ROSA)
+    d.text((CX0 + 71, y1 + 2), "EP. 1", font=font(F_BAL, 30), fill=WHITE, anchor="mm")
+    d.text((CX0 + 140, y1 + 4), f"DÍA {dia}", font=font(F_BAL, 46 * pop(t_d2)), fill=NAVY, anchor="lm")
     t_30 = WT("F02", "30")
-    falt = "?" if T < t_30 else ("30" if T < t_d2 else "29")
-    d.text((x1_ := 1024, y0 + 36), f"{falt} DÍAS", font=font(F_ANTON, 36 * pop(t_30 if T < t_d2 else t_d2)), fill=YEL if falt != "?" else GRIS, anchor="rm")
-    obj = "Que Mateo escriba su nombre"
-    d.text((x0 + 132, y0 + 92), obj, font=font(F_UI, 25), fill=WHITE, anchor="lm")
-    d.text((x1_, y0 + 92), "ANTES DE 1.er GRADO", font=font(F_UI, 17), fill=GRIS, anchor="rm")
+    falt = "¿?" if T < t_30 else ("30" if T < t_d2 else "29")
+    # calendario
+    cx_ = CX1 - 300
+    d.rounded_rectangle((cx_ - 22, y1 - 22, cx_ + 22, y1 + 22), 8, fill=WHITE, outline=NAVY, width=3)
+    d.rectangle((cx_ - 20, y1 - 20, cx_ + 20, y1 - 8), fill=ROJO)
+    d.text((CX1 - 270, y1 + 4), "FALTAN", font=font(F_BAL, 26), fill=(150, 130, 160), anchor="lm")
+    d.text((CX1 - 30, y1 + 4), f"{falt} DÍAS", font=font(F_BAL, 44 * pop(t_30 if T < t_d2 else t_d2)), fill=(214, 70, 110), anchor="rm")
+    # las 5 letras de su nombre (vacías: todavía no sabe ninguna)
+    y2 = CY0 + 112; t_l = WT("F09", "sola")
+    for i, L_ in enumerate("MATEO"):
+        x = CX0 + 60 + i * 64
+        sh = 5 * math.sin((T - t_l) * 40) * math.exp(-(T - t_l) * 3) if T >= t_l and i == 0 else 0
+        d.rounded_rectangle((x - 26 + sh, y2 - 28, x + 26 + sh, y2 + 28), 10, fill=(246, 240, 232), outline=(200, 186, 205), width=3)
+        d.text((x + sh, y2 + 2), L_, font=font(F_ESC, 36), fill=(214, 204, 218), anchor="mm")
+    # ánimo de Mateo (corazones) y tu paciencia (gotas de batería)
+    an = interp(T, [(0, .7), (S("F06"), .5), (S("F08"), .3), (S("F14"), .15), (S("F15") + .3, .05), (S("F17"), .2), (S("F18"), .4)])
+    pa = interp(T, [(0, .85), (S("F06"), .65), (S("F08"), .5), (S("F11"), .35), (S("F13"), .6), (S("F14"), .25), (S("F15"), .05), (S("F17"), .2)])
+    for i in range(5):
+        x = CX0 + 448 + i * 52; f = clamp(an * 5 - i)
+        corazon(d, x, y2, 21, (236, 226, 232), outline=(200, 186, 205))
+        if f > 0:
+            hl = Image.new("RGBA", (60, 60), (0, 0, 0, 0)); corazon(ImageDraw.Draw(hl), 30, 30, 21, (255, 92, 130))
+            hl = hl.crop((0, 0, int(9 + 42 * f), 60)); c.alpha_composite(hl, (int(x - 30), int(y2 - 30)))
+    d = ImageDraw.Draw(c)
+    bx = CX0 + 742
+    for i in range(5):
+        x = bx + i * 36; f = clamp(pa * 5 - i)
+        d.rounded_rectangle((x, y2 - 22, x + 28, y2 + 22), 8, fill=(236, 230, 240), outline=(200, 186, 205), width=2)
+        if f > 0: d.rounded_rectangle((x + 3, y2 + 19 - 38 * f, x + 25, y2 + 19), 6, fill=(110, 170, 255) if pa > .3 else (255, 150, 90))
     aviso_voto(c, T)
 
 AVISOS = []
@@ -131,7 +143,7 @@ def aviso_voto(c, T):
     for t0 in AVISOS:
         if not (t0 <= T < t0 + 5): continue
         u = ease((T - t0) / .35) if T < t0 + 4.6 else 1 - ease((T - t0 - 4.6) / .35)
-        y = 312 + 20 * (1 - u); a = int(255 * u)
+        y = 346 + 20 * (1 - u); a = int(255 * u)
         lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
         w2 = 330 * (1 + .03 * math.sin((T - t0) * 8))
         d.rounded_rectangle((540 - w2, y, 540 + w2, y + 74), 37, fill=(255, 255, 255, a), outline=OL + (a,), width=5)
@@ -170,20 +182,6 @@ def burbuja(d, x, y, w, nombre, txt, s, col=(255, 255, 255)):
     for i, l in enumerate(lines): d.text((x + 24 * s, y + (78 + 44 * i) * s), l, font=font(F_UI, int(30 * s)), fill=OL, anchor="lm")
     return h
 
-def letras_mateo(c, cx, cy, sz, T, tiempos, col=(40, 60, 160), punteado=False):
-    """Escribe M A T E O; cada letra aparece en su momento (pop)."""
-    d = ImageDraw.Draw(c); f = font(F_ANTON, sz); xs = [cx + (i - 2) * sz * .62 for i in range(5)]
-    for i, (L_, t) in enumerate(zip("MATEO", tiempos)):
-        if T < t: continue
-        k = popscale(T, t, .3)
-        fk = font(F_ANTON, sz * max(.05, k))
-        if punteado:
-            lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).text((xs[i], cy), L_, font=fk, fill=col, anchor="mm")
-            m = np.array(lay); m[((np.arange(H) // 10) % 2) == 0, :, 3] = 0
-            c.alpha_composite(Image.fromarray(m))
-        else:
-            d.text((xs[i], cy), L_, font=fk, fill=col, anchor="mm")
-
 def charco(c, cx, cy, T, t0):
     if T < t0: return
     u = ease((T - t0) / 1.0)
@@ -196,6 +194,40 @@ def charco(c, cx, cy, T, t0):
     for k in range(4):
         x = cx - 120 + k * 80; y = cy - 40 + 30 * math.sin(k)
         d.ellipse((x - 18, y - 8, x + 18, y + 8), fill=(255, 255, 255))
+
+
+# ---------------------------------------------------------------- letras sobre la pauta
+HOJA_FILAS = ((110, 220, 330), (400, 510, 620))   # (línea de arriba, punteada, base) en coordenadas de la hoja
+def fila(cx, cy, s, n):
+    top, mid, base = HOJA_FILAS[n]
+    y0 = cy - 340 * s
+    return y0 + top * s, y0 + base * s
+
+def palabra(c, word, cx, cy, s, n, T, tiempos=None, col=(40, 60, 160), punteado=False, track=.06):
+    """Escribe 'word' con letra escolar dentro de la fila n de la hoja (mayúsculas: de la línea de arriba a la base)."""
+    ytop, ybase = fila(cx, cy, s, n)
+    capH = (ybase - ytop) * .96
+    f0 = font(F_ESC, 100); bb = f0.getbbox("M"); ratio = (bb[3] - bb[1]) / 100
+    size = capH / ratio; f = font(F_ESC, size)
+    adv = [f.getlength(L) for L in word]; gap = size * track
+    total = sum(adv) + gap * (len(word) - 1); x = cx - total / 2
+    tiempos = tiempos or [-1] * len(word)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    for L, a, t in zip(word, adv, tiempos):
+        if T >= t:
+            k = popscale(T, t, .3) if t >= 0 else 1
+            if k >= .999: d.text((x, ybase), L, font=f, fill=col, anchor="ls")
+            else:
+                g = Image.new("RGBA", (int(a * 2 + 20), int(size * 2)), (0, 0, 0, 0))
+                ImageDraw.Draw(g).text((g.width / 2, size * 1.4), L, font=f, fill=col, anchor="ms")
+                kk = max(.05, k); g = g.resize((max(1, int(g.width * kk)), max(1, int(g.height * kk))))
+                cxl, cyl = x + a / 2, ybase - capH / 2
+                lay.alpha_composite(g, (int(cxl - g.width / 2), int(cyl - (size * 1.4 - capH / 2) * kk)))
+        x += a + gap
+    if punteado:
+        m = np.array(lay); m[((np.arange(H) // 9) % 2) == 0, :, 3] = 0
+        lay = Image.fromarray(m)
+    c.alpha_composite(lay)
 
 # ---------------------------------------------------------------- escenas
 def sc_mochila(T):
@@ -218,7 +250,7 @@ def sc_nota(T):
     s0, e0 = TL["F02"]
     c = bg("bg_mesa", T, s0 - .3, 1.15, 1.25, 10, .5, .45)
     put(c, "nota", 540, 830, 1.0, rot=-2 + .6 * math.sin(T * .8))
-    L = ["Mamá de Mateo:", "es el ÚNICO del salón", "que todavía NO escribe", "su nombre.", "Faltan 30 días para", "1er grado. Si no lo logra...", "tendrá que REPETIR."]
+    L = ["Mamá de Mateo:", "es el ÚNICO del salón", "que todavía NO escribe", "su nombre. En 30 días", "empieza el año escolar.", "Si no lo logra...", "tendrá que REPETIR."]
     manuscrito(c, L, T, s0 + .1, e0 - .3, 210, 420, 60, (196, 36, 36), 72, rot=2)
     d = ImageDraw.Draw(c)
     if T >= WT("F02", "único"):   # círculo rojo garabateado alrededor de "ÚNICO"
@@ -275,7 +307,7 @@ def sc_mateo_intro(T):
     bob = 8 * math.sin(T * 2.4)
     mateo(c, kind, 430, 1260 + bob + 900 * hide, 1.05, T)
     put(c, "dino", 900, 1560, .45, rot=6 * math.sin(T * 1.5))
-    ficha(c, T, s0 + .15, 60, 440, "MATEO", "5 AÑOS Y MEDIO", "AMA LOS DINOSAURIOS", 470)
+    ficha(c, T, s0 + .15, 60, 440, "MATEO", "4 AÑOS Y MEDIO", "AMA LOS DINOSAURIOS", 470)
     if T >= tl:   # el lápiz entra amenazante
         k = ease((T - tl) / .4)
         put(c, "lapiz", 1300 - 560 * k, 760 + 20 * math.sin(T * 5), 1.0, rot=-6)
@@ -283,20 +315,19 @@ def sc_mateo_intro(T):
     return c
 
 def sc_mesa_nombre(T):
-    """F05: en la mesa de la cocina; mamá escribe MATEO grande, letra a letra."""
+    """F05: en la mesa de la cocina; mamá escribe MATEO grande, letra a letra, y debajo en punteado para que lo repase."""
     s0, e0 = TL["F05"]; tg = WT("F05", "grande:")
     if T < WT("F05", "nombre") - .1:
         c = bg("bg_cocina", T, s0, 1.0, 1.08, 6, .5, .6)
         mateo(c, "neutral", 540, 1250, .95, T)
         put(c, "lapiz", 640, 1640, .7, rot=10)
-        etiqueta(c, T, s0 + .3, "LA TARDE · COCINA", 540, 470, CREMA, OL, 34)
+        etiqueta(c, T, s0 + .3, "ESA TARDE · LA COCINA", 540, 470, CREMA, OL, 34)
         return c
     c = bg("bg_mesa", T, s0, 1.1, 1.2, 9, .5, .5)
     put(c, "hoja", 540, 900, 1.05)
     tt = [WT("F05", "M,"), WT("F05", "A,"), WT("F05", "T,"), WT("F05", "E,"), WT("F05", "O.")]
-    tt = [min(x, tg + .2 + i * .1) if x < tg else x for i, x in enumerate(tt)]
-    letras_mateo(c, 540, 820, 210, T, tt, (40, 60, 160))
-    if T >= tt[-1] + .2: letras_mateo(c, 540, 1110, 210, T, [tt[-1] + .25] * 5, (150, 160, 190), punteado=True)
+    palabra(c, "MATEO", 540, 900, 1.05, 0, T, tt)
+    palabra(c, "MATEO", 540, 900, 1.05, 1, T, [x + .12 for x in tt], (150, 160, 200), punteado=True)
     return c
 
 def sc_berrinche(T):
@@ -310,27 +341,45 @@ def sc_berrinche(T):
     return c
 
 def sc_lapiz(T):
-    """F07: el lápiz en su mano, aprieta... y la punta se rompe."""
-    s0, e0 = TL["F07"]; tr = WT("F07", "rompe.")
-    c = bg("bg_mesa", T, s0, 1.3, 1.5, 6, .5, .5)
-    put(c, "hoja", 540, 980, 1.2)
-    letras_mateo(c, 540, 860, 210, T, [-1] * 5, (40, 60, 160))
+    """F07: le pones el lápiz en la mano (plano medio) ... aprieta tan fuerte (cenital: su puño) que la punta se rompe."""
+    s0, e0 = TL["F07"]; ta = WT("F07", "Aprieta"); tr = WT("F07", "rompe.")
+    if T < ta - .1:
+        c = bg("bg_cocina", T, s0 - .2, 1.15, 1.22, 5, .5, .62)
+        cx, cy, sc = 540, 1250, 1.05
+        mateo(c, "enojado", cx, cy, sc, T)
+        hx, hy = cx + 250 * sc, cy + 200 * sc + 286 * sc   # su mano derecha
+        put(c, "lapiz_v", hx, hy - 120, .9, rot=-14)
+        d = ImageDraw.Draw(c)   # dedos que cierran el puño sobre el lápiz
+        for k in range(3):
+            d.ellipse((hx - 46 + k * 4, hy - 40 + k * 26, hx + 30 + k * 4, hy + k * 26), fill=(243, 194, 155), outline=OL, width=5)
+        etiqueta(c, T, s0 + .3, "EL LÁPIZ EN SU MANO", 540, 520, CREMA, OL, 36)
+        return c
+    c = bg("bg_mesa", T, ta, 1.3, 1.45, 6, .5, .5)
+    put(c, "hoja", 540, 900, 1.15)
+    palabra(c, "MATEO", 540, 900, 1.15, 0, T)
+    palabra(c, "MATEO", 540, 900, 1.15, 1, T, col=(150, 160, 200), punteado=True)
+    _, yb = fila(540, 900, 1.15, 1)
     tf = WT("F07", "fuerte…")
-    tremor = 3 + 9 * clamp((T - tf) / .8) if T >= tf else 2
+    tremor = 2 + 10 * clamp((T - ta) / max(.3, tr - ta))
+    tipx, tipy = 260, yb - 20    # la punta apoyada al empezar la M punteada
+    sm = .62                     # escala de la capa mano_lapiz (punta en 150,830 de 1000x1000)
+    def mano(name, dx=0, dy=0, rot=0):
+        put(c, name, tipx + (500 - 150) * sm + dx, tipy + (500 - 830) * sm + dy, sm, rot=rot)
     if T < tr:
-        put(c, "lapiz", 600 + tremor * math.sin(T * 70), 1180 + tremor * math.cos(T * 63), 1.25, rot=-12)
-        if T >= tf: etiqueta(c, T, tf, "APRIETA... APRIETA...", 540, 560, CREMA, OL, 40)
+        mano("mano_lapiz", tremor * math.sin(T * 70), tremor * math.cos(T * 63))
+        if T >= tf: etiqueta(c, T, tf, "APRIETA... APRIETA...", 540, 520, CREMA, OL, 40)
     else:
-        k = ease((T - tr) / .6)
-        put(c, "lapiz", 560 - 40 * k, 1190 + 30 * k, 1.25, rot=-12 - 8 * k)
+        k = ease((T - tr) / .5)
+        mano("mano_lapiz_rota", 30 * k, 26 * k)
         d = ImageDraw.Draw(c)
-        px, py = 880 + 260 * k, 1000 - 340 * k + 500 * k * k   # la punta sale volando
-        d.polygon([(px, py), (px + 34, py + 12), (px + 6, py + 30)], fill=(40, 30, 50))
+        px, py = tipx - 60 - 260 * k, tipy - 40 - 420 * k + 520 * k * k   # la punta sale volando
+        d.polygon([(px, py), (px + 30, py + 14), (px + 4, py + 30)], fill=(242, 210, 168), outline=OL)
+        d.ellipse((px - 4, py - 4, px + 8, py + 8), fill=OL)
         for a in range(0, 360, 45):   # chispazo del crac
-            r1, r2 = 30 + 60 * k, 70 + 120 * k
+            r1, r2 = 26 + 50 * k, 60 + 110 * k
             ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
-            d.line((860 + ca * r1, 1010 + sa * r1, 860 + ca * r2, 1010 + sa * r2), fill=(255, 220, 90), width=8)
-        stamp(c, T, tr, "¡CRAC!", 540, 560, ROJO, 8, 140)
+            d.line((tipx + ca * r1, tipy + sa * r1, tipx + ca * r2, tipy + sa * r2), fill=(255, 200, 70), width=8)
+        stamp(c, T, tr, "¡CRAC!", 540, 520, ROJO, 8, 140)
     return c
 
 def sc_llanto(T):
@@ -352,17 +401,20 @@ def sc_sehuye(T):
         for i in range(4):   # líneas de velocidad
             ImageDraw.Draw(c).line((x + 380 + i * 30, 900 + i * 90, x + 620 + i * 60, 900 + i * 90), fill=(255, 255, 255), width=10)
         return c
-    c = bg("bg_mesa", T, th, 1.35, 1.6, 7, .5, .48); dark(c, 40)
-    put(c, "hoja", 540, 940, 1.2)
-    lay = Image.new("RGBA", (700, 500), (0, 0, 0, 0))
-    ImageDraw.Draw(lay).text((350, 250), "M", font=font(F_ANTON, 330), fill=(70, 70, 90), anchor="mm")
-    lay = lay.rotate(168, resample=Image.BICUBIC)
+    c = bg("bg_mesa", T, th, 1.3, 1.45, 7, .5, .48); dark(c, 40)
+    put(c, "hoja", 540, 900, 1.15)
+    palabra(c, "MATEO", 540, 900, 1.15, 0, T)
+    palabra(c, "MATEO", 540, 900, 1.15, 1, T, col=(150, 160, 200), punteado=True)
     k = popscale(T, WT("F09", "letra:"), .35)
-    if k > 0:
-        lay = lay.resize((max(1, int(700 * k)), max(1, int(500 * k))))
-        c.alpha_composite(lay, (int(540 - lay.width / 2 - 40), int(900 - lay.height / 2)))
-    if T >= WT("F09", "torcida…"): etiqueta(c, T, WT("F09", "torcida…"), "TORCIDA", 300, 560, CREMA, OL, 42)
-    if T >= WT("F09", "revés."): etiqueta(c, T, WT("F09", "revés."), "Y AL REVÉS", 780, 640, ROSA, OL, 42)
+    if k > 0:   # la M de Mateo: torcida, al revés y saliéndose de la pauta
+        ytop, yb = fila(540, 900, 1.15, 1)
+        g = Image.new("RGBA", (420, 420), (0, 0, 0, 0))
+        ImageDraw.Draw(g).text((210, 210), "M", font=font(F_ESC, 300), fill=(70, 70, 96), anchor="mm")
+        g = g.rotate(163, resample=Image.BICUBIC)
+        g = g.resize((max(1, int(420 * k)), max(1, int(420 * k))))
+        c.alpha_composite(g, (int(300 - g.width / 2), int((ytop + yb) / 2 + 20 - g.height / 2)))
+    if T >= WT("F09", "torcida…"): etiqueta(c, T, WT("F09", "torcida…"), "TORCIDA", 300, 1350, CREMA, OL, 42)
+    if T >= WT("F09", "revés."): etiqueta(c, T, WT("F09", "revés."), "Y AL REVÉS", 760, 1350, ROSA, OL, 42)
     return c
 
 def sc_timbre(T):
@@ -437,8 +489,9 @@ def sc_dia2(T):
     c = bg("bg_mesa", T, s0, 1.15, 1.3, 9, .5, .5)
     te = WT("F13", "empuja")
     dx = 160 * ease((T - te) / .4) if T >= te else 0
-    put(c, "hoja", 520 + dx, 1000, 1.0, rot=4 * (dx / 160))
-    ImageDraw.Draw(c).text((520 + dx, 900), "M", font=font(F_ANTON, 200), fill=(40, 60, 160), anchor="mm")
+    put(c, "hoja", 520 + dx, 1000, 1.0)
+    palabra(c, "MATEO", 520 + dx, 1000, 1.0, 0, T)
+    palabra(c, "MATEO", 520 + dx, 1000, 1.0, 1, T, col=(150, 160, 200), punteado=True)
     if T < tl:
         put(c, "vaso", 860, 620, .55)
     else:

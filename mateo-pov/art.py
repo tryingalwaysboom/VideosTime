@@ -367,8 +367,49 @@ def tablet():
     b += '<circle cx="400" cy="318" r="14" fill="#1d1630"/>'
     return svg(800, 600, b)
 
+
+def _lapiz_diag(x0, y0, x1, y1, w=58, rota=False):
+    """Lápiz amarillo de (x0,y0)=goma a (x1,y1)=punta, dibujado como polígonos en SVG."""
+    import math as m
+    dx, dy = x1 - x0, y1 - y0; L = m.hypot(dx, dy); ux, uy = dx / L, dy / L; nx, ny = -uy * w / 2, ux * w / 2
+    def P(t, k=1.0): return (x0 + ux * t, y0 + uy * t)
+    def quad(t0, t1, k0=1, k1=1):
+        a, b = P(t0), P(t1)
+        return f"M{a[0]+nx*k0:.1f} {a[1]+ny*k0:.1f} L{b[0]+nx*k1:.1f} {b[1]+ny*k1:.1f} L{b[0]-nx*k1:.1f} {b[1]-ny*k1:.1f} L{a[0]-nx*k0:.1f} {a[1]-ny*k0:.1f}Z"
+    b = cel(f'<path d="{quad(0, 46)}"/>', "#f08a9a", "#c96a7a", None, 0, -6, 6)
+    b += cel(f'<path d="{quad(46, 92)}"/>', "#c9cfd9", "#9aa2ae", None, 0, -6, 5)
+    cuerpo_fin = L - 150
+    b += cel(f'<path d="{quad(92, cuerpo_fin)}"/>', "#f2c84b", "#d1a532", "#fbe08a", -6, -6, 6)
+    b += f'<path d="M{P(100)[0]:.1f} {P(100)[1]:.1f} L{P(cuerpo_fin)[0]:.1f} {P(cuerpo_fin)[1]:.1f}" stroke="#d1a532" stroke-width="6"/>'
+    if not rota:
+        a = P(cuerpo_fin); t = P(L); mid = P(L - 40)
+        b += cel(f'<path d="M{a[0]+nx:.1f} {a[1]+ny:.1f} L{t[0]:.1f} {t[1]:.1f} L{a[0]-nx:.1f} {a[1]-ny:.1f}Z"/>', "#f2d2a8", "#d6b088", None, 0, -4, 6)
+        b += f'<path d="M{mid[0]+nx*.27:.1f} {mid[1]+ny*.27:.1f} L{t[0]:.1f} {t[1]:.1f} L{mid[0]-nx*.27:.1f} {mid[1]-ny*.27:.1f}Z" fill="{OL}"/>'
+    else:   # punta partida: madera astillada y sin mina
+        a = P(cuerpo_fin); t1 = P(L - 70)
+        b += cel(f'<path d="M{a[0]+nx:.1f} {a[1]+ny:.1f} L{t1[0]+nx*.45:.1f} {t1[1]+ny*.45:.1f} L{t1[0]+nx*.1+ux*14:.1f} {t1[1]+ny*.1+uy*14:.1f} L{t1[0]-nx*.15-ux*6:.1f} {t1[1]-ny*.15-uy*6:.1f} L{t1[0]-nx*.45+ux*10:.1f} {t1[1]-ny*.45+uy*10:.1f} L{a[0]-nx:.1f} {a[1]-ny:.1f}Z"/>', "#f2d2a8", "#d6b088", None, 0, -4, 6)
+        b += f'<circle cx="{t1[0]:.1f}" cy="{t1[1]:.1f}" r="7" fill="{OL}"/>'
+    return b
+
+def mano_lapiz(rota=False):
+    """Vista cenital: el puño de Mateo (manga verde) apretando el lápiz con la punta sobre el papel. Punta en (150,830)."""
+    b = cel('<path d="M980 1000 L1000 700 Q860 600 700 640 L560 760 L760 1000Z"/>', TEE, TEES, TEEH, -18, -10, 8)
+    b += cel('<path d="M700 640 Q760 700 700 790 L640 820 Q600 760 650 690Z"/>', TEES, "#2c7040", None, -6, 0, 6)
+    b += _lapiz_diag(860, 170, 150, 830, 62, rota)
+    # puño: palma redondeada + 4 nudillos sobre el lápiz + pulgar
+    b += cel('<path d="M470 560 Q470 440 580 430 Q700 430 720 540 Q740 660 640 720 Q520 760 480 680Z"/>', SK, SKS, SKH, -16, -10, 7)
+    for i, (x, y) in enumerate(((452, 520), (470, 580), (494, 638), (528, 690))):
+        b += cel(f'<ellipse cx="{x}" cy="{y}" rx="46" ry="34" transform="rotate(-38 {x} {y})"/>', SK, SKS, None, -6, -6, 6)
+    b += cel('<path d="M560 450 Q500 400 450 440 Q430 470 470 488 Q520 470 590 500Z"/>', SK, SKS, None, -6, -4, 6)
+    b += '<path d="M600 620 Q640 600 660 560" stroke="#d8996f" stroke-width="6" fill="none"/>'
+    return svg(1000, 1000, b)
+
+def lapiz_v():
+    """Lápiz en vertical, punta abajo (para el plano medio con Mateo)."""
+    return svg(200, 700, _lapiz_diag(100, 20, 100, 680, 60))
+
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
-          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet,
+          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v,
           "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
 for k in ("neutral", "enojado", "llora", "triste", "timido"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)
