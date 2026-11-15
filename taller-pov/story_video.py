@@ -296,10 +296,10 @@ def main():
         o.save("/tmp/strip.jpg"); return
     tmp = "/tmp/sv"; os.makedirs(tmp, exist_ok=True); [os.remove(os.path.join(tmp, f)) for f in os.listdir(tmp)]
     for i in range(int(dur * FPS)): frame(i / FPS).save(f"{tmp}/{i:05d}.jpg", quality=92)
-    ins, fc, labs = ["-i", VOZ], "[1:a]loudnorm=I=-15:TP=-1.5[v];", []
+    ins, fc, labs = ["-i", VOZ], "[1:a]loudnorm=I=-15:TP=-1.5,aresample=48000,aformat=channel_layouts=stereo,apad[v];", []
     for j, (n, t, db) in enumerate(SFX):
         ins += ["-i", os.path.join(HERE, "sfx", n + ".wav")]; ms = int(t * 1000)
-        fc += f"[{j + 2}:a]loudnorm=I=-26,volume={db}dB,adelay={ms}|{ms}[s{j}];"; labs.append(f"[s{j}]")
+        fc += f"[{j + 2}:a]loudnorm=I=-26,volume={db}dB,aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms},apad[s{j}];"; labs.append(f"[s{j}]")
     fc += f"[v]{''.join(labs)}amix=inputs={len(labs) + 1}:duration=first:normalize=0,alimiter=limit=0.95,apad,afade=t=out:st={dur - .35:.2f}:d=0.35[a]"
     out = os.path.join(HERE, OUT)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS), "-i", f"{tmp}/%05d.jpg", *ins,
