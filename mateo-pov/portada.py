@@ -4,6 +4,7 @@ import os, sys
 from PIL import Image, ImageDraw, ImageFilter
 import render as V
 
+YOFF = int(os.environ.get('YOFF', '0'))
 def portada(n, out):
     W, H = 1080, 1440
     full = V.bg("bg_cocina", 0, 0, 1.25, 1.25, 1, .5, .55)
@@ -11,8 +12,8 @@ def portada(n, out):
     V.dark(c, 40) if False else c.alpha_composite(Image.new("RGBA", (W, H), (40, 20, 50, 70)))
     gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((140, 520, 940, 1300), fill=(255, 200, 140, 110))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
-    V.put(c, "mateo_llora", 580, 1050, .9)
-    V.lagrimas(c, 580, 878, .9, .4)
+    V.put(c, "mateo_llora", 580, 1050 + 180 + YOFF, .9)
+    V.lagrimas(c, 580, 878 + YOFF, .9, .4)
     V.put(c, "nota", 200, 1180, .42, rot=-12)
     V.manuscrito(c, ["Mateo NO", "escribe su", "nombre."], 99, 0, 1, 60, 1010, 56, (200, 40, 40), 62, rot=-14)
     d = ImageDraw.Draw(c)

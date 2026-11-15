@@ -183,17 +183,18 @@ def burbuja(d, x, y, w, nombre, txt, s, col=(255, 255, 255)):
     for i, l in enumerate(lines): d.text((x + 24 * s, y + (78 + 44 * i) * s), l, font=font(F_UI, int(30 * s)), fill=OL, anchor="lm")
     return h
 
-def charco(c, cx, cy, T, t0):
+def charco(c, cx, cy, T, t0, sc=1.0):
     if T < t0: return
     u = ease((T - t0) / 1.0)
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for k, (dx, dy, r) in enumerate(((0, 0, 260), (-160, 90, 150), (170, 70, 170), (40, 190, 140), (-60, -120, 120))):
+        dx, dy, r = dx * sc, dy * sc, r * sc
         rr = r * u * (1 + .04 * math.sin(T * 3 + k))
         d.ellipse((cx + dx * u - rr, cy + dy * u - rr * .7, cx + dx * u + rr, cy + dy * u + rr * .7), fill=(252, 250, 244, 245))
     c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(2)))
     d = ImageDraw.Draw(c)
     for k in range(4):
-        x = cx - 120 + k * 80; y = cy - 40 + 30 * math.sin(k)
+        x = cx + (-120 + k * 80) * sc; y = cy + (-40 + 30 * math.sin(k)) * sc
         d.ellipse((x - 18, y - 8, x + 18, y + 8), fill=(255, 255, 255))
 
 
@@ -302,7 +303,7 @@ def sc_celular(T):
                         d.text((x + 92 * s + i * 150 * s, yy + 25 * s), ["❤ 12", "❤ 9", "❤ 7"][i].replace("❤", "♥"), font=font(F_UI, int(24 * s)), fill=(214, 84, 120), anchor="mm")
     sh = 14 * math.exp(-(T - tc) * 6) if T >= tc else 0
     k = ease((T - tc) / .4)
-    celular(c, T=T, cx=540, cy=900 + 700 * (1 - k), s=1.2, contenido=cont, shake=sh)
+    celular(c, T=T, cx=540, cy=870 + 700 * (1 - k), s=1.1, contenido=cont, shake=sh)
     return c
 
 def sc_mateo_intro(T):
@@ -344,7 +345,6 @@ def sc_berrinche(T):
     c = bg("bg_cocina", T, s0 - .2, 1.15, 1.22, 5, .5, .62)
     sh = 6 * math.sin(T * 30) if talk("F06", T) else 0
     mateo(c, "enojado", 540 + sh, 1230, 1.1, T, "F06")
-    put(c, "hoja", 540, 1640, .6, rot=-3)
     if T >= WT("F06", "aburro!"): stamp(c, T, WT("F06", "aburro!"), "¡ME ABURRO!", 540, 560, ROJO, -6, 100)
     return c
 
@@ -370,7 +370,7 @@ def sc_lapiz(T):
         put(c, name, tipx + (900 - 150) * sm + dx, tipy + (900 - 830) * sm + dy, sm, rot=rot)
     if T < tr:
         mano("mano_lapiz", tremor * math.sin(T * 70), tremor * math.cos(T * 63))
-        if T >= tf: etiqueta(c, T, tf, "APRIETA... APRIETA...", 540, 520, CREMA, OL, 40)
+        if T >= tf: etiqueta(c, T, tf, "APRIETA... APRIETA...", 540, 430, CREMA, OL, 40)
     else:
         k = ease((T - tr) / .5)
         mano("mano_lapiz_rota", 30 * k, 26 * k)
@@ -443,8 +443,9 @@ def sc_abuela(T):
     s0, e0 = TL["F11"]
     c = bg("bg_cocina", T, s0 - .2, 1.2, 1.28, 9, .3, .55)
     abuela(c, 560, 1260, 1.12, T, "F11")
-    if T >= WT("F11", "cursiva."): etiqueta(c, T, WT("F11", "cursiva."), "¿¿EN CURSIVA??", 540, 470, CREMA, OL, 40)
-    if T >= WT("F11", "dura."): stamp(c, T, WT("F11", "dura."), "MANO DURA", 540, 600, (130, 70, 170), -8, 100)
+    td = WT("F11", "dura.")
+    if WT("F11", "cursiva.") <= T < td - .1: etiqueta(c, T, WT("F11", "cursiva."), "¿¿EN CURSIVA??", 540, 470, CREMA, OL, 40)
+    if T >= td: stamp(c, T, td, "MANO DURA", 540, 520, (130, 70, 170), -8, 100)
     return c
 
 CONSEJOS = ["Castígalo sin tablet", "¡No lo presiones!", "Espera a los 7 años", "Practica 1 hora diaria", "Dale premios", "Solo con juegos",
@@ -500,7 +501,7 @@ def sc_dia2(T):
     else:
         k = ease((T - tl) / .35)
         put(c, "vaso", 860 - 120 * k, 640 + 40 * k, .55, rot=-95 * k)
-        charco(c, 600, 900, T, tl + .2)
+        charco(c, 640, 960, T, tl + .2, .75)
     if T >= WT("F13", "encima"): stamp(c, T, WT("F13", "encima"), "¡NOOO!", 540, 1260, ROJO, -6, 100)
     etiqueta(c, T, s0 + 1.0, "DESAYUNO", 540, 380, CREMA, OL, 36)
     return c
@@ -536,8 +537,14 @@ def sc_piso(T):
     """F16: te sientas en el piso. 29 días. 0 letras."""
     s0, e0 = TL["F16"]
     c = bg("bg_cocina", T, s0, 1.05, 1.0, 6, .5, .9); dark(c, 120)
-    d = ImageDraw.Draw(c)
     t29 = WT("F16", "29"); tl = WT("F16", "una")
+    if T < t29 + .3:   # en el piso, la hoja mojada de leche
+        put(c, "hoja", 540, 1000, .85)
+        palabra(c, "MATEO", 540, 1000, .85, 0, T)
+        palabra(c, "MATEO", 540, 1000, .85, 1, T, col=(150, 160, 200), punteado=True)
+        charco(c, 640, 1010, T, -5, .6)
+        if T >= t29: dark(c, 200 * ease((T - t29) / .3))
+    d = ImageDraw.Draw(c)
     if T >= t29:
         k = popscale(T, t29, .4)
         text(d, (540, 740), "29", 300 * max(k, .01), YEL, stroke=12)
@@ -577,7 +584,7 @@ def sc_rex(T):
     c = bg("bg_cocina", T, s0 - .3, 1.22, 1.28, 6, .5, .62)
     mateo(c, "timido", 470, 1250, 1.15, T, "F18")
     put(c, "dino", 860, 1450, .7, rot=5 * math.sin(T * 2))
-    put(c, "crayola", 250, 1560, .55, rot=-15)
+    put(c, "crayola", 700, 1300, .5, rot=30)
     brillos(c, T, s0, 860, 1300)
     return c
 
@@ -588,11 +595,11 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_cocina", 0, 0, 1.3, 1.3, 1, .9, .6).convert("RGBA")
-        put(A, "abuela", 250, 1820, .75); put(A, "tablet", 280, 960, .62)
+        put(A, "abuela", 250, 1930, .75); put(A, "tablet", 280, 960, .62)
         A.alpha_composite(Image.new("RGBA", (W, H), (40, 30, 90, 110)))
     else:
         A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_timido", 820, 1880 + 150, .75); put(A, "dino", 780, 990, .5); put(A, "crayola", 930, 1110, .4, rot=-20)
+        put(A, "mateo_timido", 820, 2140, .75); put(A, "dino", 780, 990, .5); put(A, "crayola", 930, 1110, .4, rot=-20)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 90)))
     _FC[name] = A
     return A
@@ -647,7 +654,7 @@ SCENES = [
 ]
 IMPACTS = [WT("F01", "rojo."), WT("F02", "repita."), WT("F07", "rompe."), WT("F09", "revés."), WT("F13", "leche"),
            WT("F14", "feas!"), WT("F15", "gritas."), S("F19")]
-AVISOS[:] = [S("F05") - .2, S("F10") + .6]
+AVISOS[:] = [S("F06") - .1, S("F16") + .3]
 SUAVES = {S("F15") - .1, S("F16") - .3, S("F17") - .4, S("F18") - .2}   # cortes sin flash, más tiernos
 
 TW = .22

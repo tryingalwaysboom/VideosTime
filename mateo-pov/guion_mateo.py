@@ -21,7 +21,7 @@ LINEAS = [
  ("F07","N","Le pones el lápiz en la mano. Aprieta tan fuerte… que la punta se rompe.",
   "Le pones el *lápiz* en la mano. Aprieta tan *fuerte…* que la punta se *rompe.*"),
  ("F08","K","[crying] ¡¿Ves?! ¡Yo no sé! ¡Yo no sé escribir!",
-  "¡¿*Ves?!* ¡Yo *no* *sé!* ¡Yo no sé *escribir!*"),
+  "*¡¿Ves?!* ¡Yo *no* *sé!* ¡Yo no sé *escribir!*"),
  ("F09","N","Se va corriendo a su cuarto. En la hoja queda una sola letra: una eme torcida… y al revés.",
   "Se va *corriendo* a su cuarto. En la hoja queda una *sola* *letra:* una *M* *torcida…* y al *revés.*"),
  ("F10","N","Suena el timbre. Es tu mamá, la abuela Pilar. Ve la hoja sobre la mesa… y suspira.",
