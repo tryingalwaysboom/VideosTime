@@ -1,4 +1,4 @@
-"""Monta la Parte 1 de "Los 30 días de Mateo". Reutiliza el motor del taller (subtítulos palabra a palabra, tiempos de voz,
+"""Monta la Parte 1 de "Mateo no sabe escribir". Reutiliza el motor del taller (subtítulos palabra a palabra, tiempos de voz,
 transiciones) con escenas, barra y final propios.
 Uso: python3 render.py still 10 20 | python3 render.py scenes [i...] | python3 render.py info"""
 import os, sys, math, json, subprocess
@@ -106,15 +106,12 @@ def draw_hud(c, T):
     d.rounded_rectangle((CX0 + 22, y1 - 24, CX0 + 120, y1 + 24), 24, fill=ROSA)
     d.text((CX0 + 71, y1 + 2), "EP. 1", font=font(F_BAL, 30), fill=WHITE, anchor="mm")
     d.text((CX0 + 140, y1 + 4), f"DÍA {dia}", font=font(F_BAL, 46 * pop(t_d2)), fill=NAVY, anchor="lm")
-    t_30 = WT("F02", "30")
-    falt = "¿?" if T < t_30 else ("30" if T < t_d2 else "29")
-    # calendario
-    fq = font(F_BAL, 44 * pop(t_30 if T < t_d2 else t_d2)); txt = f"QUEDAN {falt} DÍAS"
+    t_m = WT("F02", "fin")
+    fq = font(F_BAL, 40 * pop(t_m)); txt = "META: FIN DE AÑO" if T >= t_m else "META: ¿?"
     d.text((CX1 - 30, y1 + 4), txt, font=fq, fill=(214, 70, 110), anchor="rm")
-    cx_ = CX1 - 30 - d.textlength(txt, font=fq) - 34
-    d.rounded_rectangle((cx_ - 20, y1 - 20, cx_ + 20, y1 + 20), 7, fill=WHITE, outline=NAVY, width=3)
-    d.rectangle((cx_ - 18, y1 - 18, cx_ + 18, y1 - 7), fill=ROJO)
-    d.line((cx_ - 10, y1 + 2, cx_ + 10, y1 + 2), fill=NAVY, width=3); d.line((cx_ - 10, y1 + 10, cx_ + 4, y1 + 10), fill=NAVY, width=3)
+    fx = CX1 - 30 - d.textlength(txt, font=fq) - 30   # banderita de meta
+    d.line((fx - 10, y1 - 22, fx - 10, y1 + 22), fill=NAVY, width=5)
+    d.polygon([(fx - 8, y1 - 22), (fx + 22, y1 - 13), (fx - 8, y1 - 2)], fill=ROJO, outline=NAVY)
     # las 5 letras de su nombre (vacías: todavía no sabe ninguna)
     y2 = CY0 + 112; t_l = WT("F09", "sola")
     for i, L_ in enumerate("MATEO"):
@@ -259,7 +256,7 @@ def sc_nota(T):
     s0, e0 = TL["F02"]
     c = bg("bg_mesa", T, s0 - .3, 1.15, 1.25, 10, .5, .45)
     put(c, "nota", 540, 830, 1.0, rot=-2 + .6 * math.sin(T * .8))
-    L = ["Mamá de Mateo:", "es el ÚNICO del salón", "que todavía NO escribe", "su nombre. En 30 días", "empieza el año escolar.", "Si no lo logra...", "tendrá que REPETIR."]
+    L = ["Mamá de Mateo:", "es el ÚNICO del salón", "que todavía NO escribe", "su nombre. Si no lo logra", "antes de fin de año...", "tendrá que REPETIR."]
     manuscrito(c, L, T, s0 + .1, e0 - .3, 210, 420, 60, (196, 36, 36), 72, rot=2)
     d = ImageDraw.Draw(c)
     if T >= WT("F02", "único"):   # círculo rojo garabateado alrededor de "ÚNICO"
@@ -270,14 +267,18 @@ def sc_nota(T):
     return c
 
 def sc_celular(T):
-    """F03: 30 DÍAS enorme y el grupo de mamás: la hija de la vecina ya escribe nombre y apellido."""
+    """F03: relees la nota 3 veces y el grupo de mamás: la hija de otra mamá ya escribe nombre y apellido."""
     s0, e0 = TL["F03"]; tc = WT("F03", "celular:")
     c = bg("bg_mesa", T, s0, 1.4, 1.5, 12, .5, .5); dark(c, 70)
-    if T < tc - .1:
-        d = ImageDraw.Draw(c); k = popscale(T, s0, .35)
-        text(d, (540, 720), "30", 380 * max(k, .01), YEL, stroke=14)
-        text(d, (540, 960), "DÍAS", 130 * max(k, .01), WHITE, stroke=10)
-        if T >= WT("F03", "tres"): etiqueta(c, T, WT("F03", "tres"), "LO LEES 3 VECES", 540, 1180, ROSA, OL, 40)
+    if T < tc - .1:   # relees la nota: 1, 2, 3 veces
+        c = bg("bg_mesa", T, s0 - .3, 1.25, 1.35, 6, .5, .45)
+        put(c, "nota", 540, 860, .9, rot=-2 + 2 * math.sin(T * 2))
+        L = ["Mamá de Mateo:", "es el ÚNICO del salón", "que todavía NO escribe", "su nombre. Si no lo logra", "antes de fin de año...", "tendrá que REPETIR."]
+        manuscrito(c, L, T, -9, -8, 250, 500, 54, (196, 36, 36), 66, rot=2)
+        paso = max(.4, (tc - s0) / 3); n = 1 + min(2, int((T - s0) / paso)); k = popscale(T, s0 + (n - 1) * paso, .3)
+        d = ImageDraw.Draw(c); r_ = 74 * max(k, .05)
+        d.ellipse((800 - r_, 1180 - r_, 800 + r_, 1180 + r_), fill=ROJO, outline=WHITE, width=6)
+        text(d, (800, 1182), f"x{n}", 72 * max(k, .05), WHITE)
         return c
     ts = WT("F03", "Sofía"); ta = WT("F03", "apellido.")
     def cont(d, lay, x, y, w, h, s):
@@ -451,33 +452,48 @@ def sc_abuela(T):
 CONSEJOS = ["Castígalo sin tablet", "¡No lo presiones!", "Espera a los 7 años", "Practica 1 hora diaria", "Dale premios", "Solo con juegos",
             "Que repita planas", "Llévalo a terapia", "Es flojera", "Cada niño a su ritmo", "Usa cuadernos caros", "No hagas nada"]
 def sc_noche(T):
-    """F12: de noche, buscas en el celular y llueven mil consejos contradictorios."""
+    """F12: esa noche Mateo duerme por fin; tú, con el celular en las manos, buscas ayuda y llueven mil consejos."""
     s0, e0 = TL["F12"]; tb = WT("F12", "buscas"); tm = WT("F12", "Mil")
-    c = bg("bg_noche", T, s0, 1.0, 1.08, 12)
+    if T < tb - .15:   # Mateo dormido en su cama
+        c = bg("bg_cuarto", T, s0, 1.15, 1.25, 6, .5, .55)
+        c.alpha_composite(Image.new("RGBA", (W, H), (14, 20, 60, 175)))
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((60, 700, 1020, 1500), fill=(255, 214, 140, 70))
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))   # lucecita de noche
+        bob = 5 * math.sin(T * 1.6)
+        put(c, "mateo_duerme", 540, 1150 + bob, .92)
+        d = ImageDraw.Draw(c)
+        for k in range(3):   # zzz
+            ph = ((T * .7) + k / 3) % 1
+            text(d, (600 + 90 * ph + k * 16, 700 - 200 * ph), "z", 54 + 18 * k, (220, 230, 255), stroke=4)
+        etiqueta(c, T, s0 + .2, "ESA NOCHE", 540, 470, (60, 70, 130), WHITE, 44)
+        if T >= WT("F12", "duerme,"): etiqueta(c, T, WT("F12", "duerme,"), "POR FIN SE DUERME", 540, 1330, CREMA, OL, 40)
+        return c
+    c = bg("bg_noche", T, tb, 1.0, 1.06, 12)
     q = "mi hijo no quiere escribir"
     t0q, t1q = WT("F12", "mi"), WT("F12", "escribir.") + .3
     nq = int(len(q) * clamp((T - t0q) / max(.2, t1q - t0q))) if T >= t0q else 0
     def cont(d, lay, x, y, w, h, s):
-        d.rounded_rectangle((x + 30 * s, y + 120 * s, x + w - 30 * s, y + 200 * s), 40 * s, fill=WHITE, outline=(200, 200, 210), width=3)
-        d.text((x + 70 * s, y + 160 * s), q[:nq] + ("|" if (T * 2) % 1 < .5 else ""), font=font(F_UI, int(30 * s)), fill=OL, anchor="lm")
+        d.rounded_rectangle((x + 30 * s, y + 90 * s, x + w - 30 * s, y + 170 * s), 40 * s, fill=WHITE, outline=(200, 200, 210), width=3)
+        d.text((x + 70 * s, y + 130 * s), q[:nq] + ("|" if (T * 2) % 1 < .5 else ""), font=font(F_UI, int(30 * s)), fill=OL, anchor="lm")
         if T >= tm:
             for i, cs in enumerate(CONSEJOS[:int(clamp((T - tm) / 1.6) * len(CONSEJOS)) + 1]):
-                yy = y + (240 + i * 62) * s
-                if yy > y + h - 40 * s: break
+                yy = y + (200 + i * 62) * s
+                if yy > y + h - 220 * s: break
                 d.rounded_rectangle((x + 30 * s, yy, x + w - 30 * s, yy + 52 * s), 14 * s, fill=(232, 238, 255) if i % 2 else (255, 236, 240))
                 d.text((x + 50 * s, yy + 26 * s), cs, font=font(F_UI, int(26 * s)), fill=OL, anchor="lm")
-    k = ease((T - s0) / .5)
-    if T >= tb - .2:
-        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((140, 420, 940, 1500), fill=(120, 170, 255, 60))
-        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
-        celular(c, 540, 930 + 600 * (1 - ease((T - tb + .2) / .5)), 1.25, T, cont)
+    k = ease((T - tb + .15) / .5); dy = 500 * (1 - k)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((100, 380, 980, 1500), fill=(120, 170, 255, 70))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    put(lay, "manos_atras", 540, 960, 1.0)
+    celular(lay, 540, 980, 1.25, T, cont)
+    put(lay, "manos_delante", 540, 960, 1.0)
+    c.alpha_composite(lay, (0, int(dy)))
     if T >= WT("F12", "distintos."):
         td = WT("F12", "distintos.")
         dark(c, 150 * ease((T - td) / .25))
         stamp(c, T, td, "¿A QUIÉN", 540, 820, YEL, -4, 120)
         stamp(c, T, td + .15, "LE HAGO CASO?", 540, 1030, YEL, 3, 110)
-    if T < tb - .2:
-        etiqueta(c, T, s0 + .2, "ESA NOCHE", 540, 600, (60, 70, 130), WHITE, 44)
     return c
 
 def sc_dia2(T):
@@ -488,7 +504,6 @@ def sc_dia2(T):
         gl = Image.new("RGBA", (W, H), (255, 200, 120, 90)); c.alpha_composite(gl)
         d = ImageDraw.Draw(c); k = popscale(T, s0 - .6, .4)
         text(d, (540, 880), "DÍA 2", 230 * max(k, .01), WHITE, stroke=14, sfill=(214, 84, 120))
-        text(d, (540, 1060), "QUEDAN 29", 80 * max(k, .01), YEL, stroke=8)
         return c
     c = bg("bg_mesa", T, s0, 1.15, 1.3, 9, .5, .5)
     te = WT("F13", "empuja")
@@ -534,10 +549,10 @@ def sc_grito(T):
     return c
 
 def sc_piso(T):
-    """F16: te sientas en el piso. 29 días. 0 letras."""
+    """F16: te sientas en el piso. 2 días. 0 letras."""
     s0, e0 = TL["F16"]
     c = bg("bg_cocina", T, s0, 1.05, 1.0, 6, .5, .9); dark(c, 120)
-    t29 = WT("F16", "29"); tl = WT("F16", "una")
+    t29 = WT("F16", "Dos"); tl = WT("F16", "una")
     if T < t29 + .3:   # en el piso, la hoja mojada de leche
         put(c, "hoja", 540, 1000, .85)
         palabra(c, "MATEO", 540, 1000, .85, 0, T)
@@ -547,7 +562,7 @@ def sc_piso(T):
     d = ImageDraw.Draw(c)
     if T >= t29:
         k = popscale(T, t29, .4)
-        text(d, (540, 740), "29", 300 * max(k, .01), YEL, stroke=12)
+        text(d, (540, 740), "2", 300 * max(k, .01), YEL, stroke=12)
         text(d, (540, 920), "DÍAS", 100 * max(k, .01), WHITE, stroke=8)
     if T >= tl:
         k = popscale(T, tl, .4)

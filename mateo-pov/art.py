@@ -424,8 +424,52 @@ def lapiz_v():
     """Lápiz en vertical, punta abajo (para el plano medio con Mateo)."""
     return svg(200, 700, _lapiz_diag(100, 20, 100, 680, 60))
 
+def mateo_duerme():
+    """Mateo dormido en su cama, tapado hasta la barbilla, con el Rex al lado."""
+    b = cel('<rect x="60" y="120" width="960" height="260" rx="60"/>', "#9a6538", "#7a4a24", "#b07a4a", -16, -8, 8)   # cabecero
+    b += cel('<rect x="80" y="330" width="920" height="900" rx="40"/>', "#e05d4f", "#b8443a", None, -14, 0, 8)
+    b += cel('<ellipse cx="540" cy="430" rx="330" ry="120"/>', "#fffdf6", "#e2dccb", None, -12, -6, 7)   # almohada
+    h = _mateo_cabeza()
+    h += ('<path d="M298 432 Q336 452 372 432" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/>'
+          '<path d="M428 432 Q464 452 502 432" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/>'
+          '<path d="M300 380 Q334 362 372 372" stroke="#2f1c12" stroke-width="12" fill="none" stroke-linecap="round"/>'
+          '<path d="M500 380 Q466 362 428 372" stroke="#2f1c12" stroke-width="12" fill="none" stroke-linecap="round"/>'
+          '<path d="M376 556 Q400 568 424 556" stroke="#1d1630" stroke-width="8" fill="none" stroke-linecap="round"/>')
+    b += f'<g transform="translate(540,420) scale(.72) rotate(-8) translate(-400,-430)">{h}</g>'
+    # manta con dinosaurios
+    b += cel('<path d="M60 660 Q540 600 1020 660 L1040 1240 L40 1240Z"/>', "#5b8fd6", "#4370b0", "#7aa8e8", -20, -10, 8)
+    b += '<path d="M60 700 Q540 640 1020 700" stroke="#f6efe2" stroke-width="18" fill="none"/>'
+    r = random.Random(3)
+    for i in range(7):
+        x, y = 160 + (i % 4) * 230 + r.randint(-20, 20), 760 + (i // 4) * 220
+        b += (f'<path d="M{x} {y+60} Q{x+10} {y+10} {x+50} {y+16} Q{x+64} {y-10} {x+84} {y-4} L{x+76} {y+16} Q{x+80} {y+50} {x+60} {y+60}" '
+              f'stroke="#f2c84b" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.85"/>')
+    # el Rex asomando junto a él
+    b += '<g transform="translate(700,250) scale(.42)">' + re.sub(r'^<svg[^>]*>|</svg>$', '', dino()).replace('<defs>', '<defs><!--', 1).replace('</defs>', '--></defs>', 1) + '</g>'
+    return svg(1080, 1240, b)
+
+def _mano(flip=False):
+    """Mano adulta (de mamá) con manga de punto rosa, para sujetar el celular desde abajo."""
+    return ""
+
+def manos_movil(capa):
+    """Manos de mamá sujetando el celular (POV). Celular: x 215..865, y 355..1605. capa='atras' (palmas) o 'delante' (dedos y pulgares)."""
+    b = ""
+    for side in (1, -1):
+        def X(x): return x if side == 1 else 1080 - x
+        if capa == "atras":
+            b += cel(f'<path d="M{X(-40)} 1920 L{X(-40)} 1560 Q{X(120)} 1500 {X(250)} 1640 L{X(330)} 1920Z"/>', "#e98aa6", "#c56a86", "#f4a9bf", -14 * side, -8, 8)
+            for y in range(1600, 1920, 36): b += f'<path d="M{X(0)} {y} L{X(300)} {y+40}" stroke="#c56a86" stroke-width="5" opacity="0.6"/>'
+            b += cel(f'<ellipse cx="{X(215)}" cy="1500" rx="120" ry="150"/>', SK, SKS, SKH, -12 * side, -8, 7)
+        else:
+            for y in (1120, 1210, 1300):   # dedos que asoman por el canto
+                b += cel(f'<ellipse cx="{X(216)}" cy="{y}" rx="34" ry="40"/>', SK, SKS, None, -6 * side, -4, 6)
+            b += cel(f'<path d="M{X(170)} 1600 Q{X(240)} 1480 {X(320)} 1440 Q{X(352)} 1430 {X(356)} 1466 Q{X(330)} 1520 {X(260)} 1620Z"/>', SK, SKS, SKH, -8 * side, -6, 7)
+            b += f'<ellipse cx="{X(338)}" cy="1448" rx="14" ry="10" fill="#f6d8c8" stroke="{OL}" stroke-width="3"/>'
+    return svg(1080, 1920, b)
+
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
-          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
+          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
           "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
 for k in ("neutral", "enojado", "llora", "triste", "timido"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)

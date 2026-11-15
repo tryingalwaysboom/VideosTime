@@ -20,7 +20,7 @@ def portada(n, out):
     V.text(d, (540, 120), "MI HIJO NO SABE", 104, V.WHITE, stroke=10)
     V.text(d, (540, 235), "ESCRIBIR SU NOMBRE", 104, V.WHITE, stroke=10)
     d.rounded_rectangle((300, 300, 780, 420), 30, fill=V.ROSA, outline=V.WHITE, width=7)
-    V.text(d, (540, 362), "Y QUEDAN 30 DÍAS", 62, V.OL)
+    V.text(d, (540, 362), "¿REPETIRÁ EL AÑO?", 62, V.OL)
     # PARTE N por encima del contador de visitas (tres cuartos de la altura)
     pw = 520
     d.rounded_rectangle((540 - pw / 2, 1010, 540 + pw / 2, 1150), 36, fill=V.AZ, outline=V.WHITE, width=8)
