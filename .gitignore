@@ -3,3 +3,4 @@ __pycache__/
 crypto-pov/tmp/
 crypto-pov/layers/_tmp.html
 mateo-pov/tmp/
+mateo-pov/*.mp4

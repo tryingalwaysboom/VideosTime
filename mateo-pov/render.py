@@ -179,7 +179,7 @@ def letras_mateo(c, cx, cy, sz, T, tiempos, col=(40, 60, 160), punteado=False):
         fk = font(F_ANTON, sz * max(.05, k))
         if punteado:
             lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).text((xs[i], cy), L_, font=fk, fill=col, anchor="mm")
-            m = np.array(lay); yy = np.arange(H)[:, None]; m[..., 3][((yy // 10) % 2) == 0] = 0
+            m = np.array(lay); m[((np.arange(H) // 10) % 2) == 0, :, 3] = 0
             c.alpha_composite(Image.fromarray(m))
         else:
             d.text((xs[i], cy), L_, font=fk, fill=col, anchor="mm")

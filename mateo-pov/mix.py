@@ -36,7 +36,7 @@ def main(out):
         ins += ["-i", p]; ms = max(0, int(t * 1000))
         flt.append(f"[{k}:a]aresample=48000,loudnorm=I=-25:TP=-6,volume={db}dB,adelay={ms}|{ms},apad[s{j}]")
         parts.append(f"[s{j}]"); k += 1
-    flt.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=first,atrim=0:{TOTAL:.2f},alimiter=limit=0.95[mx]")
+    flt.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,alimiter=limit=0.95,apad,atrim=0:{TOTAL:.2f}[mx]")
     wav = os.path.join(TMP, "mezcla.wav")
     subprocess.run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(flt), "-map", "[mx]", "-ac", "2", wav], check=True)
     lst = os.path.join(TMP, "list.txt")
