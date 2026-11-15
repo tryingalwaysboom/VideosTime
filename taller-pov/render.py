@@ -166,9 +166,10 @@ def WT(lid, palabra, n=1):
 
 NOMBRE = {"M": "MANOLO", "T": "TÍO RUBÉN · NOTA DE VOZ", "X": "NITRO", "L": "LUCÍA"}
 
+HIDE_LAST_CAPTION = True
 def draw_caption(canvas, T):
     last = list(TL)[-1]
-    if T >= WT(last, "Comenta") - .05: return   # el botón COMENTA sustituye al subtítulo
+    if HIDE_LAST_CAPTION and T >= WT(last, "Comenta") - .05: return   # el botón COMENTA sustituye al subtítulo
     for idx, (t0, t1, g, who, lid) in enumerate(CH):
         nxt0 = CH[idx + 1][0] if idx + 1 < len(CH) else 1e9
         if not (t0 - .04 <= T < t1 + .35) or T >= nxt0 - .04: continue

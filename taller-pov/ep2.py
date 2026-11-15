@@ -344,11 +344,6 @@ def sc_final(T):
                                            (790, "B", "ARRANCARLO", "+ El coche vuelve a rugir", "- Gastas los 600 €", MAG, tb, hiB)):
         k = popscale(T, t0, .35)
         if k > 0: R._texto_opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
-    if T >= S("E19"):
-        uu = popscale(T, WT("E19", "Comenta"))
-        if uu > 0:
-            d.rounded_rectangle((470 - 300 * uu, 1400, 470 + 300 * uu, 1480), 40, fill=WHITE)
-            if uu > .5: text(d, (470, 1440), "COMENTA  A  o  B", 56, OL)
     return c
 
 R.SCENES = [
@@ -360,6 +355,7 @@ R.SCENES = [
 R.IMPACTS = [.7, WT("E01", "B."), WT("E05", "Nada."), WT("E12", "caja") + .5, WT("E14", "socios."), WT("E15", "Nave"),
              WT("E16", "DEVUÉLVELO."), S("E18")]
 R.draw_hud = draw_hud
+R.HIDE_LAST_CAPTION = False   # sin botón COMENTA: el subtítulo se queda
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
@@ -371,6 +367,11 @@ if __name__ == "__main__":
             pool.starmap(R.render_scene, [(i, os.path.join(R.TMP, f"e2s{i:02d}.mp4")) for i in range(len(R.SCENES))])
     elif cmd == "mix":
         import mix
-        mix.main(os.path.join(R.HERE, "el_taller_de_ruben_ep2.mp4"), "e2s")
+        SFX = os.path.join(R.HERE, "sfx")
+        efectos = [(os.path.join(SFX, "se_aleja.wav"), WT("E03", "escape") - .3, 0),
+                   (os.path.join(SFX, "petardeo.wav"), WT("E03", "petardea"), 0),
+                   (os.path.join(SFX, "llave_no_arranca.wav"), WT("E05", "giras"), 2),
+                   (os.path.join(SFX, "arranque.wav"), S("E11") - 1.6, 0)]
+        mix.main(os.path.join(R.HERE, "el_taller_de_ruben_ep2.mp4"), "e2s", efectos)
     elif cmd == "info":
         print({k: [round(a, 2), round(b, 2)] for k, (a, b) in TL.items()}, R.TOTAL)
