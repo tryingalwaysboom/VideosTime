@@ -1,1 +1,1 @@
-taller_story/voz.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/stvFpu7aPz1yTNvwiRpJ/B2PkqWoPjeXOzC0edlBW/content.mp3?Expires=1794718800&KeyName=assets-cdn-key-1&Signature=ChtpjV5jfAmYs6UgyrpjrgvfV9E=
+taller_story/voz2.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/zNpJXZjRBnxr5vcTfTDe/sSu2TzE81x1qkRXCsciq/content.mp3?Expires=1794718800&KeyName=assets-cdn-key-1&Signature=j-C-tC_evaRIFbbtb57KfoUMtlg=
