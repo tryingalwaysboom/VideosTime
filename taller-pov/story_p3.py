@@ -16,7 +16,7 @@ T_GANO, T_NAVE, T_DENTRO, T_SOLOS, T_CORRE, T_VOTA, T_COMEN, T_SIG = 2.0, 3.08, 
 SC_T = [0, 1.85, 4.85, 8.1, 10.05, 13.45]
 IMPACTS = [.35, T_GANO, 4.0, T_SOLOS + .5, T_CORRE, T_SIG]
 SFX = [("arranque", 0, -1), ("impacto", 1.9, -4), ("candado", 3.95, 0), ("brillo", T_DENTRO + .3, -2),
-       ("nitro_ruge", T_SOLOS - .1, 3), ("impacto", T_CORRE - .1, -5), ("arranque", 13.35, 1)]
+       ("nitro_ruge", T_SOLOS - .1, -1), ("impacto", T_CORRE - .1, -5), ("arranque", 12.3, -7)]
 etiqueta = SV.etiqueta; blank = SV.blank
 
 _P3 = None
@@ -148,7 +148,7 @@ def sc_siguenos(T):
     return c
 
 SV.SC_T, SV.SCENES, SV.IMPACTS = SC_T, [sc_publicada, sc_nave, sc_caja, sc_solos, sc_vota, sc_siguenos], IMPACTS
-SV.VOZ, SV.SFX, SV.OUT = VOZ, SFX, "story_parte3_publicada.mp4"
+SV.VOZ, SV.SFX, SV.OUT, SV.TAIL = VOZ, SFX, "story_parte3_publicada.mp4", 1.1
 
 if __name__ == "__main__":
     SV.main()

@@ -12,6 +12,7 @@ VOZ = os.path.join(HERE, "voz_story", "voz.wav")
 G_ = (46, 160, 90)
 FPS = R.FPS
 OUT = "story_parte1.mp4"
+TAIL = .55
 
 # tiempos de la voz (voz_story/voz.wav, atempo 1.1)
 T_Q, T_NITRO, T_NUM0, T_NUM1, T_TALLER, T_COCHE = .12, 1.71, 2.4, 3.7, 4.0, 5.06
@@ -288,7 +289,7 @@ def frame(T):
     return c.convert("RGB")
 
 def main():
-    dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", VOZ])) + .55
+    dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", VOZ])) + TAIL
     if len(sys.argv) > 1 and sys.argv[1] == "still":
         ims = [frame(float(t)).resize((270, 480)) for t in sys.argv[2:]]
         o = Image.new("RGB", (270 * len(ims), 480)); [o.paste(im, (i * 270, 0)) for i, im in enumerate(ims)]
@@ -299,7 +300,7 @@ def main():
     for j, (n, t, db) in enumerate(SFX):
         ins += ["-i", os.path.join(HERE, "sfx", n + ".wav")]; ms = int(t * 1000)
         fc += f"[{j + 2}:a]loudnorm=I=-26,volume={db}dB,adelay={ms}|{ms}[s{j}];"; labs.append(f"[s{j}]")
-    fc += f"[v]{''.join(labs)}amix=inputs={len(labs) + 1}:duration=first:normalize=0,alimiter=limit=0.95[a]"
+    fc += f"[v]{''.join(labs)}amix=inputs={len(labs) + 1}:duration=first:normalize=0,alimiter=limit=0.95,apad,afade=t=out:st={dur - .35:.2f}:d=0.35[a]"
     out = os.path.join(HERE, OUT)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS), "-i", f"{tmp}/%05d.jpg", *ins,
                     "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
