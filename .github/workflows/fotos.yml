@@ -13,37 +13,40 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q requests pillow
-      - name: Buscar fotos libres (Openverse CC0 / dominio publico)
+      - name: Buscar fotos libres (Wikimedia Commons)
         run: |
           python - <<'PY'
           import glob, os, io, json, time, requests
           from PIL import Image
-          H={"User-Agent":"VideosTime/1.0 (recetas)"}
+          H={"User-Agent":"VideosTimeBot/1.0 (https://github.com/tryingalwaysboom/VideosTime)"}
+          API="https://commons.wikimedia.org/w/api.php"
           for marca in glob.glob("descargas/**/fotos.txt", recursive=True):
               out=os.path.dirname(marca)
               for linea in open(marca, encoding="utf-8"):
                   linea=linea.strip()
                   if not linea or "|" not in linea: continue
                   clave, q = [s.strip() for s in linea.split("|",1)]
-                  r=None
-                  for intento in range(5):
-                      time.sleep(6+intento*10)
+                  try:
+                      r=requests.get(API,params={"action":"query","format":"json","generator":"search","gsrsearch":q+" filetype:bitmap","gsrnamespace":6,"gsrlimit":10,
+                          "prop":"imageinfo","iiprop":"url|size|extmetadata","iiurlwidth":1600},headers=H,timeout=30).json()
+                  except Exception as e:
+                      print("err",q,e); continue
+                  pages=sorted(r.get("query",{}).get("pages",{}).values(),key=lambda p:p.get("index",99))
+                  meta=[];n=0
+                  for p in pages:
+                      ii=p.get("imageinfo",[{}])[0]
+                      if min(ii.get("width",0),ii.get("height",0))<900: continue
+                      lic=ii.get("extmetadata",{}).get("LicenseShortName",{}).get("value","")
+                      art=ii.get("extmetadata",{}).get("Artist",{}).get("value","")
                       try:
-                          r=requests.get("https://api.openverse.org/v1/images/",params={"q":q,"license":"cc0,pdm","page_size":8,"mature":"false"},headers=H,timeout=30).json(); break
-                      except Exception as e:
-                          print("reintento",q,e)
-                  if not r: continue
-                  meta=[]
-                  for i,it in enumerate(r.get("results",[])):
-                      try:
-                          b=requests.get(it["url"],headers=H,timeout=40).content
-                          im=Image.open(io.BytesIO(b)).convert("RGB")
-                          if min(im.size)<700: continue
-                          im.thumbnail((1800,1800))
-                          f=f"{out}/{clave}_{i}.jpg"; im.save(f,quality=88)
-                          meta.append({"f":f,"titulo":it.get("title"),"fuente":it.get("foreign_landing_url"),"licencia":it.get("license")})
-                          print("ok",f)
+                          b=requests.get(ii.get("thumburl") or ii["url"],headers=H,timeout=40).content
+                          im=Image.open(io.BytesIO(b)).convert("RGB"); im.thumbnail((1600,1600))
+                          f=f"{out}/{clave}_{n}.jpg"; im.save(f,quality=88); n+=1
+                          meta.append({"f":f,"titulo":p.get("title"),"licencia":lic,"autor":art,"fuente":ii.get("descriptionurl")})
+                          print("ok",f,lic)
                       except Exception as e: print("skip",e)
+                      if n>=5: break
+                      time.sleep(1)
                   json.dump(meta,open(f"{out}/{clave}.json","w"),ensure_ascii=False,indent=1)
           PY
       - run: |

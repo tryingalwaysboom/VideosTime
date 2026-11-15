@@ -1,8 +1,8 @@
-final | french toast
-final2 | french toast berries
-sarten | french toast frying pan
-huevos | eggs
-leche | milk glass
+final | French toast
+sarten | French toast frying pan
+batir | whisking eggs bowl
+huevos | brown eggs
+leche | glass of milk
 canela | cinnamon sticks
-pan | sliced bread
+pan | sliced bread loaf
 miel | honey dipper
