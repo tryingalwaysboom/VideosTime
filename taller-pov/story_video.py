@@ -11,6 +11,7 @@ HERE = R.HERE
 VOZ = os.path.join(HERE, "voz_story", "voz.wav")
 G_ = (46, 160, 90)
 FPS = R.FPS
+OUT = "story_parte1.mp4"
 
 # tiempos de la voz (voz_story/voz.wav, atempo 1.1)
 T_Q, T_NITRO, T_NUM0, T_NUM1, T_TALLER, T_COCHE = .12, 1.71, 2.4, 3.7, 4.0, 5.06
@@ -21,6 +22,9 @@ T_SIN, T_NOHAY, T_SIG, T_END = 19.71, 20.76, 21.78, 22.36
 SC_T = [0, 1.55, 6.75, 12.1, 14.95, 19.6]          # inicio de cada escena
 IMPACTS = [.3, 1.85, T_NUM1, T_A, T_SOBRA, T_B, T_SLAM, T_COM, T_TU, T_NOHAY, T_SIG]
 SFX = [("arranque", 1.5, 0), ("se_aleja", T_SEVA, 0), ("petardeo", 13.8, 0), ("arranque", 19.55, 1)]
+
+def etiqueta(c, T, t0, *a, **k):
+    if popscale(T, t0) > .02: R.etiqueta(c, T, t0, *a, **k)
 
 def blank(): return Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
@@ -296,7 +300,7 @@ def main():
         ins += ["-i", os.path.join(HERE, "sfx", n + ".wav")]; ms = int(t * 1000)
         fc += f"[{j + 2}:a]loudnorm=I=-26,volume={db}dB,adelay={ms}|{ms}[s{j}];"; labs.append(f"[s{j}]")
     fc += f"[v]{''.join(labs)}amix=inputs={len(labs) + 1}:duration=first:normalize=0,alimiter=limit=0.95[a]"
-    out = os.path.join(HERE, "story_parte1.mp4")
+    out = os.path.join(HERE, OUT)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS), "-i", f"{tmp}/%05d.jpg", *ins,
                     "-filter_complex", fc, "-map", "0:v", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                     "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-t", f"{dur:.2f}", out], check=True)
