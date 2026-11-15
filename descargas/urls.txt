@@ -1,1 +1,1 @@
-mateo_ep1/F01.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/qAqFQWFG5dufArZkN91C/VXXZD7cSFwzMZiuAMT5T/content.mp3?Expires=1794790800&KeyName=assets-cdn-key-1&Signature=EakKGY9wLBpHZ756jGCaE4WEnjs=
+taller_story/voz_sigueme.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/RU9MKIumacKFORW8RK3T/HVnGXsZsyIfhuL2TYutB/content.mp3?Expires=1794794400&KeyName=assets-cdn-key-1&Signature=tlz9pg8Ji4zFbYzH6o-QLbiERfM=
