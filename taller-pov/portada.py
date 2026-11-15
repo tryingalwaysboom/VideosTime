@@ -116,9 +116,9 @@ def serie_A(n, out):
     gl = Image.new("RGBA", (r.W, r.H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
     g.ellipse((-100, 1020, 1180, 1520), fill=r.MAG + (95,)); g.ellipse((200, 700, 880, 1100), fill=r.CYAN + (50,))
     c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
-    _suelo_reflejo(c, "deportivo", 540, 1060, .85)
-    _neon_titulo(c, 700)
-    _parte_n(c, n, 1450)
+    _suelo_reflejo(c, "deportivo", 540, 990, .78)
+    _neon_titulo(c, 640)
+    _parte_n(c, n, 1290)
     c.alpha_composite(r.VIG); c.convert("RGB").save(out, quality=94)
 
 def serie_B(n, out):
