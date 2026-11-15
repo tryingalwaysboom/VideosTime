@@ -1,7 +1,6 @@
 final | french toast
 final2 | french toast berries
 sarten | french toast frying pan
-batir | whisking eggs bowl
 huevos | eggs
 leche | milk glass
 canela | cinnamon sticks

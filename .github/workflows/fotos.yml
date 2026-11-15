@@ -16,7 +16,7 @@ jobs:
       - name: Buscar fotos libres (Openverse CC0 / dominio publico)
         run: |
           python - <<'PY'
-          import glob, os, io, json, requests
+          import glob, os, io, json, time, requests
           from PIL import Image
           H={"User-Agent":"VideosTime/1.0 (recetas)"}
           for marca in glob.glob("descargas/**/fotos.txt", recursive=True):
@@ -25,10 +25,14 @@ jobs:
                   linea=linea.strip()
                   if not linea or "|" not in linea: continue
                   clave, q = [s.strip() for s in linea.split("|",1)]
-                  try:
-                      r=requests.get("https://api.openverse.org/v1/images/",params={"q":q,"license":"cc0,pdm","page_size":8,"mature":"false"},headers=H,timeout=30).json()
-                  except Exception as e:
-                      print("err",q,e); continue
+                  r=None
+                  for intento in range(5):
+                      time.sleep(6+intento*10)
+                      try:
+                          r=requests.get("https://api.openverse.org/v1/images/",params={"q":q,"license":"cc0,pdm","page_size":8,"mature":"false"},headers=H,timeout=30).json(); break
+                      except Exception as e:
+                          print("reintento",q,e)
+                  if not r: continue
                   meta=[]
                   for i,it in enumerate(r.get("results",[])):
                       try:
