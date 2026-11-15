@@ -13,14 +13,14 @@ G_ = (46, 160, 90)
 FPS = R.FPS
 
 # tiempos de la voz (voz_story/voz.wav, atempo 1.1)
-T_Q, T_NITRO, T_NUM0, T_NUM1, T_COCHE = .12, 1.8, 2.6, 4.3, 4.45
-T_A, T_VENDES, T_B, T_PERS = 6.15, 6.69, 7.84, 8.40
-T_COM, T_AOB, T_TU, T_HIST = 10.39, 10.88, 13.04, 13.74
-T_SIN, T_NOHAY, T_SIG, T_END = 15.06, 16.07, 16.99, 17.57
+T_Q, T_NITRO, T_NUM0, T_NUM1, T_TALLER, T_COCHE = .12, 1.71, 2.4, 3.7, 4.0, 5.06
+T_A, T_DEUDA, T_SOBRA, T_SEVA, T_B, T_PERS, T_SLAM = 6.94, 8.40, 10.5, 11.0, 12.25, 12.92, 13.5
+T_COM, T_AOB, T_TU, T_HIST = 15.09, 15.62, 17.76, 18.41
+T_SIN, T_NOHAY, T_SIG, T_END = 19.71, 20.76, 21.78, 22.36
 
-SC_T = [0, 1.62, 5.95, 7.70, 10.25, 14.90]          # inicio de cada escena
-IMPACTS = [.3, 1.95, T_NUM1, T_A, T_B, 8.95, T_COM, T_TU, T_NOHAY, T_SIG]
-SFX = [("arranque", 1.55, 0), ("se_aleja", 6.75, 0), ("petardeo", 9.25, 0), ("arranque", 14.85, 1)]
+SC_T = [0, 1.55, 6.75, 12.1, 14.95, 19.6]          # inicio de cada escena
+IMPACTS = [.3, 1.85, T_NUM1, T_A, T_SOBRA, T_B, T_SLAM, T_COM, T_TU, T_NOHAY, T_SIG]
+SFX = [("arranque", 1.5, 0), ("se_aleja", T_SEVA, 0), ("petardeo", 13.8, 0), ("arranque", 19.55, 1)]
 
 def blank(): return Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
@@ -116,31 +116,40 @@ def sc_oferta(T):
     d = ImageDraw.Draw(c)
     k = popscale(T, T_NUM0 - .2, .35)
     if k > 0:
-        v = int(25700 * ease((T - T_NUM0) / (T_NUM1 - T_NUM0))) if T > T_NUM0 else 0
-        v = v // 100 * 100
+        v = int(90000 * ease((T - T_NUM0) / (T_NUM1 - T_NUM0))) if T > T_NUM0 else 0
+        v = v // 1000 * 1000
         beat = 1 + .1 * max(0, 1 - (T - T_NUM1) / .25) if T >= T_NUM1 else 1
         d.rounded_rectangle((540 - 330 * k, 280, 540 + 330 * k, 430), 22, fill=G_, outline=OL, width=6)
         if k > .5: text(d, (540, 355), euros(v), 118 * beat, WHITE, stroke=6)
     billetes(c, T, T_NUM1)
-    etiqueta(c, T, T_COCHE, "POR EL COCHE DE TU TÍO", 540, 500, RED, WHITE, 40)
+    etiqueta(c, T, T_TALLER, "POR EL TALLER", 540, 495, YEL, OL, 40)
+    if T >= T_COCHE: stamp(c, T, T_COCHE, "+ EL COCHE DE TU TÍO", 540, 1480, RED, -4, 70)
     return c
 
 def sc_opcion_a(T):
     s0 = SC_T[2]
-    c = bg("bg_fachada", T, s0, 1.35, 1.45, 2, .5, .9); dark(c, 70)
+    c = bg("bg_fachada", T, s0, 1.35, 1.45, 5.3, .5, .9); dark(c, 70)
     tinte(c, (10, 60, 30), 70)
     put(c, "nitro", 250, 900 + 3 * math.sin(T * 2), .75)
     # el deportivo del tío se va con Nitro: arranca y sale disparado a la izquierda
-    u = clamp((T - T_VENDES) / .9) ** 2
+    u = clamp((T - T_SEVA) / .9) ** 2
     x = 640 - 1500 * u
     if u > .05:
         d = ImageDraw.Draw(c)
         for i in range(7):
             yy = 1060 + i * 34; d.line((x + 470, yy, x + 470 + 380 * u, yy), fill=(255, 255, 255), width=4)
     put(c, "deportivo", x, 1140, .95)
-    golpe(c, T, T_A, "A · VENDES", 330, 130, WHITE, rot=4)
-    etiqueta(c, T, T_A + .3, "+25.700 €", 540, 500, G_, WHITE, 48)
-    if T >= 7.15: stamp(c, T, 7.15, "ADIÓS AL COCHE", 620, 700, RED, -10, 90)
+    golpe(c, T, T_A, "A · ACEPTAS", 285, 130, WHITE, rot=4)
+    # 90.000 - deuda 64.300 = te quedan 25.700
+    k = popscale(T, T_A + .25, .35)
+    if k > 0:
+        v = 90000 - int(64300 * ease((T - T_DEUDA) / (T_SOBRA - T_DEUDA))) if T > T_DEUDA else 90000
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle((540 - 300 * k, 470, 540 + 300 * k, 600), 22, fill=G_, outline=OL, width=6)
+        if k > .5: text(d, (540, 535), euros(v), 100 * (1 + .1 * max(0, 1 - (T - T_SOBRA) / .25) if T >= T_SOBRA else 1), WHITE, stroke=6)
+    etiqueta(c, T, T_DEUDA, "- 64.300 € DE DEUDA", 540, 665, RED, WHITE, 38)
+    if T >= T_SOBRA: etiqueta(c, T, T_SOBRA, "TE QUEDAN", 540, 410, YEL, OL, 34)
+    if T >= T_SEVA + .4: stamp(c, T, T_SEVA + .4, "ADIÓS AL COCHE", 620, 820, RED, -10, 90)
     return c
 
 def sc_opcion_b(T):
@@ -148,14 +157,14 @@ def sc_opcion_b(T):
     c = bg("bg_fachada", T, s0, 1.2, 1.12, 2.5, .5, .62)
     inner = bg("bg_taller", T, 0, 1.4, 1.4, 1, .5, .6).crop((150, 830, 930, 1400))
     put(inner, "deportivo", 390, 420, .55); c.alpha_composite(inner, (150, 830))
-    tb = 8.95
+    tb = T_SLAM
     u = ease((T - T_PERS) / (tb - T_PERS))
     sh = 12 * math.sin(T * 70) * math.exp(-(T - tb) * 6) if T > tb else 0
     pers = R.scaled("persiana", 1.0); h = int(570 * u)
     if h > 2: c.alpha_composite(pers.crop((0, 570 - h, 780, 570)), (150 + int(sh), 830))
     chispas(c, T, tb, 540, 1395)
     put(c, "coche_negro", 300, 1610, .7)
-    llamas(c, T, 9.3, 690, 1690, 3)
+    llamas(c, T, 13.85, 690, 1690, 3)
     tinte(c, (60, 10, 50), 50)
     golpe(c, T, T_B, "B · PERSIANA", 330, 130, WHITE, rot=-4)
     if T >= tb: stamp(c, T, tb, "EN LA CARA", 540, 600, MAG, 8, 110)
