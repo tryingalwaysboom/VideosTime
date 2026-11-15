@@ -5,11 +5,12 @@ from functools import lru_cache
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from guion import LINEAS
+import importlib
+LINEAS = importlib.import_module(os.environ.get("GUION", "guion")).LINEAS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 W, H, FPS = 1080, 1920, 30
-LAY = os.path.join(HERE, "layers"); VOZ = os.path.join(HERE, "voz"); TMP = os.path.join(HERE, "tmp")
+LAY = os.path.join(HERE, "layers"); VOZ = os.path.join(HERE, os.environ.get("VOZDIR", "voz")); TMP = os.path.join(HERE, "tmp")
 os.makedirs(TMP, exist_ok=True)
 F_ANTON = os.path.join(HERE, "fonts/Anton-Regular.ttf"); F_HAND = os.path.join(HERE, "fonts/Caveat.ttf")
 F_UI = "/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf"
@@ -22,7 +23,8 @@ def dur_audio(p):
                          capture_output=True, text=True).stdout.strip()
     return float(out)
 
-GAP = {"T05": .2, "T11": .25, "T13": .2, "T14": .3, "T15": .3, "T18": .3, "T19": .2}
+GAP = {"E03": .3, "E05": .35, "E07": .3, "E11": 2.4, "E12": .3, "E15": .3, "E16": .45, "E18": .35, "E19": .2,
+       "T05": .2, "T11": .25, "T13": .2, "T14": .3, "T15": .3, "T18": .3, "T19": .2}
 
 def timeline():
     t, tl = 0.1, {}
@@ -162,10 +164,11 @@ def WT(lid, palabra, n=1):
             if c == n: return a
     raise KeyError(lid + " " + palabra)
 
-NOMBRE = {"M": "MANOLO", "T": "TÍO RUBÉN · NOTA DE VOZ", "X": "NITRO"}
+NOMBRE = {"M": "MANOLO", "T": "TÍO RUBÉN · NOTA DE VOZ", "X": "NITRO", "L": "LUCÍA"}
 
 def draw_caption(canvas, T):
-    if "T19" in TL and T >= WT("T19", "Comenta") - .05: return   # el botón COMENTA sustituye al subtítulo
+    last = list(TL)[-1]
+    if T >= WT(last, "Comenta") - .05: return   # el botón COMENTA sustituye al subtítulo
     for idx, (t0, t1, g, who, lid) in enumerate(CH):
         nxt0 = CH[idx + 1][0] if idx + 1 < len(CH) else 1e9
         if not (t0 - .04 <= T < t1 + .35) or T >= nxt0 - .04: continue
@@ -750,19 +753,26 @@ def sc_final3(T):
 
 sc_decision = {"1": sc_final1, "2": sc_final2, "3": sc_final3}[os.environ.get("FINAL", "1")]
 
-SCENES = [
-    (0, sc_llaves), (S("T02") - .15, sc_fachada), (S("T03") - .15, sc_stats), (S("T04") - .15, sc_aviso),
-    (S("T05") - .2, sc_persiana), (WT("T05", "Huele") - .1, sc_interior), (S("T06") - .2, sc_manolo),
-    (S("T08") - .2, sc_inventario), (S("T11") - .2, sc_lona), (S("T13") - .1, sc_reveal), (S("T14") - .2, sc_nota),
-    (S("T15") - .2, sc_faros), (S("T16") - .15, sc_nitro), (S("T18") - .25, sc_decision),
-]
+EP1 = os.environ.get("GUION", "guion") == "guion"
+if EP1:
+    SCENES = [
+        (0, sc_llaves), (S("T02") - .15, sc_fachada), (S("T03") - .15, sc_stats), (S("T04") - .15, sc_aviso),
+        (S("T05") - .2, sc_persiana), (WT("T05", "Huele") - .1, sc_interior), (S("T06") - .2, sc_manolo),
+        (S("T08") - .2, sc_inventario), (S("T11") - .2, sc_lona), (S("T13") - .1, sc_reveal), (S("T14") - .2, sc_nota),
+        (S("T15") - .2, sc_faros), (S("T16") - .15, sc_nitro), (S("T18") - .25, sc_decision),
+    ]
+else:
+    SCENES = []
 
 def hblur(im, k):
     if k < 2: return im
     return im.resize((max(1, W // k), H), Image.BILINEAR).resize((W, H), Image.BILINEAR)
 
-IMPACTS = [WT("T01", "llaves."), WT("T02", "cerrado."), WT("T04", "banco"), WT("T10", "gafado."), S("T13") + .1,
-           WT("T15", "ciegan"), WT("T16", "noche."), S("T18")]
+if EP1:
+    IMPACTS = [WT("T01", "llaves."), WT("T02", "cerrado."), WT("T04", "banco"), WT("T10", "gafado."), S("T13") + .1,
+               WT("T15", "ciegan"), WT("T16", "noche."), S("T18")]
+else:
+    IMPACTS = []
 
 @lru_cache(1)
 def grains():

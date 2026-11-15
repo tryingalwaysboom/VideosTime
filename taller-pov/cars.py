@@ -209,8 +209,8 @@ def coche_negro():
         b += f'<circle cx="{cx}" cy="476" r="{86*.68+3}" fill="none" stroke="#e8ecf2" stroke-width="5"/>'
     return d, b
 
-def utilitario():
-    """Utilitario rojo de finales de los 90, con óxido y abolladuras (cliente que no volvió)."""
+def utilitario(rally=False):
+    """Utilitario rojo de finales de los 90, con óxido y abolladuras (cliente que no volvió). rally=True: arreglado y con decoración de rally."""
     d, b = "", ""
     gb, gw, gg = gid("b"), gid("w"), gid("g")
     d += lg(gb, [(0, "#f2675a", None), (.4, "#d8402f", None), (.62, "#a82a20", None), (.64, "#c43a2c", None), (1, "#8a2018", None)])
@@ -225,9 +225,15 @@ def utilitario():
     d += f'<clipPath id="{cid}"><path d="{body}"/></clipPath>'
     b += f'<g clip-path="url(#{cid})">'
     b += '<path d="M90 330 Q540 300 1000 340" stroke="#fff" stroke-width="10" opacity="0.4" fill="none"/>'
-    for (x, y, rx, ry) in ((160, 440, 40, 20), (930, 430, 34, 26), (520, 452, 60, 14)):
-        b += f'<ellipse cx="{x}" cy="{y}" rx="{rx}" ry="{ry}" fill="#6a3a1c" opacity="0.6"/>'
-    b += '<path d="M600 360 q30 -16 60 6 q-30 20 -60 -6Z" fill="#7a1a12" opacity="0.5"/>'
+    if not rally:
+        for (x, y, rx, ry) in ((160, 440, 40, 20), (930, 430, 34, 26), (520, 452, 60, 14)):
+            b += f'<ellipse cx="{x}" cy="{y}" rx="{rx}" ry="{ry}" fill="#6a3a1c" opacity="0.6"/>'
+        b += '<path d="M600 360 q30 -16 60 6 q-30 20 -60 -6Z" fill="#7a1a12" opacity="0.5"/>'
+    else:
+        b += '<path d="M80 420 L1000 340 L1000 380 L80 460Z" fill="#ffffff"/><path d="M80 445 L1000 365" stroke="#1d2a6a" stroke-width="10"/>'
+        b += '<circle cx="470" cy="365" r="56" fill="#fff" stroke="#1d1630" stroke-width="6"/><text x="470" y="390" font-family="Anton" font-size="70" text-anchor="middle" fill="#1d1630">27</text>'
+        b += '<rect x="620" y="330" width="150" height="34" rx="6" fill="#f2c94c"/><text x="695" y="356" font-family="Anton" font-size="26" text-anchor="middle" fill="#1d1630">LUCÍA · RALLY</text>'
+        b += '<rect x="860" y="300" width="80" height="26" rx="5" fill="#1d1630"/><text x="900" y="320" font-family="Anton" font-size="18" text-anchor="middle" fill="#3ef0ff">R96 TALLER</text>'
     b += '<rect x="80" y="380" width="920" height="16" fill="#1a1c24" opacity="0.85"/>'
     b += '</g>'
     win1 = "M410 220 L560 216 L560 312 L320 314 Q360 236 410 220Z"
@@ -235,7 +241,7 @@ def utilitario():
     for w in (win1, win2):
         b += f'<path d="{w}" fill="url(#{gw})" stroke="#111" stroke-width="9" stroke-linejoin="round"/>'
     b += '<path d="M420 226 L470 222 L370 310 L340 310Z" fill="#fff" opacity="0.25"/>'
-    b += '<path d="M640 240 L700 300 M680 230 L650 290" stroke="#dfe6ef" stroke-width="2" opacity="0.6"/>'  # luna rajada
+    if not rally: b += '<path d="M640 240 L700 300 M680 230 L650 290" stroke="#dfe6ef" stroke-width="2" opacity="0.6"/>'  # luna rajada
     b += '<rect x="560" y="212" width="24" height="104" fill="#111"/>'
     b += f'<path d="M318 310 Q306 292 324 288 L348 288 Q356 300 346 314Z" fill="#c43a2c" stroke="{OL}" stroke-width="4"/>'
     b += '<path d="M330 320 L334 466 M584 316 L590 466" stroke="#7a1a12" stroke-width="3"/>'
@@ -249,7 +255,11 @@ def utilitario():
     for cx in (282, 814):
         b += f'<path d="M{cx-94} 472 A94 94 0 0 1 {cx+94} 472" fill="#0b0b10"/>'
     for cx in (282, 814):
-        wd, wb = wheel(cx, 472, 80, "#b8bec8", "#6a707a", 4, "#5a5d66", "y", deep=False)
-        d += wd; b += wb
-        b += f'<circle cx="{cx}" cy="472" r="{80*.6}" fill="#c9cfd9" opacity="0.35"/>'  # tapacubos
+        if rally:
+            wd, wb = wheel(cx, 472, 80, "#f4f4f6", "#9aa0aa", 6, "#f2c94c", "y")
+            d += wd; b += wb
+        else:
+            wd, wb = wheel(cx, 472, 80, "#b8bec8", "#6a707a", 4, "#5a5d66", "y", deep=False)
+            d += wd; b += wb
+            b += f'<circle cx="{cx}" cy="472" r="{80*.6}" fill="#c9cfd9" opacity="0.35"/>'  # tapacubos
     return d, b

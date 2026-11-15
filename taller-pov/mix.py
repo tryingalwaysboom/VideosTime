@@ -2,7 +2,7 @@
 import os, subprocess, sys
 from render import TL, TOTAL, VOZ, TMP, HERE
 
-def main(out):
+def main(out, prefix="s"):
     ins, flt = [], []
     for i, lid in enumerate(TL):
         ins += ["-i", os.path.join(VOZ, lid + ".wav")]
@@ -11,11 +11,11 @@ def main(out):
     n = len(TL)
     flt.append("".join(f"[a{i}]" for i in range(n)) + f"amix=inputs={n}:normalize=0:duration=longest,atrim=0:{TOTAL:.2f},"
                "acompressor=threshold=-18dB:ratio=3:attack=5:release=120,loudnorm=I=-15:TP=-1.5:LRA=9[voz]")
-    wav = os.path.join(TMP, "voces.wav")
+    wav = os.path.join(TMP, prefix + "_voces.wav")
     subprocess.run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(flt), "-map", "[voz]", "-ac", "2", wav], check=True)
     lst = os.path.join(TMP, "list.txt")
     with open(lst, "w") as f:
-        for k in sorted(x for x in os.listdir(TMP) if x.startswith("s") and x.endswith(".mp4") and "part" not in x):
+        for k in sorted(x for x in os.listdir(TMP) if x.startswith(prefix) and x[len(prefix):len(prefix)+1].isdigit() and x.endswith(".mp4") and "part" not in x):
             f.write(f"file '{k}'\n")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-i", wav, "-map", "0:v", "-map", "1:a",
                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "24", "-maxrate", "1150k", "-bufsize", "2300k", "-pix_fmt", "yuv420p",
