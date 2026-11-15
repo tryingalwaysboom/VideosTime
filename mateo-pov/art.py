@@ -103,7 +103,7 @@ def bg_cuarto():
     b += f'<rect x="690" y="880" width="30" height="460" rx="12" fill="#9a6538" stroke="{OL}" stroke-width="6"/>'
     # cajón de juguetes a la izquierda
     b += cel('<rect x="40" y="1160" width="300" height="200" rx="16"/>', "#f2c84b", "#d1a532", None, -14, 0, 7)
-    b += '<text x="190" y="1290" font-family="Anton" font-size="54" text-anchor="middle" fill="#fff" stroke="#1d1630" stroke-width="4">JUGUETES</text>'
+    b += '<text x="190" y="1290" font-family="Anton" font-size="46" text-anchor="middle" fill="#fff" stroke="#1d1630" stroke-width="4">JUGUETES</text>'
     b += cel('<path d="M90 1160 L110 1080 L150 1100 L140 1160Z"/>', "#4fb06a", "#378a4f", None, -6, 0, 5)
     b += cel('<circle cx="250" cy="1130" r="45"/>', "#2f7fd0", "#1f5fa8", "#5a9de6", -10, -6, 6)
     b += '<rect width="1080" height="1920" fill="url(#lamp)"/>'
@@ -174,7 +174,7 @@ def bg_noche():
 def _mateo_cuerpo():
     b = ''
     # camiseta verde con dino
-    torso = '<path d="M150 1100 L160 900 Q170 760 300 720 Q400 700 500 720 Q630 760 640 900 L650 1100Z"/>'
+    torso = '<path d="M150 1500 L160 900 Q170 760 300 720 Q400 700 500 720 Q630 760 640 900 L650 1500Z"/>'
     b += cel(torso, TEE, TEES, TEEH, -46, -8, 8)
     b += (f'<path d="M300 960 Q320 880 400 890 Q420 850 460 856 Q492 864 480 890 L456 894 Q470 950 430 968 L430 1000 M350 968 L350 1000 M300 960 Q280 940 284 916" '
           f'stroke="#f6efe2" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
@@ -246,12 +246,12 @@ def mateo(kind="neutral", hablando=False):
     if not hablando: h += _boca(kind)
     # cabeza grande de niño pequeño (boca hablando en 400,606)
     b = _mateo_cuerpo() + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>'
-    return svg(800, 1100, b)
+    return svg(800, 1500, b)
 
 def abuela(hablando=False):
     """Abuela Pilar: moño canoso, lentes, rebeca morada, collar de perlas, cara de 'en mis tiempos'."""
     b = ''
-    torso = '<path d="M110 1300 L120 980 Q130 760 280 700 Q400 670 520 700 Q670 760 680 980 L690 1300Z"/>'
+    torso = '<path d="M110 1700 L120 980 Q130 760 280 700 Q400 670 520 700 Q670 760 680 980 L690 1700Z"/>'
     b += cel(torso, "#8a5aa8", "#68407f", "#a77cc4", -50, -10, 8)
     b += cel('<path d="M330 690 L400 820 L470 690 L460 676 L400 760 L340 676Z"/>', "#f6efe2", "#d9cfbd", None, -8, 0, 5)
     for k in range(5): b += f'<circle cx="{400}" cy="{860+k*70}" r="12" fill="#e2b84a" stroke="{OL}" stroke-width="3"/>'
@@ -282,7 +282,7 @@ def abuela(hablando=False):
     if not hablando:
         b += '<path d="M366 466 Q400 452 434 466" stroke="#9a2a3a" stroke-width="9" fill="none" stroke-linecap="round"/>'
     b += '</g>'
-    return svg(800, 1300, b)
+    return svg(800, 1700, b)
 
 # ============================================================ OBJETOS
 def mochila():

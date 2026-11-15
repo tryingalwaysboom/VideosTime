@@ -37,7 +37,7 @@ def u_(T, t0, d): return ease((T - t0) / d)
 # ---------------------------------------------------------------- personajes con boca animada
 def mateo(c, kind, cx, cy, s, T, lid=None, rot=0):
     hab = lid is not None and talk(lid, T)
-    put(c, f"mateo_{kind}_hab" if hab else f"mateo_{kind}", cx, cy, s, rot=rot)
+    put(c, f"mateo_{kind}_hab" if hab else f"mateo_{kind}", cx, cy + 200 * s, s, rot=rot)   # capa de 1500 px: el cuerpo sigue bajo el encuadre
     if hab: mouth(c, cx, cy + 56 * s, T, True, int(26 * s))
     if kind not in ("llora",) and (T * 1.0) % 3.7 < .12 and not rot:   # parpadeo
         d = ImageDraw.Draw(c)
@@ -48,7 +48,7 @@ def mateo(c, kind, cx, cy, s, T, lid=None, rot=0):
 
 def abuela(c, cx, cy, s, T, lid=None):
     hab = lid is not None and talk(lid, T)
-    put(c, "abuela_hab" if hab else "abuela", cx, cy, s)
+    put(c, "abuela_hab" if hab else "abuela", cx, cy + 200 * s, s)
     if hab: mouth(c, cx, cy - 94 * s, T, True, int(24 * s))
 
 def lagrimas(c, cx, cy, s, T):
@@ -274,7 +274,7 @@ def sc_mateo_intro(T):
     kind = "neutral" if T < tl else "triste"
     bob = 8 * math.sin(T * 2.4)
     mateo(c, kind, 430, 1260 + bob + 900 * hide, 1.05, T)
-    put(c, "dino", 830, 1520, .55, rot=6 * math.sin(T * 1.5))
+    put(c, "dino", 900, 1560, .45, rot=6 * math.sin(T * 1.5))
     ficha(c, T, s0 + .15, 60, 440, "MATEO", "5 AÑOS Y MEDIO", "AMA LOS DINOSAURIOS", 470)
     if T >= tl:   # el lápiz entra amenazante
         k = ease((T - tl) / .4)
@@ -529,11 +529,11 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_cocina", 0, 0, 1.3, 1.3, 1, .9, .6).convert("RGBA")
-        put(A, "abuela", 280, 1250, .8); put(A, "tablet", 300, 760, .75)
+        put(A, "abuela", 280, 1410, .8); put(A, "tablet", 300, 760, .75)
         A.alpha_composite(Image.new("RGBA", (W, H), (40, 30, 90, 110)))
     else:
         A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_timido", 800, 1300, .8); put(A, "dino", 760, 830, .6); put(A, "crayola", 900, 1000, .45, rot=-20)
+        put(A, "mateo_timido", 800, 1460, .8); put(A, "dino", 760, 830, .6); put(A, "crayola", 900, 1000, .45, rot=-20)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 90)))
     _FC[name] = A
     return A
@@ -588,7 +588,7 @@ SCENES = [
 ]
 IMPACTS = [WT("F01", "rojo."), WT("F02", "repita."), WT("F07", "rompe."), WT("F09", "revés."), WT("F13", "leche"),
            WT("F14", "feas!"), WT("F15", "gritas."), S("F19")]
-AVISOS[:] = [S("F05") - .2, S("F12") + 1.0]
+AVISOS[:] = [S("F05") - .2, S("F10") + .6]
 SUAVES = {S("F15") - .1, S("F16") - .3, S("F17") - .4, S("F18") - .2}   # cortes sin flash, más tiernos
 
 TW = .22
