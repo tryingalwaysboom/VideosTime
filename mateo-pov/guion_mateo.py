@@ -6,8 +6,8 @@ VOCES = {
     "P": "HRi5Prm2B3PevwpDmVLP",   # maestra Marta (María Blanco)
 }
 LINEAS = [
- ("F01","N","[tense] Abres la mochila de Mateo… y encuentras una nota de la maestra. En rojo. Quédate hasta el final, porque lo que pase después… lo decides tú.",
-  "Abres la *mochila* de Mateo… y encuentras una *nota* de la *maestra.* En *rojo.* Quédate hasta el *final,* porque lo que pase después… lo *decides* *tú.*"),
+ ("F01","N","[tense] Abres la mochila de tu hijo… y encuentras una nota de la maestra. En rojo. Quédate hasta el final, porque lo que pase después… lo decides tú.",
+  "Abres la *mochila* de *tu* *hijo…* y encuentras una *nota* de la *maestra.* En *rojo.* Quédate hasta el *final,* porque lo que pase después… lo *decides* *tú.*"),
  ("F02","P","[serious] Mamá de Mateo: es el único del salón que todavía no escribe su nombre. Si no lo logra antes de fin de año… tendremos que hablar de que repita.",
   "Mamá de Mateo: es el *único* del salón que todavía *no* *escribe* su *nombre.* Si no lo logra antes de *fin* *de* *año…* tendremos que hablar de que *repita.*"),
  ("F03","N","Lo lees tres veces. Y justo vibra el celular: en el grupo de mamás, la mamá de Sofía presume que su hija ya escribe su nombre completo… con apellido.",

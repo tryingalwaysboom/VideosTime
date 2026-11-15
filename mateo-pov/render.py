@@ -610,11 +610,11 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_cocina", 0, 0, 1.3, 1.3, 1, .9, .6).convert("RGBA")
-        put(A, "abuela", 250, 1930, .75); put(A, "tablet", 280, 960, .62)
+        put(A, "abuela", 250, 1930, .75); put(A, "tablet", 280, 1030, .55)
         A.alpha_composite(Image.new("RGBA", (W, H), (40, 30, 90, 110)))
     else:
         A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_timido", 820, 2140, .75); put(A, "dino", 780, 990, .5); put(A, "crayola", 930, 1110, .4, rot=-20)
+        put(A, "mateo_timido", 820, 2140, .75); put(A, "dino", 780, 1040, .42); put(A, "crayola", 930, 1150, .36, rot=-20)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 90)))
     _FC[name] = A
     return A
@@ -625,8 +625,8 @@ def _opcion(d, cx, cy, letra, t1, t2, t3, col, k, big=1.0):
     text(d, (cx, cy), letra, 116 * k * big, WHITE)
     if k > .5:
         for i, l in enumerate(t1.split("\n")):
-            text(d, (cx, cy + 150 + i * 78), l, 70 * big, WHITE, stroke=8)
-        off = 78 * (len(t1.split("\n")) - 1)
+            text(d, (cx, cy + 146 + i * 66), l, 60 * big, WHITE, stroke=7)
+        off = 66 * (len(t1.split("\n")) - 1)
         text(d, (cx, cy + 230 + off), t2, 38, (150, 255, 170), "mm", F_UI, stroke=6)
         text(d, (cx, cy + 282 + off), t3, 36, (255, 170, 160), "mm", F_UI, stroke=6)
 
@@ -647,8 +647,8 @@ def sc_final(T):
         d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=YEL, width=5, joint="curve")
     k0 = popscale(T, s0, .4)
     text(d, (540, 220), "¿QUÉ HARÍAS TÚ?", 96 * max(k0, .01), YEL, stroke=8)
-    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "MANO\nDURA", "+ Disciplina", "- Más lágrimas", AZ, ta, hiA),
-                                           (790, "B", "EL NOMBRE\nDEL REX", "+ Lo hace jugando", "- Pierdes otro día", VERDE, tb, hiB)):
+    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "SIN TABLET\nHASTA QUE\nESCRIBA", "+ Disciplina", "- Más lágrimas", AZ, ta, hiA),
+                                           (790, "B", "ESCRIBIR EL\nNOMBRE DE\nSU DINO", "+ Lo hace jugando", "- Pierdes otro día", VERDE, tb, hiB)):
         k = popscale(T, t0, .35)
         if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
     if T >= S("F20") - .1:   # cierre: vota en la encuesta, las opciones se iluminan por turnos
