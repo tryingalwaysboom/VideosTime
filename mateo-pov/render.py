@@ -209,8 +209,8 @@ def sc_mochila(T):
         put(c, "nota", 540, 820 - 120 * k, .3 + .45 * k, rot=-10 + 8 * k)
         if k > .6: manuscrito(c, ["¡URGENTE!"], T, tn + .3, tn + .9, 400, 700, 80, ROJO)
     if T >= WT("F01", "rojo."): stamp(c, T, WT("F01", "rojo."), "EN ROJO", 820, 520, ROJO, 10, 90)
-    if T >= WT("F01", "final,"): etiqueta(c, T, WT("F01", "final,"), "QUÉDATE HASTA EL FINAL", 540, 1240, ROSA, OL, 42)
-    if T >= WT("F01", "decides"): stamp(c, T, WT("F01", "decides"), "TÚ DECIDES", 540, 1350, AZ, -5, 96)
+    if T >= WT("F01", "final,"): etiqueta(c, T, WT("F01", "final,"), "QUÉDATE HASTA EL FINAL", 540, 1090, ROSA, OL, 42)
+    if T >= WT("F01", "decides"): stamp(c, T, WT("F01", "decides"), "TÚ DECIDES", 540, 1260, AZ, -5, 84)
     return c
 
 def sc_nota(T):
@@ -416,7 +416,10 @@ def sc_noche(T):
         c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
         celular(c, 540, 930 + 600 * (1 - ease((T - tb + .2) / .5)), 1.25, T, cont)
     if T >= WT("F12", "distintos."):
-        stamp(c, T, WT("F12", "distintos."), "¿¿A QUIÉN LE HAGO CASO??", 540, 1330, YEL, -4, 66)
+        td = WT("F12", "distintos.")
+        dark(c, 150 * ease((T - td) / .25))
+        stamp(c, T, td, "¿A QUIÉN", 540, 820, YEL, -4, 120)
+        stamp(c, T, td + .15, "LE HAGO CASO?", 540, 1030, YEL, 3, 110)
     if T < tb - .2:
         etiqueta(c, T, s0 + .2, "ESA NOCHE", 540, 600, (60, 70, 130), WHITE, 44)
     return c
@@ -442,7 +445,7 @@ def sc_dia2(T):
         k = ease((T - tl) / .35)
         put(c, "vaso", 860 - 120 * k, 640 + 40 * k, .55, rot=-95 * k)
         charco(c, 600, 900, T, tl + .2)
-    if T >= WT("F13", "encima"): stamp(c, T, WT("F13", "encima"), "¡NOOO!", 540, 1350, ROJO, -6, 110)
+    if T >= WT("F13", "encima"): stamp(c, T, WT("F13", "encima"), "¡NOOO!", 540, 1260, ROJO, -6, 100)
     etiqueta(c, T, s0 + 1.0, "DESAYUNO", 540, 380, CREMA, OL, 36)
     return c
 
@@ -529,11 +532,11 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_cocina", 0, 0, 1.3, 1.3, 1, .9, .6).convert("RGBA")
-        put(A, "abuela", 280, 1410, .8); put(A, "tablet", 300, 760, .75)
+        put(A, "abuela", 250, 1820, .75); put(A, "tablet", 280, 960, .62)
         A.alpha_composite(Image.new("RGBA", (W, H), (40, 30, 90, 110)))
     else:
         A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_timido", 800, 1460, .8); put(A, "dino", 760, 830, .6); put(A, "crayola", 900, 1000, .45, rot=-20)
+        put(A, "mateo_timido", 820, 1880, .75); put(A, "dino", 780, 990, .5); put(A, "crayola", 930, 1110, .4, rot=-20)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 90)))
     _FC[name] = A
     return A
@@ -546,8 +549,8 @@ def _opcion(d, cx, cy, letra, t1, t2, t3, col, k, big=1.0):
         for i, l in enumerate(t1.split("\n")):
             text(d, (cx, cy + 150 + i * 78), l, 70 * big, WHITE, stroke=8)
         off = 78 * (len(t1.split("\n")) - 1)
-        text(d, (cx, cy + 228 + off), t2, 36, (150, 255, 170), "mm", F_UI, stroke=5)
-        text(d, (cx, cy + 276 + off), t3, 32, (255, 160, 150), "mm", F_UI, stroke=5)
+        text(d, (cx, cy + 230 + off), t2, 38, (150, 255, 170), "mm", F_UI, stroke=6)
+        text(d, (cx, cy + 282 + off), t3, 36, (255, 170, 160), "mm", F_UI, stroke=6)
 
 def sc_final(T):
     s0, e0 = TL["F19"]; ta, tb = WT("F19", "A:"), WT("F19", "B:")
@@ -569,13 +572,13 @@ def sc_final(T):
     for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "MANO\nDURA", "+ Disciplina", "- Más lágrimas", AZ, ta, hiA),
                                            (790, "B", "EL NOMBRE\nDEL REX", "+ Lo hace jugando", "- Pierdes otro día", VERDE, tb, hiB)):
         k = popscale(T, t0, .35)
-        if k > 0: _opcion(d, cx, 470, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
+        if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
     if T >= S("F20") - .1:   # cierre: vota en la encuesta, las opciones se iluminan por turnos
         k = popscale(T, S("F20") - .1, .4)
-        d.rounded_rectangle((540 - 390 * k, 1110, 540 + 390 * k, 1210), 50, fill=WHITE, outline=OL, width=6)
+        d.rounded_rectangle((540 - 390 * k, 1250, 540 + 390 * k, 1350), 50, fill=WHITE, outline=OL, width=6)
         if k > .5:
-            text(d, (540, 1146), "VOTA EN LA ENCUESTA", 54, OL)
-            text(d, (540, 1188), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
+            text(d, (540, 1286), "VOTA EN LA ENCUESTA", 54, OL)
+            text(d, (540, 1328), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
     return c
 
 # ---------------------------------------------------------------- orden y transiciones
@@ -621,7 +624,7 @@ def frame(T):
     c.alpha_composite(R.VIG)
     c.alpha_composite(R.grains()[int(T * 24) % 4])
     draw_hud(c, T)
-    R.draw_caption(c, T)
+    if T < S("F20") - .1: R.draw_caption(c, T)   # en el cierre manda la píldora de votar
     return c.convert("RGB")
 
 def render_scene(i, out):
