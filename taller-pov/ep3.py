@@ -440,11 +440,11 @@ if __name__ == "__main__":
         import mix
         SFX = os.path.join(R.HERE, "sfx")
         efectos = [
-            (os.path.join(SFX, "arranque.wav"), WT("F03", "Lucía") - .6, -2),             # el Seat llega acelerando
+            (os.path.join(SFX, "arranque.wav"), WT("F03", "Lucía") - .6, -5),             # el Seat llega acelerando
             (os.path.join(SFX, "seat_derrape.wav"), WT("F03", "derrapando") + .3, -4),     # frenazo de lado
             (os.path.join(SFX, "puerta_nave.wav"), WT("F06", "Clac.") - .05, 0),          # candado + puerta oxidada
             (os.path.join(SFX, "nitro_ralenti.wav"), WT("F16", "motor.") - .2, 0),        # motor grave fuera
-            (os.path.join(SFX, "nitro_ruge.wav"), WT("F19", "ruge.") - .25, 1),           # acelerones
-            (os.path.join(SFX, "petardeo.wav"), WT("F19", "ruge.") + .1, -2),
+            (os.path.join(SFX, "nitro_ruge.wav"), WT("F19", "ruge.") - .25, -2),           # acelerones
+            (os.path.join(SFX, "petardeo.wav"), WT("F19", "ruge.") + .1, -5),
         ]
         mix.main(os.path.join(R.HERE, "el_taller_de_ruben_ep3.mp4"), "e3s", efectos)
