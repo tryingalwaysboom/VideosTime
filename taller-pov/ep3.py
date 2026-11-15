@@ -89,17 +89,62 @@ def llamas(c, T, t0, ex, ey, n=3, gap=.28, s=1.0):
 def tinte(c, col, a): c.alpha_composite(Image.new("RGBA", (W, H), col + (int(a),)))
 
 # ---------------------------------------------------------------- escenas
-def sc_intro(T):
-    """F01: medianoche, la llave en la mano. Gancho: quédate hasta el final."""
-    c = bg("bg_noche", T, 0, 1.0, 1.08, 6)
-    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((160, 640, 920, 1300), fill=(242, 190, 60, 70))
-    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(60)))
-    put(c, "llave_nave7", 540, 900 + 10 * math.sin(T * 1.6), 1.3, rot=-8 + 6 * math.sin(T * 1.2))
-    stamp(c, T, -1, "GANÓ LA A · 78 %", 540, 470, YEL, -6, 100)
+def confeti(c, T, t0, n=70):
+    if T < t0: return
+    d = ImageDraw.Draw(c); cols = [YEL, CYAN, MAG, WHITE, (90, 140, 255)]
+    for i in range(n):
+        x0 = (i * 137) % 1080; sp = 380 + (i * 53) % 420; ph = i * .7
+        tt = T - t0 - (i % 9) * .05
+        if tt < 0: continue
+        y = 300 + tt * sp; x = x0 + 40 * math.sin(tt * 3 + ph)
+        if y > 1700: continue
+        w, h = 18, 9 + 7 * abs(math.sin(tt * 6 + ph))
+        d.rectangle((x - w / 2, y - h / 2, x + w / 2, y + h / 2), fill=cols[i % 5])
+
+def barra_voto(c, T, y, L_, txt, pct, col, win, t0):
     d = ImageDraw.Draw(c)
-    if T >= WT("F01", "Medianoche."): text(d, (540, 640), "00:00", 110 * popscale(T, WT("F01", "Medianoche."), .3), CYAN, stroke=8)
-    if T >= WT("F01", "final,"): etiqueta(c, T, WT("F01", "final,"), "QUÉDATE HASTA EL FINAL", 540, 1140, RED, WHITE, 44)
-    if T >= WT("F01", "decides"): stamp(c, T, WT("F01", "decides"), "TÚ DECIDES", 540, 1270, MAG, 6, 90)
+    p = pct * (.55 + .45 * ease(clamp((T - t0) / .7)))
+    panel(c, (90, y - 75, 990, y + 75), fill=(16, 14, 30), alpha=235, rad=28, outline=col if win else (70, 70, 90), ow=6 if win else 3)
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((112, y - 52, 212, y + 48), 22, fill=col)
+    text(d, (162, y - 2), L_, 76, WHITE)
+    d.rounded_rectangle((240, y + 8, 960, y + 44), 18, fill=(40, 38, 60))
+    d.rounded_rectangle((240, y + 8, 240 + 720 * p / 100, y + 44), 18, fill=col)
+    text(d, (240, y - 30), txt, 40, WHITE, "lm")
+    text(d, (960, y - 30), f"{int(round(p))} %", 52, YEL if win else GRIS, "rm", stroke=5)
+
+def sc_intro(T):
+    """F01: resultado de la votación (A 78 %) con confeti; luego medianoche y la llave. Gancho: quédate hasta el final."""
+    tm = WT("F01", "Medianoche.") - .15
+    if T < tm:
+        c = bg("bg_poligono", T, 0, 1.2, 1.3, tm, .5, .4); dark(c, 120)
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); g = ImageDraw.Draw(gl)
+        g.ellipse((-120, 520, 760, 1180), fill=AZ + (110,)); g.ellipse((420, 700, 1200, 1300), fill=MAG + (60,))
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(80)))
+        d = ImageDraw.Draw(c)
+        text(d, (540, 430), "RESULTADO PARTE 2", 70, YEL, stroke=8)
+        barra_voto(c, T, 640, "A", "NAVE 7 ESTA NOCHE", 78, AZ, True, 0)
+        barra_voto(c, T, 830, "B", "ARRANCAR EL COCHE", 22, MAG, False, 0)
+        R.estrella(ImageDraw.Draw(c), 960, 560, 30 * (1 + .15 * math.sin(T * 8)), (242, 190, 60))
+        stamp(c, T, .5, "¡GANA LA A!", 540, 1080, YEL, -6, 130)
+        confeti(c, T, .5)
+        return c
+    c = bg("bg_poligono", T, tm, 1.35, 1.45, 6, .5, .45); dark(c, 150)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((160, 640, 920, 1200), fill=(242, 190, 60, 90))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(60)))
+    k = popscale(T, tm, .4)
+    put(c, "llave_nave7", 540, 920 + 10 * math.sin(T * 1.6), 1.3 * max(k, .02), rot=-8 + 6 * math.sin(T * 1.2))
+    sh = (T * .8) % 1.8   # destello que recorre la llave
+    if sh < .45 and k > .9:
+        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ov).polygon([(250 + sh * 1300, 800), (310 + sh * 1300, 800), (230 + sh * 1300, 1060), (170 + sh * 1300, 1060)], fill=(255, 255, 255, 90))
+        c.alpha_composite(ov.filter(ImageFilter.GaussianBlur(8)))
+    d = ImageDraw.Draw(c)
+    gl2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); text(ImageDraw.Draw(gl2), (540, 560), "00:00", 170, CYAN)
+    c.alpha_composite(gl2.filter(ImageFilter.GaussianBlur(14)))
+    text(d, (540, 560), "00:00", 170 * (1 + .03 * math.sin(T * 6)), CYAN, stroke=8)
+    text(d, (540, 430), "MEDIANOCHE", 46, WHITE, stroke=5)
+    if T >= WT("F01", "final,"): etiqueta(c, T, WT("F01", "final,"), "QUÉDATE HASTA EL FINAL", 540, 1160, RED, WHITE, 44)
+    if T >= WT("F01", "decides"): stamp(c, T, WT("F01", "decides"), "TÚ DECIDES", 540, 1290, MAG, 6, 90)
     return c
 
 def sc_miedo(T):
@@ -158,17 +203,62 @@ def sc_poligono(T):
     c.alpha_composite(door, (int(cx - dw * p), int(cy)))
     c.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 0)))
     if T >= WT("F05", "farola."): etiqueta(c, T, WT("F05", "farola."), "NI UNA FAROLA", 540, 360, YEL, OL, 40)
-    if T >= t6 - .1:   # primer plano del candado con la llave
-        k = ease(clamp((T - t6 + .1) / .4)) * (1 - ease(clamp((T - tclac - .35) / .3)))
-        if k > .02:
-            dark(c, 170 * k)
-            put(c, "puerta7", 540, 980, 2.3 * k + .01)
-            ang = 0 if T < WT("F06", "Gira.") else -60 * ease(clamp((T - WT("F06", "Gira.")) / .3))
-            ins = ease(clamp((T - WT("F06", "llave.")) / .4))
-            put(c, "llave_nave7", 540 - 240 + 120 * ins, 990 + 40, 1.1 * k + .01, rot=ang)
+    if T >= t6 - .1 and T < tclac + .7:   # primer plano: la llave entra por abajo en el candado, gira y salta el arco
+        candado(c, T, t6, tclac)
     if T >= tclac:
-        stamp(c, T, tclac, "CLAC", 540, 1210, YEL, -6, 130)
+        stamp(c, T, tclac, "CLAC", 540, 420, YEL, -6, 130)
     return c
+
+def llave_v(sq=1.0):
+    """Llave vertical (punta arriba), dibujada a mano; sq < 1 la aplasta para simular el giro."""
+    w, h = 300, 640; im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    GO, GD = (214, 172, 74), (160, 120, 40)
+    d.rectangle((128, 0, 172, 440), fill=GO, outline=OL, width=7)
+    for yy, ww in ((40, 50), (100, 34), (150, 56)): d.rectangle((172, yy, 172 + ww, yy + 34), fill=GO, outline=OL, width=6)
+    d.rectangle((140, 10, 150, 420), fill=(240, 210, 130))
+    d.ellipse((30, 420, 270, 630), fill=GO, outline=OL, width=8); d.ellipse((105, 480, 195, 570), fill=GD, outline=OL, width=6)
+    d.ellipse((60, 445, 120, 490), fill=(240, 215, 140))
+    if sq < .999: im = im.resize((max(8, int(w * sq)), h), Image.BILINEAR)
+    return im
+
+def candado(c, T, t6, tclac):
+    k = ease(clamp((T - t6 + .1) / .35)) * (1 - ease(clamp((T - tclac - .45) / .25)))
+    if k < .02: return
+    ov = Image.new("RGBA", (W, H), (6, 5, 10, int(225 * k))); c.alpha_composite(ov)
+    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((150, 380, 930, 1300), fill=(255, 220, 150, int(70 * k)))
+    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(70)))
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    tl, tg = WT("F06", "llave."), WT("F06", "Gira.")
+    ins = ease(clamp((T - tl + .25) / .5)); rot = ease(clamp((T - tg) / .35))
+    op = ease(clamp((T - tclac) / .15))
+    # llave: entra desde abajo hasta meter la punta en el cuerpo del candado (el cuerpo la tapa)
+    kv = llave_v(1 - .78 * rot)
+    top = 900 - 170 * ins + 380 * (1 - ins)
+    lay.alpha_composite(kv, (int(540 - kv.width / 2), int(top)))
+    # arco (se levanta al abrir)
+    up = 70 * op
+    d.arc((395, 480 - up, 685, 820 - up), 180, 360, fill=OL, width=62)
+    d.arc((399, 484 - up, 681, 816 - up), 180, 360, fill=(190, 196, 210), width=50)
+    d.line((399 + 25, 650 - up, 399 + 25, 760 - up * (1 - op)), fill=OL, width=60); d.line((399 + 25, 650 - up, 399 + 25, 760), fill=(190, 196, 210), width=48)
+    d.line((681 - 25, 650 - up, 681 - 25, 740), fill=OL, width=60); d.line((681 - 25, 650 - up, 681 - 25, 740), fill=(190, 196, 210), width=48)
+    d.line((420, 655 - up, 420, 720 - up), fill=(235, 238, 245), width=10)
+    # cuerpo
+    d.rounded_rectangle((340, 720, 740, 1080), 46, fill=(214, 172, 74), outline=OL, width=10)
+    d.rounded_rectangle((360, 1000, 720, 1066), 30, fill=(170, 130, 50))
+    d.rounded_rectangle((372, 740, 420, 1040), 20, fill=(240, 210, 130))
+    text(d, (560, 860), "7", 120, (150, 110, 35))
+    d.ellipse((512, 1056, 568, 1084), fill=(20, 16, 12), outline=OL, width=4)   # bocallave abajo
+    zoom_on = 1 + .05 * k
+    c.alpha_composite(lay)
+    if T >= tclac: ep_chispas(c, T, tclac, 540, 700)
+
+def ep_chispas(c, T, t0, x, y, n=26, dur=.5):
+    if not (0 <= T - t0 < dur): return
+    d = ImageDraw.Draw(c); u = (T - t0) / dur
+    for i in range(n):
+        a = -math.pi * (.05 + .9 * ((i * 37) % 100) / 100); v = 260 + (i * 53) % 260
+        px = x + math.cos(a) * v * u; py = y + math.sin(a) * v * u + 400 * u * u
+        d.line((px, py, px - 14 * math.cos(a), py - 14 * math.sin(a)), fill=(255, 220, 120), width=5)
 
 _NAVE = {}
 def nave(T, t0, z0=1.0, z1=1.06, dur=8, fx=.5, fy=.55, luz=True):
@@ -303,18 +393,19 @@ def sc_deposito(T):
 def sc_fuera(T):
     """F16-F17: un motor grave fuera. Lucía mira por la ventana: el coche negro sin luces."""
     s0 = S("F16"); s17 = S("F17")
-    if T < s17 - .1:
-        c = nave(T, s0, 1.1, 1.18, 6); dark(c, 170)
-        sh = 4 * math.sin(T * 50) * (.5 + .5 * math.sin(T * 3))
-        c = c.transform(c.size, Image.AFFINE, (1, 0, sh, 0, 1, 0))
-        d = ImageDraw.Draw(c)
-        for i in range(3):   # ondas de sonido del motor
-            ph = (T * .9 + i / 3) % 1
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            ImageDraw.Draw(ov).arc((540 - 200 - 500 * ph, 900 - 200 - 500 * ph, 540 + 200 + 500 * ph, 900 + 200 + 500 * ph), 150, 390, fill=(255, 90, 60, int(160 * (1 - ph))), width=8)
-            c.alpha_composite(ov)
-        if T >= WT("F16", "motor."): text(ImageDraw.Draw(c), (540, 900), "BRRRMMM…", 110 * popscale(T, WT("F16", "motor."), .3), (255, 110, 80), stroke=8)
-        if T >= WT("F16", "conoces."): stamp(c, T, WT("F16", "conoces."), "LO CONOCES", 540, 1250, RED, -6, 90)
+    if T < s17 - .1:   # fuera: el coche negro entra despacio en el polígono, con las luces apagadas
+        c = bg("bg_poligono", T, s0, 1.3, 1.36, s17 - s0, .5, .95); dark(c, 110)
+        u = ease(clamp((T - s0) / (s17 - s0 - .3)))
+        x = -520 + 1060 * u; y = 1500
+        rumble = 3 * math.sin(T * 55)
+        ug = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(ug).ellipse((x - 420, y + 110, x + 420, y + 200), fill=CYAN + (int(110 + 50 * math.sin(T * 7)),))
+        c.alpha_composite(ug.filter(ImageFilter.GaussianBlur(26)))
+        put(c, "coche_negro", x, y + rumble, .95)
+        humo(c, T, s0 + .2 + int((T - s0) / .9) * .9, x + 470, y + 80, .9, 5)
+        fog = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(fog).rectangle((0, 1560, W, 1760), fill=(150, 150, 190, 50))
+        c.alpha_composite(fog.filter(ImageFilter.GaussianBlur(40)))
+        if T >= WT("F16", "Grave."): etiqueta(c, T, WT("F16", "Grave."), "GRAVE · LENTO", 540, 420, GRIS, OL, 40)
+        if T >= WT("F16", "conoces."): stamp(c, T, WT("F16", "conoces."), "LO CONOCES", 540, 620, RED, -6, 100)
         return c
     # vista por la ventana: polígono con el coche negro con luces apagadas
     c = bg("bg_poligono", T, s17, 1.25, 1.32, 6, .5, .9); dark(c, 60)
@@ -439,12 +530,29 @@ if __name__ == "__main__":
     elif cmd == "mix":
         import mix
         SFX = os.path.join(R.HERE, "sfx")
+        F = lambda n: os.path.join(SFX, n + ".wav")
         efectos = [
-            (os.path.join(SFX, "arranque.wav"), WT("F03", "Lucía") - .6, -5),             # el Seat llega acelerando
-            (os.path.join(SFX, "seat_derrape.wav"), WT("F03", "derrapando") + .3, -4),     # frenazo de lado
-            (os.path.join(SFX, "puerta_nave.wav"), WT("F06", "Clac.") - .05, 0),          # candado + puerta oxidada
-            (os.path.join(SFX, "nitro_ralenti.wav"), WT("F16", "motor.") - .2, 0),        # motor grave fuera
-            (os.path.join(SFX, "nitro_ruge.wav"), WT("F19", "ruge.") - .25, -2),           # acelerones
-            (os.path.join(SFX, "petardeo.wav"), WT("F19", "ruge.") + .1, -5),
+            (F("impacto"), .45, -3),                                      # ¡GANA LA A!
+            (F("brillo"), .55, -6),
+            (F("arranque"), WT("F03", "Lucía") - .6, -5),                 # el Seat llega acelerando
+            (F("seat_derrape"), WT("F03", "derrapando") + .3, -4),        # frenazo de lado
+            (F("impacto"), S("F05") - .3, -6),
+            (F("candado"), WT("F06", "Clac.") - .08, 0),                  # el arco del candado salta
+            (F("puerta_nave"), WT("F06", "Clac.") + .5, -2),              # puerta oxidada
+            (F("linterna"), WT("F07", "Enciendes") - .05, 0),
+            (F("fluorescentes"), S("F08") - .15, -3),
+            (F("brillo"), WT("F10", "trofeo.") - .1, -4),
+            (F("impacto"), WT("F10", "Salcedo.") - .1, -4),
+            (F("caja"), WT("F13", "centralita.") - .7, -2),
+            (F("brillo"), WT("F13", "centralita.") - .1, -2),
+            (F("movil"), S("F14") - .35, -2),
+            (F("impacto"), WT("F14", "esconde.") - .1, -4),
+            (F("impacto"), WT("F15", "depósito.") - .25, -4),
+            (F("tension"), S("F16") - .2, -4),                            # tensión mientras llega Nitro
+            (F("nitro_fondo"), S("F16") - .2, 2),                        # motor de Nitro fuera, sin parar
+            (F("nitro_ruge"), WT("F19", "ruge.") - .25, 5),               # acelerones
+            (F("petardeo"), WT("F19", "ruge.") + .15, -1),
+            (F("impacto"), WT("F19", "faros") - .05, -3),
+            (F("impacto"), S("F21") - .3, -5),
         ]
         mix.main(os.path.join(R.HERE, "el_taller_de_ruben_ep3.mp4"), "e3s", efectos)
