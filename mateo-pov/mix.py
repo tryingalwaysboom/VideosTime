@@ -10,7 +10,7 @@ def sx(n): return os.path.join(SFX, n + ".mp3")
 def efectos():
     e = [(sx("mochila"), .25, 0), (sx("movil"), WT("F03", "celular:") - .1, -1), (sx("lapiz"), WT("F07", "rompe.") - .02, 3),
          (sx("corre"), S("F09") + .05, 0), (sx("timbre"), WT("F10", "timbre.") - .15, -1), (sx("teclea"), WT("F12", "mi") - .1, -3),
-         (sx("leche"), WT("F13", "leche") - .05, 0), (sx("piano"), WT("F15", "gritas.") - .05, 2), (sx("piano"), WT("F16", "29") - .05, 0),
+         (sx("leche"), WT("F13", "leche") - .05, 0), (sx("piano"), WT("F15", "gritas.") - .05, 2), (sx("piano"), WT("F16", "Dos") - .05, 0),
          (sx("brillo"), WT("F17", "crayola") - .1, -2), (sx("brillo"), S("F18") - .2, -4), (sx("brillo"), WT("F19", "B:") - .1, -4)]
     for t, fn in SCENES[1:]:   # whoosh en cada barrido (no en los cortes suaves)
         if t not in SUAVES: e.append((sx("whoosh"), t - .05, -7))
@@ -50,4 +50,4 @@ def main(out):
                     "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out], check=True)
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "los_30_dias_de_mateo_parte1.mp4"))
+    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "mateo_parte1.mp4"))
