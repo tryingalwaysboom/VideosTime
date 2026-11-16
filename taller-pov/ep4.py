@@ -562,11 +562,21 @@ R.draw_hud = draw_hud
 R.HIDE_LAST_CAPTION = False
 
 def lecho(nombre, src, dur, fade=.4, loop=False):
-    """Recorta (o repite) un SFX a 'dur' segundos con fundido final, para camas de motor continuas."""
-    out = os.path.join(R.HERE, "sfx", nombre + ".wav")
-    pre = ["-stream_loop", "-1"] if loop else []
-    subprocess.run(["ffmpeg", "-y", "-v", "error", *pre, "-i", os.path.join(R.HERE, "sfx", src + ".wav"),
-                    "-af", f"atrim=0:{dur:.2f},afade=t=out:st={max(0, dur - fade):.2f}:d={fade}", out], check=True)
+    """Recorta (o alarga) un SFX a 'dur' segundos con fundido final, para camas de motor continuas.
+    loop=True: solapa copias con ventana de Hann (sin clics ni cortes) para un ralentí continuo."""
+    import numpy as np, wave
+    out = os.path.join(R.HERE, "sfx", nombre + ".wav"); sr = 44100
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", os.path.join(R.HERE, "sfx", src + ".wav"), "-ac", "2", "-ar", str(sr),
+                          "-f", "s16le", "-"], capture_output=True).stdout
+    x = np.frombuffer(raw, np.int16).astype(np.float32).reshape(-1, 2) / 32768
+    n = int(dur * sr)
+    if loop:   # el clip ya es un bucle perfecto: se repite tal cual
+        y = np.tile(x, (n // len(x) + 1, 1))[:n]
+    else:
+        y = np.zeros((n, 2), np.float32); m = min(n, len(x)); y[:m] = x[:m]
+    f = int(fade * sr); y[-f:] *= np.linspace(1, 0, f)[:, None]
+    w = wave.open(out, "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr)
+    w.writeframes((np.clip(y, -1, 1) * 32767).astype(np.int16).tobytes()); w.close()
     return out
 
 if __name__ == "__main__":
@@ -585,17 +595,17 @@ if __name__ == "__main__":
         import mix
         F = lambda n: os.path.join(R.HERE, "sfx", n + ".wav")
         t_sales = WT("G01", "Sales") - .2; t_ruge = WT("G03", "ruge")
-        cama_nitro = lecho("e4_cama_nitro", "nitro_fondo", t_ruge - .2 - t_sales, .3)
+        cama_nitro = lecho("e4_cama_nitro", "v8_ralenti", t_ruge - .3 - t_sales, .4, loop=True)
         t_seat0 = S("G10") - .3; t_seat1 = WT("G16", "acelera") - .1
-        cama_seat = lecho("e4_cama_seat", "seat_ralenti", t_seat1 - t_seat0 + .2, .2, loop=True)
+        cama_seat = lecho("e4_cama_seat", "seat_ralenti2", t_seat1 - t_seat0 + .2, .2, loop=True)
         t_seat2 = WT("G16", "acelera") + 1.2; t_seat3 = S("G21") - .3
-        cama_seat2 = lecho("e4_cama_seat2", "seat_ralenti", t_seat3 - t_seat2, .6, loop=True)
+        cama_seat2 = lecho("e4_cama_seat2", "seat_ralenti2", t_seat3 - t_seat2, .6, loop=True)
         efectos = [
             (F("impacto"), .25, -3), (F("brillo"), .4, -6),                      # ¡ELEGISTEIS LA B!
-            (cama_nitro, t_sales, 2),                                           # coche de Nitro encendido mientras caminas
+            (cama_nitro, t_sales, 5),                                           # coche de Nitro encendido mientras caminas
             (F("impacto"), WT("G02", "aquí!") - .1, -6),
             (F("brillo"), WT("G03", "ciegan.") - .1, -2),                        # destello de los faros
-            (F("nitro_apaga"), t_ruge - .25, 5),                               # ruge una vez y se apaga
+            (F("v8_apaga"), t_ruge - .6, 7),                               # ruge una vez y se apaga
             (F("impacto"), WT("G04", "Vaya,") - .1, -8),
             (F("impacto"), WT("G05", "robó") - .1, -5),
             (F("brillo"), S("G06") + .05, -3), (F("brillo"), S("G06") + .95, -5), # flashes de foto del podio
@@ -604,21 +614,21 @@ if __name__ == "__main__":
             (F("impacto"), WT("G07", "escondido") - .1, -4),
             (F("impacto"), WT("G08", "rencor.") - .1, -5),
             (F("brillo"), WT("G09", "barrio,") - .2, -5),
-            (cama_seat, t_seat0, 1),                                            # Seat al ralentí, sin parar
-            (F("arranque"), WT("G11", "caliento") - .2, -4),
+            (cama_seat, t_seat0, 4),                                            # Seat al ralentí, sin parar
+            (F("seat_acelera"), WT("G11", "caliento") - .15, 3),
             (F("impacto"), WT("G12", "puños.") - .1, -6),
             (F("caja"), WT("G13", "foto") - .3, -6),                             # papel saliendo del bolsillo
             (F("brillo"), WT("G13", "fecha") - .1, -3),
             (F("impacto"), WT("G14", "antes") - .1, -6),
             (F("impacto"), WT("G15", "secretos") - .1, -7),
-            (F("nitro_ruge"), WT("G16", "acelera") - .15, -2),                    # Lucía acelera en vacío
+            (F("seat_acelera"), WT("G16", "acelera") - .1, 3),                    # Lucía acelera en vacío
             (F("impacto"), WT("G16", "cuchillo.") - .1, -3),
-            (cama_seat2, t_seat2, -1),
+            (cama_seat2, t_seat2, 2),
             (F("impacto"), WT("G17", "carrera.") - .1, -3),
             (F("impacto"), WT("G18", "ganas,") - .1, -8), (F("impacto"), WT("G18", "yo…") - .1, -8),
             (F("impacto"), WT("G18", "dentro.") - .15, -4),
-            (F("arranque"), WT("G19", "negro.") - .3, 0),                        # Nitro arranca
-            (F("petardeo"), WT("G19", "Petardea") + .05, 0),
+            (F("nitro_arranca"), WT("G19", "negro.") - .3, 5),                        # Nitro arranca
+            (F("petardeo"), WT("G19", "Petardea") + .05, 3),
             (F("nitro_se_va"), WT("G19", "desaparece") - .45, 4),               # se pierde en la noche
             (F("impacto"), WT("G20", "nunca.") - .1, -5),
             (F("impacto"), S("G21") - .3, -5),
