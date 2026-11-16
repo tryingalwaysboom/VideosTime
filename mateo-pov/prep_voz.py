@@ -1,11 +1,13 @@
 """Prepara las voces de la Parte 1: recorta silencios, ajusta ritmo por personaje, sube el tono de Mateo (voz de niño)
 y guarda voz/*.wav + offsets.json. Copia los JSON de whisper cuando ya existan."""
 import os, json, re, shutil, subprocess, sys
-from guion_mateo import LINEAS
+import importlib
+EP = sys.argv[2] if len(sys.argv) > 2 else "1"
+LINEAS = importlib.import_module("guion_mateo" + ("" if EP == "1" else EP)).LINEAS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "descargas", sys.argv[1] if len(sys.argv) > 1 else "mateo_ep1")
-DST = os.path.join(HERE, "voz"); os.makedirs(DST, exist_ok=True)
+DST = os.path.join(HERE, "voz" + ("" if EP == "1" else EP)); os.makedirs(DST, exist_ok=True)
 TEMPO = {"N": 1.07, "K": 1.0, "A": 1.0, "P": 1.04}
 PITCH = {"K": 1.13}   # Mateo: más agudo sin cambiar la velocidad
 

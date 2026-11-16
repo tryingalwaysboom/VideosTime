@@ -356,7 +356,7 @@ def r_dino(c, cx, cy, sz, T, t0):
     d = ImageDraw.Draw(c)
     d.text((cx, cy), "R", font=f, fill=(63, 174, 74), anchor="mm", stroke_width=int(8 * k), stroke_fill=WHITE)
     if k > .9:
-        d.ellipse((cx + sz * .02, cy - sz * .33, cx + sz * .1, cy - sz * .25), fill=OL)
+        d.ellipse((cx + sz * .0, cy - sz * .24, cx + sz * .07, cy - sz * .17), fill=OL)
         d.polygon([(cx - sz * .28, cy + sz * .3), (cx - sz * .55, cy + sz * .4), (cx - sz * .28, cy + sz * .22)], fill=(63, 174, 74), outline=WHITE)
 
 def sc_risa(T):
@@ -442,7 +442,7 @@ def sc_once(T):
         return c
     c = bg("bg_sala", T, tp, 1.0, 1.08, 5, .5, .5)
     k = clamp((T - tp) / .6)
-    rex_nino(ImageDraw.Draw(c), 160, 560, 360 * (1 + .1 * (1 - k)), 99, 0, 0, 0)
+    rex_nino(ImageDraw.Draw(c), 110, 580, 330 * (1 + .1 * (1 - k)), 99, 0, 0, 0)
     stamp(c, T, tp + .1, "¿¡EN LA PARED!?", 540, 1180, ROJO, -6, 96)
     return c
 
@@ -450,7 +450,7 @@ def sc_foto(T):
     """F09: la pared con REX en crayola verde; respiras... y le tomas una foto (marco de cámara y flash)."""
     s0, e0 = TL["F09"]; tf = WT("F09", "foto.")
     c = bg("bg_sala", T, s0, 1.08, 1.15, 8, .5, .5)
-    rex_nino(ImageDraw.Draw(c), 160, 560, 380, 99, 0, 0, 0)
+    rex_nino(ImageDraw.Draw(c), 110, 580, 330, 99, 0, 0, 0)
     mateo(c, "timido", 820, 1300, .85, T)
     put(c, "crayola", 650, 1500, .45, rot=-30)
     tr = WT("F09", "hondo…")
@@ -521,7 +521,7 @@ def sc_razon(T):
     put(c, "dino", 290, 1050, .6)
     mateo(c, "triste", 780, 1250, .85, T)
     if T >= tr: etiqueta_nombre(c, 290, 700, "REX", True, popscale(T, tr, .4))
-    if T >= tm: etiqueta_nombre(c, 780, 600, "_ _ _ _ _", False, popscale(T, tm, .4))
+    if T >= tm: etiqueta_nombre(c, 760, 600, "_ _ _ _ _", False, popscale(T, tm, .4))
     return c
 
 def sc_dia3(T):
@@ -537,8 +537,8 @@ def sc_dia3(T):
     put(c, "mochila", 540, 930, 1.05, rot=-4)
     tn = WT("F13", "nota")
     if T >= tn:
-        k = ease((T - tn) / .5); put(c, "nota", 540, 820 - 120 * k, .3 + .45 * k, rot=-10 + 8 * k)
-    if T >= tn: stamp(c, T, tn, "OTRA NOTA", 540, 1350, ROJO, -5, 90)
+        k = ease((T - tn) / .5); put(c, "nota", 540, 760 - 120 * k, .25 + .17 * k, rot=-10 + 8 * k)
+    if T >= tn: stamp(c, T, tn, "OTRA NOTA", 540, 1200, NAVY, -5, 90)
     return c
 
 def sc_nota2(T):
@@ -550,7 +550,7 @@ def sc_nota2(T):
     manuscrito(c, L, T, s0 + .1, e0 - .3, 210, 420, 60, (196, 36, 36), 72, rot=2)
     if T >= WT("F14", "viernes"):
         d = ImageDraw.Draw(c); k = clamp((T - WT("F14", "viernes")) / .5)
-        d.arc((420, 470, 700, 560), -200, -200 + 360 * k, fill=(220, 40, 40), width=7)
+        d.arc((195, 405, 545, 500), -200, -200 + 360 * k, fill=(220, 40, 40), width=7)
     if T >= WT("F14", "papás."): stamp(c, T, WT("F14", "papás."), "¡DELANTE DE TODOS!", 600, 1130, ROJO, -8, 70)
     manuscrito(c, ["Maestra Marta"], T, e0 - .6, e0, 610, 1290, 52, (40, 40, 120))
     return c
