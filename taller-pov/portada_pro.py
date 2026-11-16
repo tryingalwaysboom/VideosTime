@@ -147,3 +147,14 @@ if __name__ == "__main__":
     for i, p in enumerate(reversed(outs)): grid.paste(Image.open(p).resize((360, 480)), (i * 364, 0))
     grid.save(os.path.join(r.HERE, "perfil_ejemplo_pro.jpg"), quality=92)
     print("ok")
+
+def a_916(path34, bgname, fx, fy, out):
+    """Pasa la portada 3:4 a 9:16 (1080x1920) para Instagram: la cuadrícula del perfil recorta justo el centro 3:4,
+    así que el diseño queda entero y arriba/abajo se rellena con el mismo fondo desenfocado."""
+    full = bg(bgname, 0, 0, 1.3, 1.3, 1, fx, fy).filter(ImageFilter.GaussianBlur(14)); dark(full, 190)
+    im = Image.open(path34).convert("RGBA")
+    m = Image.new("L", im.size, 255); md = ImageDraw.Draw(m)
+    for i in range(90):   # fundido suave arriba y abajo
+        a = int(255 * i / 90); md.line((0, i, CW, i), fill=a); md.line((0, CH - 1 - i, CW, CH - 1 - i), fill=a)
+    full.paste(im, (0, 240), m)
+    full.convert("RGB").save(out, quality=94)
