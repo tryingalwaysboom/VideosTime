@@ -2,7 +2,7 @@
 aparta sola cuando alguien habla. Une las escenas de tmp/ y saca el vídeo final."""
 import os, subprocess, sys
 import render2 as V
-from render2 import TL, TOTAL, S, WT, SCENES, SUAVES, TMP, HERE
+from render2 import TL, TOTAL, S, E, WT, SCENES, SUAVES, TMP, HERE
 
 SFX = os.path.join(HERE, "..", "descargas", "mateo_sfx")
 def sx(n): return os.path.join(SFX, n + ".mp3")
@@ -10,9 +10,9 @@ def sx(n): return os.path.join(SFX, n + ".mp3")
 def efectos():
     e = [(sx("resultado"), .3, -2), (sx("brillo"), WT("F01", "B:") - .05, -3),
          (sx("rugido"), WT("F02", "Grrr!") - .05, -2), (sx("brillo"), WT("F03", "esconde.") - .1, -5),
-         (sx("crayola"), WT("F04", "sigue") - .05, -1), (sx("brillo"), WT("F05", "erre") - .05, -5),
-         (sx("crayola"), WT("F07", "E") - .1, -3), (sx("crayola"), WT("F07", "cola.") - .2, -3),
-         (sx("crayola"), WT("F08", "pared.") - .05, -2), (sx("camara"), WT("F09", "foto.") - .05, 0),
+         (sx("crayola"), WT("F04", "sigue") - .05, -1), (sx("crayola"), WT("F04", "sigue") + 3.6, -1), (sx("crayola"), E("F04") + .2, -2), (sx("brillo"), WT("F05", "erre") - .05, -5),
+         (sx("crayola"), S("F07") + .05, -5), (sx("crayola"), WT("F07", "E") - .05, -5), (sx("crayola"), WT("F07", "X,") - .05, -5), (sx("crayola"), WT("F07", "cola.") - .5, -5),
+         (sx("crayola"), S("F08") + .1, -4), (sx("crayola"), WT("F08", "cereal…"), -3), (sx("crayola"), WT("F08", "pared.") - .05, -2), (sx("camara"), WT("F09", "foto.") - .05, 0),
          (sx("movil"), WT("F10", "abuela") - .1, -2), (sx("mochila"), WT("F13", "mochila…") - .1, 0),
          (sx("reloj"), WT("F15", "Faltan") - .1, -2), (sx("brillo"), WT("F15", "también") - .05, -3),
          (sx("brillo"), S("F17") - .2, -4), (sx("brillo"), WT("F17", "B:") - .1, -4)]

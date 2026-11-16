@@ -6,8 +6,8 @@ VOCES = {
     "P": "HRi5Prm2B3PevwpDmVLP",   # maestra Marta
 }
 LINEAS = [
- ("F01","N","[excited] Eligieron la B: guardas el cuaderno… y hoy escriben juntos el nombre del dinosaurio. El noventa por ciento votó por esto. ¿Tenían razón? Quédate hasta el final.",
-  "Eligieron la *B:* guardas el *cuaderno…* y hoy escriben juntos el nombre del *dinosaurio.* El *90%* votó por esto. ¿Tenían *razón?* Quédate hasta el *final.*"),
+ ("F01","N","[excited] Eligieron la B: escribir el nombre de su dino. Y quédate hasta el final.",
+  "*Eligieron* la *B:* escribir el nombre de su *dino.* Y quédate hasta el *final.*"),
  ("F02","K","[excited] ¡Se llama Rex! ¡Con la erre de… rugido! ¡Grrr!",
   "¡Se llama *Rex!* ¡Con la *erre* de… *rugido!* *¡Grrr!*"),
  ("F03","N","Le das la crayola verde. Él agarra la hoja… y no se esconde. Por primera vez en dos días, no se esconde.",

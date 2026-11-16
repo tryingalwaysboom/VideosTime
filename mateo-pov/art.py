@@ -434,11 +434,15 @@ def _lapiz_diag(x0, y0, x1, y1, w=58, rota=False):
         b += f'<circle cx="{t1[0]:.1f}" cy="{t1[1]:.1f}" r="7" fill="{OL}"/>'
     return b
 
-def mano_lapiz(rota=False):
+def mano_crayola():
+    """Vista cenital: el puño de Mateo apretando la crayola verde, la punta sobre el papel en (150,830)."""
+    return mano_lapiz(False, True)
+
+def mano_lapiz(rota=False, crayola=False):
     """Vista cenital: el puño de Mateo (manga verde) apretando el lápiz con la punta sobre el papel. Punta en (150,830)."""
     b = cel('<path d="M1800 1500 L1800 1100 L760 600 Q680 610 640 700 L600 800 L1500 1800 L1800 1800Z"/>', TEE, TEES, TEEH, -18, -10, 8)
     b += cel('<path d="M700 640 Q760 700 700 790 L640 820 Q600 760 650 690Z"/>', TEES, "#2c7040", None, -6, 0, 6)
-    b += _lapiz_diag(860, 170, 150, 830, 62, rota)
+    b += _crayola_diag(860, 170, 150, 830, 66) if crayola else _lapiz_diag(860, 170, 150, 830, 62, rota)
     # puño: palma redondeada + 4 nudillos sobre el lápiz + pulgar
     b += cel('<path d="M470 560 Q470 440 580 430 Q700 430 720 540 Q740 660 640 720 Q520 760 480 680Z"/>', SK, SKS, SKH, -16, -10, 7)
     for i, (x, y) in enumerate(((452, 520), (470, 580), (494, 638), (528, 690))):
@@ -536,7 +540,7 @@ def dibujo():
     return svg(880, 660, b)
 
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
-          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "bg_sala": bg_sala, "cereal": cereal, "dibujo": dibujo, "mateo_feliz_crayola": lambda: mateo("feliz", False, False, True), "mateo_neutral_crayola": lambda: mateo("neutral", False, False, True), "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
+          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "mano_crayola": mano_crayola, "lapiz_v": lapiz_v, "bg_sala": bg_sala, "cereal": cereal, "dibujo": dibujo, "mateo_feliz_crayola": lambda: mateo("feliz", False, False, True), "mateo_neutral_crayola": lambda: mateo("neutral", False, False, True), "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
           "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
 for k in ("neutral", "enojado", "llora", "triste", "timido", "feliz", "travieso"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)

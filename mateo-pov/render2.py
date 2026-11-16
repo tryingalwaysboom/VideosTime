@@ -25,7 +25,7 @@ F_BAL = os.path.join(HERE, "fonts", "Baloo2-ExtraBold.ttf")  # rótulos de la ba
 NAVY = (44, 36, 78)
 
 # pausas entre frases (respiración dramática donde hace falta)
-R.GAP.update({"F02": .3, "F03": .35, "F04": .35, "F05": .3, "F06": .3, "F07": .4, "F08": .35, "F09": .3, "F10": .45, "F11": .25, "F12": .35, "F13": .8, "F14": .3, "F15": .35, "F16": .3, "F17": .6, "F18": .35})
+R.GAP.update({"F02": .25, "F03": .35, "F04": .35, "F05": 1.7, "F06": .3, "F07": .4, "F08": 1.3, "F09": 1.0, "F10": .45, "F11": .25, "F12": .35, "F13": .8, "F14": .3, "F15": .35, "F16": .3, "F17": .6, "F18": .35})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL -= .1   # la voz arranca en el frame 0
 R.CH = R.chunks(); TL = R.TL; TOTAL = R.TOTAL
@@ -41,10 +41,10 @@ def mateo(c, kind, cx, cy, s, T, lid=None, rot=0):
     hab = lid is not None and talk(lid, T)
     put(c, f"mateo_{kind}_hab" if hab else f"mateo_{kind}", cx, cy + 400 * s, s, rot=rot)   # capa de 1900 px: el cuerpo sigue bajo el encuadre
     if hab: mouth(c, cx, cy + 56 * s, T, True, int(26 * s))
-    if kind not in ("llora",) and (T * 1.0) % 3.7 < .12 and not rot:   # parpadeo
+    if kind.split("_")[0] not in ("llora", "feliz", "travieso") and (T * 1.0) % 3.7 < .12 and not rot:   # parpadeo
         d = ImageDraw.Draw(c)
-        for ex in (-75, 75):
-            x, y = cx + ex * s, cy - 136 * s
+        for ex in (-78, 78):
+            x, y = cx + ex * s, cy - 86 * s
             d.ellipse((x - 40 * s, y - 34 * s, x + 40 * s, y + 34 * s), fill=(243, 194, 155))
             d.line((x - 34 * s, y + 4 * s, x + 34 * s, y + 4 * s), fill=OL, width=max(3, int(6 * s)))
 
@@ -271,7 +271,7 @@ def sc_resultado(T):
     d.rounded_rectangle((90, 420, 990, 1150), 44, fill=(255, 250, 240), outline=NAVY, width=7)
     d.text((540, 500), "RESULTADO PARTE 1", font=font(F_BAL, 50), fill=NAVY, anchor="mm")
     d.text((540, 556), "¿Qué hago con mi hijo?", font=font(F_BAL, 34), fill=(150, 130, 160), anchor="mm")
-    t_bar = .35; u = ease((T - t_bar) / 1.4)
+    t_bar = .25; u = ease((T - t_bar) / .8)
     for i, (L_, txt, pct, col) in enumerate((("A", "Sin tablet hasta que escriba", 10, AZ), ("B", "Escribir el nombre de su dino", 90, VERDE))):
         y = 680 + i * 190
         d.ellipse((130, y - 50, 230, y + 50), fill=col, outline=WHITE, width=6)
@@ -315,37 +315,176 @@ def sc_no_esconde(T):
         brillos(c, T, te, 540, 900, 260)
     return c
 
-def trazo_verde(c, word, cx, cy, s, n, T, t0, t1):
-    """La crayola verde repasa las letras punteadas de izquierda a derecha entre t0 y t1."""
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    xs = palabra(lay, word, cx, cy, s, n, T, col=(63, 174, 74))
-    if not xs: return xs
-    x0, x1 = xs[0][0] - 10, xs[-1][1] + 10
-    xr = x0 + (x1 - x0) * clamp((T - t0) / max(.2, t1 - t0))
-    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).rectangle((0, 0, xr, H), fill=255)
-    lay.putalpha(Image.fromarray(np.minimum(np.array(lay.split()[3]), np.array(m))))
-    c.alpha_composite(lay)
-    return xs, xr
+# ---------------------------------------------------------------- motor de escritura: trazos reales con la mano de Mateo
+VERDE_C = (58, 168, 72)
+_RNG = np.random.default_rng(5)
+_GRANO = Image.fromarray((_RNG.random((H, W)) * 70 + 185).astype(np.uint8))   # textura de cera de la crayola
+
+def _arco(cx, cy, r, a0, a1, n=18):
+    return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)), cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / n))) for i in range(n + 1)]
+
+def letra_trazos(L, x, yt, yb):
+    """Trazos de una mayúscula escolar (orden y sentido reales de escritura) dentro de [yt, yb]. Devuelve (trazos, ancho)."""
+    h = yb - yt; ym = yt + h * .5
+    if L == "R":
+        r = h * .25
+        return [[(x, yt), (x, yb)], [(x, yt), (x + h * .3, yt)] + _arco(x + h * .3, yt + r, r, -90, 90)[1:] + [(x, ym)], [(x + h * .22, ym), (x + h * .62, yb)]], h * .62
+    if L == "E":
+        return [[(x, yt), (x, yb)], [(x, yt), (x + h * .52, yt)], [(x, ym), (x + h * .44, ym)], [(x, yb), (x + h * .52, yb)]], h * .52
+    if L == "X":
+        return [[(x, yt), (x + h * .62, yb)], [(x + h * .62, yt), (x, yb)]], h * .62
+    if L == "M":
+        return [[(x, yb), (x, yt), (x + h * .36, yb * .62 + yt * .38), (x + h * .72, yt), (x + h * .72, yb)]], h * .72
+    if L == "A":
+        return [[(x, yb), (x + h * .32, yt), (x + h * .64, yb)], [(x + h * .14, yt + h * .62), (x + h * .5, yt + h * .62)]], h * .64
+    if L == "T":
+        return [[(x, yt), (x + h * .6, yt)], [(x + h * .3, yt), (x + h * .3, yb)]], h * .6
+    if L == "O":
+        return [_arco(x + h * .34, yt + h * .5, h * .5, -90, 270, 36)], h * .68
+    return [], h * .5
+
+def palabra_trazos(word, cx, yt, yb):
+    """Trazos de toda la palabra, centrada en cx y apoyada entre la línea de arriba y la base."""
+    h = yb - yt; gap = h * .22
+    ws = [letra_trazos(L, 0, yt, yb)[1] for L in word]
+    x = cx - (sum(ws) + gap * (len(word) - 1)) / 2; out = []
+    for L, w in zip(word, ws):
+        out.append(letra_trazos(L, x, yt, yb)[0]); x += w + gap
+    return out   # lista por letra de listas de trazos
+
+def _largo(p): return sum(math.dist(p[i], p[i + 1]) for i in range(len(p) - 1))
+
+def _recorrido(trazos, u):
+    """Parte dibujada de los trazos con progreso u (0..1) y la posición de la punta. Entre trazos la mano se levanta y viaja."""
+    segs = []   # (puntos, dibuja?)
+    for i, p in enumerate(trazos):
+        if i: segs.append(([trazos[i - 1][-1], p[0]], False))
+        segs.append((p, True))
+    pesos = [_largo(p) * (1 if dib else .55) + (0 if dib else 1) for p, dib in segs]
+    objetivo = clamp(u) * sum(pesos); hechos = []; tip = trazos[0][0]; arriba = False
+    for (p, dib), wgt in zip(segs, pesos):
+        if objetivo >= wgt:
+            if dib: hechos.append(p)
+            objetivo -= wgt; tip = p[-1]; continue
+        f = objetivo / max(wgt, 1e-6); lt = _largo(p) * f; acc = 0; parc = [p[0]]
+        for a, b in zip(p, p[1:]):
+            dd = math.dist(a, b)
+            if acc + dd >= lt:
+                k = (lt - acc) / max(dd, 1e-6); tip = (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k); parc.append(tip); break
+            acc += dd; parc.append(b); tip = b
+        if dib and len(parc) > 1: hechos.append(parc)
+        arriba = not dib
+        break
+    return hechos, tip, arriba
+
+def dibuja_trazos(c, trazos, w, col=VERDE_C):
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    for p in trazos:
+        if len(p) > 1: d.line(p, fill=col, width=int(w), joint="curve")
+        for q in (p[0], p[-1]): d.ellipse((q[0] - w / 2, q[1] - w / 2, q[0] + w / 2, q[1] + w / 2), fill=col)
+    a = np.array(lay); a[..., 3] = (a[..., 3].astype(np.uint16) * np.array(_GRANO) // 255).astype(np.uint8)
+    c.alpha_composite(Image.fromarray(a))
+
+def puntitos(c, trazos, h, col=(150, 160, 200)):
+    """Letra de puntitos de las hojas para repasar: puntos a lo largo del trazo."""
+    d = ImageDraw.Draw(c); paso = h * .085; r = h * .028
+    for p in trazos:
+        acc = 0
+        for a, b in zip(p, p[1:]):
+            dd = math.dist(a, b); t = (paso - acc) % paso if acc else 0
+            while t <= dd:
+                x, y = a[0] + (b[0] - a[0]) * t / dd, a[1] + (b[1] - a[1]) * t / dd
+                d.ellipse((x - r, y - r, x + r, y + r), fill=col); t += paso
+            acc = (acc + dd) % paso
+
+def mano_crayola(c, tip, T, sm=.6, arriba=False, temblor=1.5):
+    """La mano de Mateo con la crayola: la punta exactamente en 'tip' (se levanta un poco entre trazos)."""
+    dx, dy = temblor * math.sin(T * 47), temblor * math.cos(T * 39)
+    lift = -18 if arriba else 0
+    put(c, "mano_crayola", tip[0] + (900 - 150) * sm + dx, tip[1] + (900 - 830) * sm + dy + lift, sm)
+
+def escribir(c, letras, T, t0, t1, w, sm=.6, mano=True, entra=.5):
+    """Escribe las letras (lista de listas de trazos) de t0 a t1 con la mano siguiendo la punta. Devuelve (tip, nº letras acabadas)."""
+    todos = [p for L in letras for p in L]
+    if T < t0:
+        if mano and T >= t0 - entra:   # la mano entra desde abajo a la derecha hasta el primer punto
+            k = ease((T - t0 + entra) / entra); p0 = todos[0][0]
+            mano_crayola(c, (p0[0] + 500 * (1 - k), p0[1] + 700 * (1 - k)), T, sm, True)
+        return None, 0
+    u = (T - t0) / max(.2, t1 - t0)
+    hechos, tip, arriba = _recorrido(todos, u)
+    dibuja_trazos(c, hechos, w)
+    if mano:
+        if u <= 1: mano_crayola(c, tip, T, sm, arriba)
+        else:   # termina: la mano se retira
+            k = ease((T - t1) / .5)
+            if k < 1: mano_crayola(c, (tip[0] + 500 * k, tip[1] + 700 * k), T, sm, True)
+    return tip, u
+
+def fines(letras, t0, t1):
+    """Momento en que se termina cada letra (para el check / el sonido)."""
+    todos = [p for L in letras for p in L]; pesos = []
+    for i, p in enumerate(todos):
+        if i: pesos.append(math.dist(todos[i - 1][-1], p[0]) * .55 + 1)
+        pesos.append(_largo(p))
+    tot = sum(pesos); out = []; k = 0; acc = 0
+    for L in letras:
+        for j in range(len(L)):
+            if k: acc += pesos[2 * k - 1]
+            acc += pesos[2 * k if k == 0 else 2 * k]; k += 1
+        out.append(t0 + (t1 - t0) * acc / tot)
+    return out
+
+def seguir(c, tx, ty, z, cx=540, cy=960, f=.55):
+    """Cámara que se acerca y sigue la punta de la crayola (zoom z), para que se vea bien cómo escribe."""
+    if z <= 1.001: return c
+    px, py = cx + (tx - cx) * f, cy + (ty - cy) * f
+    w, h = W / z, H / z
+    x0 = min(max(px - w / 2, 0), W - w); y0 = min(max(py - h / 2, 0), H - h)
+    return c.crop((int(x0), int(y0), int(x0 + w), int(y0 + h))).resize((W, H), Image.BICUBIC)
+
+def rex_nino_trazos(x, y, sz, cola=True):
+    """REX a lo Mateo: R grande, E con CUATRO rayitas, X chueca y una cola en la última letra (con temblor de niño)."""
+    def tb(p, s=1.0):
+        return [(a + sz * .025 * s * math.sin(b * .05 + a * .03), b + sz * .02 * s * math.cos(a * .045)) for a, b in p]
+    r = sz * .26
+    R = [tb([(x, y), (x + 3, y + sz)]), tb([(x, y)] + [(x + sz * .2, y)] + _arco(x + sz * .2, y + r, r, -90, 90, 14) + [(x + 6, y + sz * .52)]),
+         tb([(x + sz * .14, y + sz * .52), (x + sz * .48, y + sz * 1.02)])]
+    ex = x + sz * .72
+    E = [tb([(ex, y + 4), (ex - 6, y + sz)])] + [tb([(ex - 2, y + i * sz / 3 + (8 if i == 2 else 0)), (ex + sz * (.44 if i in (0, 3) else .34), y + i * sz / 3 - (10 if i == 1 else 0))]) for i in range(4)]
+    xx = ex + sz * .74
+    X = [tb([(xx, y + sz * .08), (xx + sz * .52, y + sz * .98)], 1.6), tb([(xx + sz * .62, y - sz * .06), (xx - sz * .04, y + sz * .84)], 1.6)]
+    if cola:
+        X.append([(xx + sz * .52 + sz * .55 * t, y + sz * .98 - sz * .28 * math.sin(t * 3.2)) for t in np.linspace(0, 1, 16)])
+    return [R, E, X]
+
+def rex_nino_full(c, x, y, sz):
+    dibuja_trazos(c, [p for L in rex_nino_trazos(x, y, sz) for p in L], sz * .1)
 
 def sc_puntitos(T):
-    """F04: imprimes hojas con letras de puntitos (con Pinti en la esquina) y él repasa REX con la crayola verde."""
+    """F04: la hoja de puntitos (con Pinti en la esquina): aparecen R, E, X punteadas y Mateo las repasa trazo a trazo con su mano."""
     s0, e0 = TL["F04"]
     c = bg("bg_mesa", T, s0, 1.2, 1.32, 12, .5, .5)
     put(c, "hoja", 540, 900, 1.05)
-    pinti(c, 920, 640, 150, rot=-8)   # la hoja impresa del libro de Pinti
-    tt = [WT("F04", "R,"), WT("F04", "E,"), WT("F04", "X")]
-    palabra(c, "REX", 540, 900, 1.05, 0, T, tt, (150, 160, 200))
-    d = ImageDraw.Draw(c)
-    # mismas letras punteadas: ahora sí con puntos
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); palabra(lay, "REX", 540, 900, 1.05, 0, T, tt, (150, 160, 200))
-    ta = WT("F04", "sigue"); te = e0
-    if T >= ta - .3:
-        r = trazo_verde(c, "REX", 540, 900, 1.05, 0, T, ta, te)
-        if r:
-            xs, xr = r; _, yb = fila(540, 900, 1.05, 0)
-            yy = yb - 90 + 40 * math.sin((T - ta) * 5)
-            put(c, "crayola", xr + 150, yy - 70, .55, rot=35)
-    if T >= WT("F04", "Despacio."): etiqueta(c, T, WT("F04", "Despacio."), "DESPACIO... MUY DESPACIO", 540, 430, CREMA, OL, 38)
+    pinti(c, 920, 640, 150, rot=-8)
+    yt, yb = fila(540, 900, 1.05, 0); h = yb - yt
+    letras = palabra_trazos("REX", 540, yt, yb)
+    for L, t in zip(letras, (WT("F04", "R,"), WT("F04", "E,"), WT("F04", "X"))):
+        if T >= t:
+            k = popscale(T, t, .3)
+            if k > .95: puntitos(c, L, h)
+    ta, t0, t1 = WT("F04", "aprieta"), WT("F04", "sigue"), e0 + 1.3
+    tip, u = escribir(c, letras, T, t0, t1, h * .13, .55, entra=t0 - ta)
+    for i, tf in enumerate(fines(letras, t0, t1)):   # check verde al terminar cada letra
+        if T >= tf:
+            xs = [q[0] for p in letras[i] for q in p]
+            k = popscale(T, tf, .3); d = ImageDraw.Draw(c); cx = (min(xs) + max(xs)) / 2; r = 26 * k
+            d.ellipse((cx - r, yt - 70 - r, cx + r, yt - 70 + r), fill=VERDE, outline=WHITE, width=4)
+            if k > .6: d.line([(cx - 11, yt - 70), (cx - 3, yt - 61), (cx + 13, yt - 82)], fill=WHITE, width=6)
+    z = 1 + .45 * ease((T - t0 + .4) / .8) * (1 - ease((T - t1 - .3) / .6)) if T >= t0 - .4 else 1
+    if tip: c = seguir(c, tip[0], tip[1], z)
+    else: c = seguir(c, 540, (yt + yb) / 2, z)
+    if T >= WT("F04", "Despacio."): etiqueta(c, T, WT("F04", "Despacio."), "DESPACIO... MUY DESPACIO", 540, 420, CREMA, OL, 38)
     return c
 
 def r_dino(c, cx, cy, sz, T, t0):
@@ -386,71 +525,86 @@ def sc_te_ries(T):
     etiqueta(c, T, s0 + .2, "HACE DÍAS QUE NO REÍAN", 540, 470, ROSA, OL, 38)
     return c
 
-def rex_nino(d, x, y, sz, T, t_e, t_x, t_c):
-    """REX escrito por Mateo: E con cuatro rayitas, X chueca y una cola en la última letra."""
-    g = (63, 174, 74); w = int(sz * .1)
-    # R
-    d.line((x, y + sz, x, y), fill=g, width=w); d.arc((x - sz * .35, y, x + sz * .4, y + sz * .5), -90, 90, fill=g, width=w)
-    d.line((x + sz * .05, y + sz * .5, x + sz * .38, y + sz), fill=g, width=w)
-    ex = x + sz * .65
-    if T >= t_e:   # E con 4 rayitas
-        d.line((ex, y, ex, y + sz), fill=g, width=w)
-        for i in range(4): d.line((ex, y + i * sz / 3, ex + sz * (.45 if i % 3 == 0 else .35), y + i * sz / 3 + (6 if i == 2 else 0)), fill=g, width=w)
-    xx = ex + sz * .75
-    if T >= t_x:   # X chueca
-        d.line((xx, y + sz * .05, xx + sz * .5, y + sz * .95), fill=g, width=w)
-        d.line((xx + sz * .6, y - sz * .05, xx - sz * .05, y + sz * .8), fill=g, width=w)
-    if T >= t_c:   # la cola
-        u = clamp((T - t_c) / .5)
-        pts = [(xx + sz * .5 + sz * .5 * t, y + sz * .95 - sz * .25 * math.sin(t * 3)) for t in np.linspace(0, u, 12)]
-        if len(pts) > 1: d.line(pts, fill=g, width=w, joint="curve")
-
 def sc_rayitas(T):
-    """F07: la E con cuatro rayitas, la X chueca... y una cola en la última letra."""
+    """F07: en la fila de abajo lo escribe él solo, sin puntitos: E con cuatro rayitas, X chueca y una cola."""
     s0, e0 = TL["F07"]
     c = bg("bg_mesa", T, s0, 1.3, 1.4, 8, .5, .5)
     put(c, "hoja", 540, 900, 1.05)
-    d = ImageDraw.Draw(c)
-    te, tx, tc = WT("F07", "E"), WT("F07", "X,"), WT("F07", "cola.")
-    rex_nino(d, 210, 700, 300, T, te - .1, tx - .1, tc - .2)
-    if T >= WT("F07", "rayitas."): etiqueta(c, T, WT("F07", "rayitas."), "4 RAYITAS", 360, 470, CREMA, OL, 36)
-    if T >= WT("F07", "chueca."): etiqueta(c, T, WT("F07", "chueca."), "CHUECA", 720, 470, CREMA, OL, 36)
-    if T >= tc: stamp(c, T, tc, "¡CON COLA!", 760, 1250, VERDE, -6, 80)
+    pinti(c, 920, 640, 150, rot=-8)
+    yt, yb = fila(540, 900, 1.05, 0); h = yb - yt
+    letras = palabra_trazos("REX", 540, yt, yb)
+    for L in letras: puntitos(c, L, h)
+    dibuja_trazos(c, [p for L in letras for p in L], h * .13)
+    y1, b1 = fila(540, 900, 1.05, 1); h1 = b1 - y1
+    R, E, X = rex_nino_trazos(540 - 1.31 * h1, y1, h1)
+    tE, tR, tX, tC = WT("F07", "E"), WT("F07", "rayitas."), WT("F07", "X,"), WT("F07", "cola.")
+    grupos = [([R], s0 + .1, tE - .1), ([[p] for p in E], tE, tR + .5), ([X[:2]], tX, WT("F07", "chueca.") + .3), ([[X[2]]], tC - .5, e0 + .9)]
+    tip = None; activo = False
+    for i, (ls, a, b) in enumerate(grupos):
+        if T >= b:
+            dibuja_trazos(c, [p for L in ls for p in L], h1 * .1)
+        elif T >= a:
+            tip, u = escribir(c, ls, T, a, b, h1 * .1, .55, entra=.01); activo = True
+        if i == 1 and T >= a:   # cuenta las rayitas de la E
+            for j, tf in enumerate(fines(ls, a, b)[1:]):
+                if T >= tf:
+                    yy = E[j + 1][-1][1]; xx = E[j + 1][-1][0] + 40
+                    k = popscale(T, tf, .3); d = ImageDraw.Draw(c)
+                    d.ellipse((xx - 24 * k, yy - 24 * k, xx + 24 * k, yy + 24 * k), fill=ROSA, outline=WHITE, width=4)
+                    if k > .5: text(d, (xx, yy), str(j + 1), 34, WHITE, stroke=0)
+    if not activo:   # entre letra y letra la mano espera levantada sobre la última punta
+        prev = [g for g in grupos if T >= g[2]]
+        if prev and T < e0 + .9:
+            p = prev[-1][0][-1][-1][-1]; mano_crayola(c, p, T, .55, True)
+            tip = p
+        elif T >= e0 + .9:
+            k = ease((T - e0 - .9) / .5); p = X[2][-1]
+            if k < 1: mano_crayola(c, (p[0] + 500 * k, p[1] + 700 * k), T, .55, True)
+    c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (y1 + b1) / 2, 1.42, f=.6)
+    if T >= tR + .3 and T < WT("F07", "chueca."): etiqueta(c, T, tR + .3, "¡4 RAYITAS!", 540, 1200, CREMA, OL, 40)
+    if WT("F07", "chueca.") <= T < e0 + .4: etiqueta(c, T, WT("F07", "chueca."), "LA X, CHUECA", 540, 1200, CREMA, OL, 40)
+    if T >= e0 + .4: stamp(c, T, e0 + .4, "¡CON COLA!", 540, 1210, VERDE, -6, 80)
     return c
 
 def sc_once(T):
-    """F08: escribe REX once veces: en la hoja, en la caja del cereal... y en la pared."""
-    s0, e0 = TL["F08"]; th, tc, tp = WT("F08", "hoja,"), WT("F08", "cereal…"), WT("F08", "pared.")
+    """F08: escribe REX once veces: en hojas, en la caja del cereal... y en la pared (siempre con su mano escribiendo)."""
+    s0, e0 = TL["F08"]; tc, tp = WT("F08", "cereal…"), WT("F08", "pared.")
     if T < tc - .1:
         c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
-        for i in range(5):   # varias hojas con REX
-            k = popscale(T, s0 + .3 + i * .35, .3)
-            if k <= 0: continue
+        orden = [(-220, -260, -12), (200, -200, 8), (-120, 220, -4), (180, 260, 14), (0, 0, -8)]
+        dur = (tc - .1 - s0) / 5
+        for i, (ox, oy, rot) in enumerate(orden):
+            a = s0 + i * dur
+            if T < a: continue
             lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            put(lay, "hoja", 540, 860, .62 * k)
-            rex_nino(ImageDraw.Draw(lay), 360, 780, 150 * k, 99, 0, 0, 0)
-            lay = lay.rotate([-12, 8, -4, 14, -8][i], center=(540, 860), resample=Image.BICUBIC)
-            c.alpha_composite(lay, ([-220, 200, -120, 180, 0][i], [-260, -200, 220, 260, 0][i]))
-        d = ImageDraw.Draw(c); n = min(11, int(1 + (T - s0) / .22))
-        text(d, (540, 1300), f"x{n}", 120, VERDE, stroke=10)
+            put(lay, "hoja", 540, 860, .62)
+            if T >= a + dur * .9 or i < 4: rex_nino_full(lay, 380, 790, 120)
+            lay = lay.rotate(rot, center=(540, 860), resample=Image.BICUBIC)
+            c.alpha_composite(lay, (ox, oy))
+        # la última hoja: la está escribiendo ahora mismo
+        a = s0 + 4 * dur
+        if T >= a:
+            letras = rex_nino_trazos(380, 790, 120)
+            escribir(c, letras, T, a, a + dur * .9, 12, .42, entra=.01)
+        d = ImageDraw.Draw(c); n = min(11, int(1 + (T - s0) / .25))
+        text(d, (540, 1330), f"x{n}", 120, VERDE, stroke=10)
         return c
     if T < tp - .05:
         c = bg("bg_cocina", T, tc, 1.25, 1.35, 6, .5, .6)
         put(c, "cereal", 540, 960, .95, rot=-4)
-        rex_nino(ImageDraw.Draw(c), 330, 1110, 150, 99, 0, 0, 0)
+        escribir(c, rex_nino_trazos(330, 1060, 150), T, tc + .05, tp - .15, 15, .45, entra=.01)
         etiqueta(c, T, tc, "EN LA CAJA DEL CEREAL", 540, 470, CREMA, OL, 38)
         return c
     c = bg("bg_sala", T, tp, 1.0, 1.08, 5, .5, .5)
-    k = clamp((T - tp) / .6)
-    rex_nino(ImageDraw.Draw(c), 110, 580, 330 * (1 + .1 * (1 - k)), 99, 0, 0, 0)
-    stamp(c, T, tp + .1, "¿¡EN LA PARED!?", 540, 1180, ROJO, -6, 96)
+    tip, u = escribir(c, rex_nino_trazos(110, 580, 330), T, tp - .05, e0 + .7, 33, 1.05, entra=.01)
+    if T >= tp + .3: stamp(c, T, tp + .3, "¿¡EN LA PARED!?", 540, 1250, ROJO, -6, 96)
     return c
 
 def sc_foto(T):
     """F09: la pared con REX en crayola verde; respiras... y le tomas una foto (marco de cámara y flash)."""
     s0, e0 = TL["F09"]; tf = WT("F09", "foto.")
     c = bg("bg_sala", T, s0, 1.08, 1.15, 8, .5, .5)
-    rex_nino(ImageDraw.Draw(c), 110, 580, 330, 99, 0, 0, 0)
+    rex_nino_full(c, 110, 580, 330)
     mateo(c, "timido", 820, 1300, .85, T)
     put(c, "crayola", 650, 1500, .45, rot=-30)
     tr = WT("F09", "hondo…")
@@ -475,7 +629,7 @@ def sc_grupo(T):
         bx0, bx1 = x + w * .3, x + w - 26 * s
         d.rounded_rectangle((bx0, yy, bx1, yy + 330 * s), 22 * s, fill=(220, 248, 200))
         d.rounded_rectangle((bx0 + 14 * s, yy + 14 * s, bx1 - 14 * s, yy + 270 * s), 14 * s, fill=(247, 227, 196))
-        rex_nino(d, bx0 + 40 * s, yy + 70 * s, 110 * s, 99, 0, 0, 0)
+        rex_nino_full(lay, bx0 + 40 * s, yy + 70 * s, 110 * s)
         d.text((bx1 - 20 * s, yy + 300 * s), "21:47 ✓✓".replace("✓✓", "vv"), font=font(F_UI, int(20 * s)), fill=(120, 140, 120), anchor="rm")
         yy += 360 * s
         if T >= ta:
@@ -600,7 +754,7 @@ def sc_travieso(T):
     c = bg("bg_cocina", T, s0 - .2, 1.2, 1.28, 6, .5, .6)
     mateo(c, "travieso", 400, 1280, 1.05, T, "F16")
     put(c, "dibujo", 800, 760, .62, rot=6 + 2 * math.sin(T * 2))
-    rex_nino(ImageDraw.Draw(c), 760, 860, 70, 99, 0, 0, 0)
+    rex_nino_full(c, 760, 860, 70)
     if T >= WT("F16", "cuenta!"): stamp(c, T, WT("F16", "cuenta!"), "¿NADIE?", 780, 1100, ROSA, -6, 90)
     return c
 
