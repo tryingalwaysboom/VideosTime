@@ -7,8 +7,8 @@ VOCES = {
 }
 
 LINEAS = [
-    ("G01", "N", "Elegisteis la B. Sales tú solo… a la luz de los faros. Y quédate hasta el final, porque lo que pase después lo decides tú.",
-     "*Elegisteis* la *B.* Sales tú *solo…* a la luz de los *faros.* Y quédate hasta el *final,* porque lo que pase después lo *decides* *tú.*"),
+    ("G01", "N", "Elegisteis la B: enfrentarte a Nitro. Sales tú solo… a la luz de los faros. Y quédate hasta el final, porque lo que pase después lo decides tú.",
+     "*Elegisteis* la *B:* enfrentarte a *Nitro.* Sales tú *solo…* a la luz de los *faros.* Y quédate hasta el *final,* porque lo que pase después lo *decides* *tú.*"),
     ("G02", "M", "¡Chaval, vuelve aquí! ¡Que ese tío está loco!",
      "¡*Chaval,* vuelve *aquí!* ¡Que ese tío está *loco!*"),
     ("G03", "N", "Pero ya es tarde. Caminas hacia el coche negro. Los faros te ciegan. El motor ruge una vez… y se apaga.",
