@@ -3,7 +3,8 @@ foto pegada con cinta de la escena de la opción que ganó, título escrito con 
 etiqueta escolar "PARTE N". Se compone en 9:16 (1080x1920); el diseño cabe en el 3:4 central (subido)."""
 import os, sys, math, random
 import numpy as np
-import render2 as V
+import render3 as V
+from render3 import nino_trazos, ancho_nino
 from render2 import Image, ImageDraw, ImageFilter, put, bg, font, F_ESC, F_BAL, F_HAND, OL, palabra_trazos, dibuja_trazos, rex_nino_trazos
 
 CW, CH = 1080, 1920
@@ -89,9 +90,35 @@ def p2():
     etiqueta_parte(c, 2, 540, OY + 1340, -3)
     return c
 
+def escena_p3():
+    """Noche 3: Mateo feliz enseñando la hoja con su nombre (la E al revés)."""
+    s = bg("bg_cocina", 0, 0, 1.15, 1.15, 1, .5, .55)
+    put(s, "mateo_feliz", 540, 980 + 400 * 1.0, 1.0)
+    lay = Image.new("RGBA", s.size, (0, 0, 0, 0)); put(lay, "hoja", 540, 1290, .7)
+    tr = nino_trazos("MATEO", 540 - ancho_nino("MATEO", 115) / 2, 1175, 115, erev=True, seed=1)
+    dibuja_trazos(lay, [p for L in tr for p in L], 11.5, (58, 168, 72))
+    s.alpha_composite(lay.rotate(-4, center=(540, 1290), resample=Image.BICUBIC))
+    put(s, "dino", 900, 1300, .5, rot=8)
+    return s.crop((0, 380, 1080, 1460))
+
+def p3():
+    c = cuaderno()
+    garabatos(c, 3)
+    cx, cy = 540, OY + 480
+    foto(c, escena_p3(), cx, cy, 680, 680, 3)
+    cinta(c, cx - 285, cy - 382, 210, 28, (120, 200, 230)); cinta(c, cx + 275, cy - 395, 210, -30, (244, 196, 48))
+    d = ImageDraw.Draw(c)
+    d.text((540, OY + 945), "por fin escribe...", font=font(F_HAND, 100), fill=NAVY, anchor="mm")
+    sz = 150; tr = nino_trazos("MATEO", 540 - ancho_nino("MATEO", sz) / 2, OY + 1015, sz, erev=True, seed=1)
+    sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
+    c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
+    dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
+    etiqueta_parte(c, 3, 540, OY + 1340, 3)
+    return c
+
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    c = {2: p2}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
+    c = {2: p2, 3: p3}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
     c.save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}_9x16.jpg"), quality=100, subsampling=0)
     c.crop((0, OY, CW, OY + 1440)).save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}.jpg"), quality=95)
     print("ok")

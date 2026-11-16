@@ -25,7 +25,7 @@ F_BAL = os.path.join(HERE, "fonts", "Baloo2-ExtraBold.ttf")  # rótulos de la ba
 NAVY = (44, 36, 78)
 
 # pausas entre frases (respiración dramática donde hace falta)
-R.GAP.update({"F02": .35, "F03": .5, "F04": .45, "F05": .2, "F06": .5, "F07": .4, "F08": .5, "F09": .6, "F10": 1.2, "F11": .5, "F12": .45, "F13": .5})
+R.GAP.update({"F02": .3, "F03": .35, "F04": .4, "F05": .2, "F06": .35, "F07": .35, "F08": .4, "F09": .5, "F10": 1.2, "F11": .4, "F12": .4, "F13": .45})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL -= .1   # la voz arranca en el frame 0
 R.CH = R.chunks(); TL = R.TL; TOTAL = R.TOTAL
@@ -449,8 +449,8 @@ def nino_trazos(word, x, y, sz, erev=False, seed=0):
 
 def ancho_nino(word, sz): return sum(letra_trazos(L, 0, 0, sz)[1] for L in word) + sz * .24 * (len(word) - 1)
 
-def nino_full(c, word, x, y, sz, erev=False, col=VERDE_C):
-    dibuja_trazos(c, [p for L in nino_trazos(word, x, y, sz, erev) for p in L], sz * .1, col)
+def nino_full(c, word, x, y, sz, erev=False, col=VERDE_C, seed=0):
+    dibuja_trazos(c, [p for L in nino_trazos(word, x, y, sz, erev, seed) for p in L], sz * .1, col)
 
 def tarjeta(c, T, t0, txt, sub=None):
     """Tarjeta de noche/día: cielo oscuro con luna, título enorme."""
@@ -489,7 +489,7 @@ def sc_llegas(T):
     d = ImageDraw.Draw(c)
     tp = WT("F01", "Pero")
     if T < tp:   # resultado de la encuesta, rápido
-        k = popscale(T, 0, .3); y = 470
+        k = max(.02, popscale(T, 0, .3)); y = 470
         d.rounded_rectangle((540 - 400 * k, y - 80, 540 + 400 * k, y + 80), 36, fill=WHITE, outline=NAVY, width=6)
         if k > .8:
             d.ellipse((170, y - 50, 270, y + 50), fill=AZ, outline=WHITE, width=5); d.text((220, y + 2), "A", font=font(F_ANTON, 60), fill=WHITE, anchor="mm")
@@ -510,7 +510,7 @@ def sc_llegas(T):
             if k > .9:
                 u = clamp((T - tv) / 3)
                 d.pieslice((cx - r + 12, cy - r + 12, cx + r - 12, cy + r - 12), -90, -90 + 360 * (1 - u), fill=(255, 205, 210))
-                mm = int(20 - 20 * u * .1); d.text((cx, cy - 6), f"{mm}:00", font=font(F_BAL, 64), fill=NAVY, anchor="mm")
+                d.text((cx, cy - 6), "20:00", font=font(F_BAL, 64), fill=NAVY, anchor="mm")
                 d.text((cx, cy + 50), "MIN", font=font(F_BAL, 30), fill=(214, 84, 120), anchor="mm")
     return c
 
@@ -654,7 +654,7 @@ def sc_rompe(T):
     s0, e0 = TL["F08"]; tr = WT("F08", "Rompe") + .35; trs, to = WT("F08", "Respiras…"), WT("F08", "otra.")
     c = bg("bg_mesa", T, s0, 1.2, 1.28, 6, .5, .5)
     c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (60,)))
-    hoja = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(hoja, *HOJA)
+    hoja = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(hoja, "hoja", *HOJA)
     yt, yb = fila(*HOJA, 0)
     nino_full(hoja, "MAT", 300, yt, yb - yt, seed=3)
     ImageDraw.Draw(hoja).line([(420 + 30 * i, yt + 40 + 50 * (i % 2)) for i in range(9)], fill=VERDE_C, width=14)   # garabato de rabia
@@ -710,11 +710,10 @@ def sc_lagrimas(T):
     s0, e0 = TL["F10"]
     c = bg("bg_cocina", T, s0 - .3, 1.15, 1.2, 6, .5, .6)
     c.alpha_composite(Image.new("RGBA", (W, H), (255, 200, 120, 50)))
-    mateo(c, "feliz", 540, 1180, .95, T)
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(lay, "hoja", 540, 1420, .78)
-    yt = 1420 - 357 * .78 * 1.0 + 140 * .78
-    nino_full(lay, "MATEO", 540 - ancho_nino("MATEO", 120) / 2, 1290, 120, erev=True, seed=1)
-    c.alpha_composite(lay.rotate(-3, center=(540, 1420), resample=Image.BICUBIC))
+    mateo(c, "feliz", 540, 1330, .95, T)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(lay, "hoja", 540, 700, .62)
+    nino_full(lay, "MATEO", 540 - ancho_nino("MATEO", 100) / 2, 600, 100, erev=True, seed=1)
+    c.alpha_composite(lay.rotate(-3 + 2 * math.sin(T * 3), center=(540, 700), resample=Image.BICUBIC))
     corazones(c, T, s0, 540, 900)
     k = ease((T - WT("F10", "lágrimas.") + .3) / 1.2)
     if k > 0:   # visión borrosa de lágrimas, con gotas en los bordes
@@ -726,14 +725,15 @@ def sc_lagrimas(T):
         c.alpha_composite(g)
     return c
 
-def pared_expo(T, foco=0):
+def pared_expo(T, titulo=True):
     """La pared de la exposición: tres dibujos con nombres; el de Mateo en medio, con su E al revés."""
     c = Image.new("RGBA", (W, H), (238, 222, 196, 255)); d = ImageDraw.Draw(c)
     for x in range(0, W, 90): d.line((x, 0, x, H), fill=(230, 212, 184), width=3)
     d.rounded_rectangle((60, 520, 1020, 1380), 26, fill=(192, 146, 98), outline=(120, 82, 50), width=12)
     rnd = np.random.default_rng(2); g = Image.fromarray((rnd.random((860, 960)) * 60).astype(np.uint8))
     sh = Image.new("RGBA", (960, 860), (90, 60, 30, 255)); sh.putalpha(g); c.alpha_composite(sh, (60, 520))
-    d = ImageDraw.Draw(c); d.text((540, 470), "EXPOSICIÓN · PREESCOLAR B", font=font(F_BAL, 44), fill=NAVY, anchor="mm")
+    d = ImageDraw.Draw(c)
+    if titulo: d.text((540, 470), "EXPOSICIÓN · PREESCOLAR B", font=font(F_BAL, 44), fill=NAVY, anchor="mm")
     for i, (x, rot, nom) in enumerate(((230, -4, "SOFÍA"), (540, 2, None), (850, 5, "LUCAS"))):
         lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(lay, "dibujo", x, 820, .5)
         lay = lay.rotate(rot, center=(x, 820), resample=Image.BICUBIC); c.alpha_composite(lay)
@@ -766,7 +766,7 @@ def sc_viernes(T):
     c = seguir(c, fx, fy, z + (.5 * ease((T - tr + .3) / .5) if T >= tr - .3 else 0), cx=540, cy=960, f=1.0)
     if T >= tr:
         d = ImageDraw.Draw(c); k = clamp((T - tr) / .5)
-        d.arc((390, 830, 690, 1130), -90, -90 + 360 * k, fill=ROJO, width=14)
+        d.arc((345, 850, 605, 1110), -90, -90 + 360 * k, fill=ROJO, width=14)
         if T >= tr + .3: stamp(c, T, tr + .3, "¡AL REVÉS!", 540, 1300, ROJO, -6, 96)
     return c
 
@@ -801,7 +801,7 @@ _FC = {}
 def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
-        A = pared_expo(0); A = seguir(A, 540, 1000, 1.25, f=1.0)
+        A = pared_expo(0, False); A = seguir(A, 540, 1000, 1.25, f=1.0)
         d = ImageDraw.Draw(A); corazon(d, 250, 760, 70, (255, 92, 130), outline=WHITE)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 70)))
     else:
