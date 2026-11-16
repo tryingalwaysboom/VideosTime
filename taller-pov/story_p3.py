@@ -2,6 +2,7 @@
 import os, sys, math
 import ep3                      # motor con piezas del Ep.3 (candado, confeti, lados del final, llave)
 import story_video as SV
+from luces import coche_faros
 import portada as P
 R = ep3.R
 from render import (Image, ImageDraw, ImageFilter, W, H, bg, put, text, stamp, dark, ease, clamp, popscale,
@@ -78,15 +79,10 @@ def sc_solos(T):
     s0 = SC_T[3]; tf = T_SOLOS + .45
     c = bg("bg_poligono", T, s0, 1.35, 1.42, 2.5, .5, .95); dark(c, 110)
     rev = 5 * math.sin(T * 60) if T >= tf else 0
-    put(c, "coche_negro", 560 + rev, 1500, 1.0)
-    put(c, "nitro", 420, 880, .9)
-    if T >= tf:
-        u = ease(clamp((T - tf) / .2))
-        put(c, "faros", 560, 1420, 1.2 * u + .01, alpha=u)
-        glare = blank(); gd = ImageDraw.Draw(glare)
-        for x in (360, 760): gd.ellipse((x - 260, 1230, x + 260, 1570), fill=(255, 250, 220, int(200 * u)))
-        c.alpha_composite(glare.filter(ImageFilter.GaussianBlur(50)))
-        ep3.llamas(c, T, tf + .1, 1030, 1585, 3, .22)
+    put(c, "nitro", 330, 860, .8)
+    u = ease(clamp((T - tf) / .2)) if T >= tf else 0
+    coche_faros(c, 700, 1260, .78, u, rev=rev)
+    if T >= tf: ep3.llamas(c, T, tf + .1, 700 + 367, 1326, 3, .22, .8)
     stamp(c, T, T_SOLOS + .5, "NO ESTÁBAMOS SOLOS", 540, 480, RED, -6, 86)
     return c
 

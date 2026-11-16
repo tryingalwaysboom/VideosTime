@@ -1,6 +1,7 @@
 """3 stories de engagement (sentimiento del público). Genera versión limpia (para poner el sticker en la app) y vista previa."""
 import os, ep3
 import portada as P
+from luces import coche_faros
 R = ep3.R
 from render import Image, ImageDraw, ImageFilter, W, H, bg, put, text, dark, YEL, RED, WHITE, OL, CYAN, F_UI, F_ANTON
 
@@ -39,11 +40,8 @@ def mock_question(c, y):
 
 def story1():   # encuesta: Nitro villano o víctima
     c = base("bg_poligono", .5, .95, 1.35, 90)
-    put(c, "coche_negro", 560, 1520, 1.0); put(c, "faros", 560, 1440, 1.2)
-    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(gl)
-    for x in (360, 760): gd.ellipse((x - 260, 1280, x + 260, 1620), fill=(255, 250, 220, 170))
-    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(50)))
-    put(c, "nitro", 830, 1250, .62)
+    put(c, "nitro", 830, 1230, .6)
+    coche_faros(c, 680, 1530, .8, 1.0)
     titulo(c); pregunta(c, "NITRO:", "¿VILLANO O VÍCTIMA?")
     return c, lambda c: mock_poll(c, 800, "VILLANO", "VÍCTIMA")
 

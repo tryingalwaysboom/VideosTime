@@ -3,6 +3,7 @@ Uso: python3 ep3.py still 10 20 | python3 ep3.py scenes | python3 ep3.py mix | p
 import os, sys, math
 os.environ["GUION"] = "guion3"; os.environ["VOZDIR"] = "voz3"
 import render as R
+from luces import coche_faros
 from render import (Image, ImageDraw, ImageFilter, W, H, bg, put, scaled, text, panel, stamp, ficha, etiqueta, dust,
                     neon_flicker, mouth, dark, ease, clamp, popscale, euros, S, E, WT, YEL, RED, WHITE, OL,
                     CYAN, MAG, GRIS, F_UI, F_ANTON)
@@ -426,19 +427,15 @@ def sc_nitro(T):
     s0 = S("F18"); s19 = S("F19"); tf = WT("F19", "faros")
     c = bg("bg_poligono", T, s0, 1.35, 1.42, 8, .5, .95); dark(c, 100)
     rev = 5 * math.sin(T * 60) if T >= WT("F19", "ruge.") else 0
-    put(c, "coche_negro", 560 + rev, 1530, 1.0)
-    llamas(c, T, WT("F19", "ruge.") + .05, 560 + 470, 1615, 3, .22)
+    uf = ease(clamp((T - tf) / .2)) if T >= tf else 0
+    coche_faros(c, 700, 1230, .8, uf, rev=rev)          # morro a la izquierda: el faro sale del morro
+    llamas(c, T, WT("F19", "ruge.") + .05, 700 + 376, 1298, 3, .22, .8)
     nx, ny = 420, 900 + 3 * math.sin(T * 1.8)
     if T < s19 + .2:
         put(c, "nitro", nx, ny, .95); mouth(c, nx + 11, ny + 23, T, talk("F18", T), 22)
         if T >= WT("F18", "robó"): etiqueta(c, T, WT("F18", "robó"), "\"RUBÉN ME ROBÓ ALGO\"", 540, 420, RED, WHITE, 42)
         if T >= WT("F18", "cobro."): stamp(c, T, WT("F18", "cobro."), "ME LO COBRO", 540, 580, YEL, -6, 90)
     if T >= tf:   # faros de golpe
-        u = ease(clamp((T - tf) / .2))
-        put(c, "faros", 560, 1450, 1.2 * u + .01, alpha=u)
-        glare = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(glare)
-        for x in (360, 760): gd.ellipse((x - 260, 1260, x + 260, 1600), fill=(255, 250, 220, int(200 * u)))
-        c.alpha_composite(glare.filter(ImageFilter.GaussianBlur(50)))
         if T - tf < .15: tinte(c, (255, 255, 240), 200 * (1 - (T - tf) / .15))
         if T >= WT("F19", "apuntan"): stamp(c, T, WT("F19", "apuntan"), "OS APUNTAN", 540, 600, RED, -6, 100)
     return c
@@ -471,10 +468,8 @@ def _lado(name):
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 40, 90, 60)))
     else:   # enfrentarse a Nitro ante los faros
         A = bg("bg_poligono", 0, 0, 1.35, 1.35, 1, .5, .95).convert("RGBA"); dark(A, 90)
-        put(A, "coche_negro", 790, 1480, .85); put(A, "faros", 790, 1420, 1.0)
-        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).ellipse((500, 1250, 1080, 1600), fill=(255, 250, 220, 160))
-        A.alpha_composite(gl.filter(ImageFilter.GaussianBlur(50)))
-        put(A, "nitro", 820, 960, .7)
+        coche_faros(A, 600, 1480, .62, 1.0, flip=True, largo=600)   # morro a la derecha, el haz cruza su lado
+        put(A, "nitro", 860, 1000, .62)
         A.alpha_composite(Image.new("RGBA", (W, H), (60, 10, 50, 60)))
     _LC[name] = A
     return A

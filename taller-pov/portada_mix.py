@@ -2,6 +2,7 @@
 import os, math
 import ep3
 import portada as P
+from luces import coche_faros
 r = ep3.R
 from render import Image, ImageDraw, ImageFilter, W, H, bg, put, dark, scaled, CYAN, MAG
 
@@ -31,11 +32,7 @@ def centro2(c):   # Parte 2: la persiana bajando delante de Nitro
 
 def centro3(c):   # Parte 3: los faros de Nitro en el polígono, delante de la Nave 7
     c.alpha_composite(bg("bg_poligono", 0, 0, 1.3, 1.3, 1, .5, .62)); dark(c, 90)
-    put(c, "coche_negro", 540, 1060, .72)
-    put(c, "faros", 540, 1000, .9)
-    gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(gl)
-    for x in (390, 690): gd.ellipse((x - 200, 880, x + 200, 1150), fill=(255, 250, 220, 190))
-    c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(45)))
+    coche_faros(c, 640, 1060, .85, 1.0, largo=760)
     glow(c, [((-100, 1150, 1180, 1500), CYAN + (70,))])
 
 def portada_mix(n, centro, out):
