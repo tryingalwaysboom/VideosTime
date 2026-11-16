@@ -62,10 +62,10 @@ def titulo(c, s, col1, col2, glowcol, y=1170):
     c.alpha_composite(sh, (0, y - 130))
     txt = Image.new("RGBA", (CW, 260), (0, 0, 0, 0)); txt.paste(gr, (0, 0), m); c.alpha_composite(txt, (0, y - 130))
 
-def chip(c, n, col, y=1320):
-    d = ImageDraw.Draw(c); s = f"PARTE {n}"; f = r.font(F_ANTON, 64)
-    w = d.textlength(s, font=f) + 80
-    d.rounded_rectangle((540 - w / 2, y - 46, 540 + w / 2, y + 46), 46, fill=col, outline=OL, width=5)
+def chip(c, n, col, y=1318):
+    d = ImageDraw.Draw(c); s = f"PARTE {n}"; f = r.font(F_ANTON, 80)
+    w = d.textlength(s, font=f) + 90
+    d.rounded_rectangle((540 - w / 2, y - 56, 540 + w / 2, y + 56), 56, fill=col, outline=OL, width=5)
     d.text((540, y + 2), s, font=f, fill=OL, anchor="mm")
 
 def bloom(c, thr=200, k=.55):
@@ -148,6 +148,8 @@ if __name__ == "__main__":
     grid.save(os.path.join(r.HERE, "perfil_ejemplo_pro.jpg"), quality=92)
     print("ok")
 
+SUBE = 80   # sube todo el diseño dentro de la zona que muestra la cuadrícula
+
 def a_916(path34, bgname, fx, fy, out):
     """Pasa la portada 3:4 a 9:16 (1080x1920) para Instagram: la cuadrícula del perfil recorta justo el centro 3:4,
     así que el diseño queda entero y arriba/abajo se rellena con el mismo fondo desenfocado."""
@@ -156,5 +158,5 @@ def a_916(path34, bgname, fx, fy, out):
     m = Image.new("L", im.size, 255); md = ImageDraw.Draw(m)
     for i in range(90):   # fundido suave arriba y abajo
         a = int(255 * i / 90); md.line((0, i, CW, i), fill=a); md.line((0, CH - 1 - i, CW, CH - 1 - i), fill=a)
-    full.paste(im, (0, 240), m)
+    full.paste(im, (0, 240 - SUBE), m)
     full.convert("RGB").save(out, quality=94)
