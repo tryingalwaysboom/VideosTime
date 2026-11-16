@@ -9,7 +9,7 @@ from render import Image, ImageDraw, ImageFilter, put, scaled, bg, dark, text, Y
 
 CW, CH = 1080, 1440
 
-def lienzo(name, z=1.2, fx=.5, fy=.55, d=150, blur=7):
+def lienzo(name, z=1.2, fx=.5, fy=.55, d=150, blur=4):
     c = bg(name, 0, 0, z, z, 1, fx, fy).crop((0, 240, 1080, 1680)).filter(ImageFilter.GaussianBlur(blur)); dark(c, d); return c
 
 def grade(c, top, bottom, a=110):
@@ -68,7 +68,7 @@ def chip(c, n, col, y=1318):
     d.rounded_rectangle((540 - w / 2, y - 56, 540 + w / 2, y + 56), 56, fill=col, outline=OL, width=5)
     d.text((540, y + 2), s, font=f, fill=OL, anchor="mm")
 
-def bloom(c, thr=200, k=.55):
+def bloom(c, thr=210, k=.35):
     lum = c.convert("L").point(lambda v: 255 if v > thr else 0)
     br = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); br.paste(c, (0, 0), lum)
     br = br.filter(ImageFilter.GaussianBlur(26)); br.putalpha(br.getchannel("A").point(lambda v: int(v * k)))
@@ -79,10 +79,10 @@ def acabado(c, seed):
     v = v.filter(ImageFilter.GaussianBlur(160)); sh = Image.new("RGBA", (CW, CH), (0, 0, 0, 230)); sh.putalpha(v.point(lambda p: 230 - int(p * .9)))
     c.alpha_composite(sh)
     rnd = random.Random(seed); g = Image.new("L", (CW // 2, CH // 2)); g.putdata([rnd.randint(0, 255) for _ in range(CW * CH // 4)])
-    gr = Image.new("RGBA", (CW, CH), (255, 255, 255, 0)); gr.putalpha(g.resize((CW, CH)).point(lambda p: int(p * .06))); c.alpha_composite(gr)
+    gr = Image.new("RGBA", (CW, CH), (255, 255, 255, 0)); gr.putalpha(g.resize((CW, CH)).point(lambda p: int(p * .025))); c.alpha_composite(gr)
 
 def p1():
-    c = lienzo("bg_taller", 1.3, .5, .62, 170, 9); grade(c, (40, 10, 70), (120, 20, 90), 90)
+    c = lienzo("bg_taller", 1.3, .5, .62, 170, 5); grade(c, (40, 10, 70), (120, 20, 90), 90)
     rayos(c, 540, -60, (255, 230, 190), 7, 40, .9)
     glow(c, [((60, 480, 1020, 1000), (255, 220, 170, 90)), ((-140, 880, 1220, 1180), MAG + (150,)), ((200, 940, 880, 1080), CYAN + (90,))])
     car = scaled("deportivo", .96).rotate(-2, resample=Image.BICUBIC, expand=True)
@@ -142,7 +142,7 @@ def p3():
 if __name__ == "__main__":
     outs = []
     for n, f in ((1, p1), (2, p2), (3, p3)):
-        p = os.path.join(r.HERE, f"portada_pro_parte{n}.jpg"); f().convert("RGB").save(p, quality=94); outs.append(p)
+        p = os.path.join(r.HERE, f"portada_pro_parte{n}.jpg"); f().convert("RGB").filter(ImageFilter.UnsharpMask(1.2, 60, 2)).save(p, quality=100, subsampling=0); outs.append(p)
     grid = Image.new("RGB", (3 * 360 + 8, 480), (255, 255, 255))
     for i, p in enumerate(reversed(outs)): grid.paste(Image.open(p).resize((360, 480)), (i * 364, 0))
     grid.save(os.path.join(r.HERE, "perfil_ejemplo_pro.jpg"), quality=92)
@@ -159,4 +159,4 @@ def a_916(path34, bgname, fx, fy, out):
     for i in range(90):   # fundido suave arriba y abajo
         a = int(255 * i / 90); md.line((0, i, CW, i), fill=a); md.line((0, CH - 1 - i, CW, CH - 1 - i), fill=a)
     full.paste(im, (0, 240 - SUBE), m)
-    full.convert("RGB").save(out, quality=94)
+    full.convert("RGB").save(out, quality=100, subsampling=0)
