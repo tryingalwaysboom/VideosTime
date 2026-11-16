@@ -9,8 +9,8 @@ from render import Image, ImageDraw, ImageFilter, put, scaled, bg, dark, text, Y
 
 CW, CH = 1080, 1440
 
-def lienzo(name, z=1.2, fx=.5, fy=.55, d=150):
-    c = bg(name, 0, 0, z, z, 1, fx, fy).crop((0, 240, 1080, 1680)); dark(c, d); return c
+def lienzo(name, z=1.2, fx=.5, fy=.55, d=150, blur=7):
+    c = bg(name, 0, 0, z, z, 1, fx, fy).crop((0, 240, 1080, 1680)).filter(ImageFilter.GaussianBlur(blur)); dark(c, d); return c
 
 def grade(c, top, bottom, a=110):
     """Gradiente de color (tono cinematográfico) de arriba a abajo."""
@@ -55,6 +55,9 @@ def titulo(c, s, col1, col2, glowcol, y=1170):
         k = yy / 260; gd.line((0, yy, CW, yy), fill=tuple(int(col1[i] * (1 - k) + col2[i] * k) for i in range(3)) + (255,))
     halo = Image.new("RGBA", (CW, 260), (0, 0, 0, 0)); ImageDraw.Draw(halo).text((540, 130), s, font=f, anchor="mm", fill=glowcol + (230,), stroke_width=14, stroke_fill=glowcol + (230,))
     c.alpha_composite(halo.filter(ImageFilter.GaussianBlur(22)), (0, y - 130))
+    for k in range(14, 0, -2):   # extrusión 3D
+        sh = Image.new("RGBA", (CW, 260), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((540, 130), s, font=f, anchor="mm", fill=(20, 12, 30), stroke_width=10, stroke_fill=(20, 12, 30))
+        c.alpha_composite(sh, (k // 2, y - 130 + k))
     sh = Image.new("RGBA", (CW, 260), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((540, 130), s, font=f, anchor="mm", fill=OL, stroke_width=12, stroke_fill=OL)
     c.alpha_composite(sh, (0, y - 130))
     txt = Image.new("RGBA", (CW, 260), (0, 0, 0, 0)); txt.paste(gr, (0, 0), m); c.alpha_composite(txt, (0, y - 130))
@@ -65,6 +68,12 @@ def chip(c, n, col, y=1320):
     d.rounded_rectangle((540 - w / 2, y - 46, 540 + w / 2, y + 46), 46, fill=col, outline=OL, width=5)
     d.text((540, y + 2), s, font=f, fill=OL, anchor="mm")
 
+def bloom(c, thr=200, k=.55):
+    lum = c.convert("L").point(lambda v: 255 if v > thr else 0)
+    br = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); br.paste(c, (0, 0), lum)
+    br = br.filter(ImageFilter.GaussianBlur(26)); br.putalpha(br.getchannel("A").point(lambda v: int(v * k)))
+    c.alpha_composite(br)
+
 def acabado(c, seed):
     v = Image.new("L", (CW, CH), 0); ImageDraw.Draw(v).ellipse((-260, -200, CW + 260, CH + 260), fill=255)
     v = v.filter(ImageFilter.GaussianBlur(160)); sh = Image.new("RGBA", (CW, CH), (0, 0, 0, 230)); sh.putalpha(v.point(lambda p: 230 - int(p * .9)))
@@ -73,22 +82,21 @@ def acabado(c, seed):
     gr = Image.new("RGBA", (CW, CH), (255, 255, 255, 0)); gr.putalpha(g.resize((CW, CH)).point(lambda p: int(p * .06))); c.alpha_composite(gr)
 
 def p1():
-    c = lienzo("bg_taller", 1.3, .5, .62, 170); grade(c, (40, 10, 70), (120, 20, 90), 90)
-    numero(c, 1, MAG)
-    rayos(c, 540, -60, (255, 230, 190), 7, 34, .9)
-    glow(c, [((80, 520, 1000, 1020), (255, 220, 170, 80)), ((-100, 850, 1180, 1200), MAG + (110,))])
-    car = scaled("deportivo", .92).rotate(-3, resample=Image.BICUBIC, expand=True)
-    ref = car.transpose(Image.FLIP_TOP_BOTTOM); ref.putalpha(ref.getchannel("A").point(lambda v: int(v * .22)))
-    c.alpha_composite(ref, (540 - ref.width // 2, 870 - 60))
+    c = lienzo("bg_taller", 1.3, .5, .62, 170, 9); grade(c, (40, 10, 70), (120, 20, 90), 90)
+    rayos(c, 540, -60, (255, 230, 190), 7, 40, .9)
+    glow(c, [((60, 480, 1020, 1000), (255, 220, 170, 90)), ((-140, 880, 1220, 1180), MAG + (150,)), ((200, 940, 880, 1080), CYAN + (90,))])
+    car = scaled("deportivo", .96).rotate(-2, resample=Image.BICUBIC, expand=True)
+    ref = car.transpose(Image.FLIP_TOP_BOTTOM); ref.putalpha(ref.getchannel("A").point(lambda v: int(v * .25)))
+    c.alpha_composite(ref.filter(ImageFilter.GaussianBlur(3)), (540 - ref.width // 2, 860 - 70))
     c.alpha_composite(car, (540 - car.width // 2, 760 - car.height // 2))
-    put(c, "lona", 700, 700, .72, rot=-10)
+    put(c, "lona", 790, 700, .48, rot=-14)
     polvo(c, 1)
+    bloom(c)
     titulo(c, "LA HERENCIA", (255, 245, 220), (242, 190, 60), MAG)
     chip(c, 1, YEL); acabado(c, 1); return c
 
 def p2():
     c = lienzo("bg_fachada", 1.15, .5, .7, 120); grade(c, (60, 0, 10), (150, 30, 20), 110)
-    numero(c, 2, RED)
     pers = scaled("persiana", 1.25)
     c.alpha_composite(Image.new("RGBA", (pers.width, pers.height), (8, 6, 10, 255)), (540 - pers.width // 2, 250))
     h = int(pers.height * .62); c.alpha_composite(pers.crop((0, pers.height - h, pers.width, pers.height)), (540 - pers.width // 2, 250))
@@ -100,12 +108,12 @@ def p2():
     c.alpha_composite(sil, (540 - ni.width // 2, 640 - ni.height // 2))
     rayos(c, 540, 1080, (255, 170, 110), 9, 30, 1.6, -math.pi / 2)
     polvo(c, 2, (255, 200, 170))
+    bloom(c)
     titulo(c, "PERSIANA ABAJO", (255, 240, 225), (255, 120, 80), RED)
     chip(c, 2, YEL); acabado(c, 2); return c
 
 def p3():
     c = lienzo("bg_poligono", 1.5, .5, .5, 170); grade(c, (5, 25, 50), (60, 40, 10), 100)
-    numero(c, 3, CYAN)
     glow(c, [((120, 260, 960, 1000), (255, 200, 110, 120))])
     rayos(c, 540, 330, (255, 220, 150), 12, 26, 6.2, 0)
     lay = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
@@ -127,6 +135,7 @@ def p3():
     ep3.ep_chispas(c, .25, 0, ox - 120, T_(0, 640)[1], n=40, dur=.6)
     ep3.ep_chispas(c, .18, 0, ox + 110, T_(0, 640)[1], n=30, dur=.5)
     polvo(c, 3, (255, 230, 170))
+    bloom(c)
     titulo(c, "NAVE 7", (255, 250, 230), (255, 190, 80), (255, 170, 60))
     chip(c, 3, YEL); acabado(c, 3); return c
 
