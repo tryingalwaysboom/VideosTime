@@ -201,6 +201,12 @@ def _mateo_cabeza():
     return b
 
 def _cejas(kind):
+    if kind == "travieso":
+        return ('<path d="M292 380 Q334 366 378 380" stroke="#2f1c12" stroke-width="14" fill="none" stroke-linecap="round"/>'
+                '<path d="M508 344 Q466 328 422 352" stroke="#2f1c12" stroke-width="14" fill="none" stroke-linecap="round"/>')
+    if kind == "feliz":
+        return ('<path d="M292 362 Q334 334 378 352" stroke="#2f1c12" stroke-width="14" fill="none" stroke-linecap="round"/>'
+                '<path d="M508 362 Q466 334 422 352" stroke="#2f1c12" stroke-width="14" fill="none" stroke-linecap="round"/>')
     if kind == "enojado":
         return ('<path d="M290 360 L380 394" stroke="#2f1c12" stroke-width="16" stroke-linecap="round"/>'
                 '<path d="M510 360 L420 394" stroke="#2f1c12" stroke-width="16" stroke-linecap="round"/>')
@@ -211,6 +217,14 @@ def _cejas(kind):
             '<path d="M508 372 Q466 346 422 362" stroke="#2f1c12" stroke-width="14" fill="none" stroke-linecap="round"/>')
 
 def _ojos(kind):
+    if kind == "feliz":   # ojos cerrados de risa (arcos hacia arriba)
+        return ('<path d="M300 440 Q336 404 372 440" stroke="#1d1630" stroke-width="10" fill="none" stroke-linecap="round"/>'
+                '<path d="M428 440 Q464 404 500 440" stroke="#1d1630" stroke-width="10" fill="none" stroke-linecap="round"/>'
+                '<ellipse cx="290" cy="520" rx="50" ry="28" fill="#f2707a" opacity="0.5"/><ellipse cx="510" cy="520" rx="50" ry="28" fill="#f2707a" opacity="0.5"/>')
+    if kind == "travieso":   # un ojo entrecerrado, mirada pícara
+        return (eye(336, 436, 21, 0.3) +
+                f'<ellipse cx="464" cy="436" rx="32" ry="28" fill="#fff" stroke="{OL}" stroke-width="4"/><circle cx="472" cy="436" r="21" fill="#4a3424"/><circle cx="472" cy="436" r="11" fill="{OL}"/><circle cx="480" cy="428" r="6" fill="#fff"/>'
+                '<path d="M300 420 L372 428" stroke="#f3c29b" stroke-width="20"/>')
     if kind == "llora":   # ojos apretados con lagrimones
         b = ('<path d="M298 430 Q336 412 372 432" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/>'
              '<path d="M428 432 Q464 412 502 430" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/>')
@@ -238,9 +252,22 @@ def _boca(kind):
         "llora": '<path d="M346 544 Q400 520 454 544 Q446 612 400 616 Q354 612 346 544Z" fill="#7a1e2c" stroke="#1d1630" stroke-width="8"/><path d="M366 590 Q400 572 434 590 Q420 610 400 610 Q380 610 366 590Z" fill="#e2707a"/>',
         "triste": '<path d="M360 574 Q380 556 400 566 Q420 556 440 574" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/>',
         "timido": '<path d="M372 556 Q400 574 428 556" stroke="#1d1630" stroke-width="8" fill="none" stroke-linecap="round"/>',
+        "feliz": '<path d="M340 540 Q400 548 460 540 Q450 616 400 620 Q350 616 340 540Z" fill="#7a1e2c" stroke="#1d1630" stroke-width="8"/><path d="M350 544 Q400 552 450 544 L446 562 Q400 568 354 562Z" fill="#ffffff"/><path d="M370 600 Q400 584 430 600 Q416 616 400 616 Q384 616 370 600Z" fill="#e2707a"/>',
+        "travieso": '<path d="M358 560 Q410 590 450 548" stroke="#1d1630" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M436 552 L452 544" stroke="#1d1630" stroke-width="8" stroke-linecap="round"/>',
     }[kind]
 
-def _brazo_lapiz():
+def _crayola_diag(x0, y0, x1, y1, w=50):
+    """Crayola verde gruesa de (x0,y0) (base) a (x1,y1) (punta)."""
+    import math as m
+    dx, dy = x1 - x0, y1 - y0; L = m.hypot(dx, dy); ux, uy = dx / L, dy / L; nx, ny = -uy * w / 2, ux * w / 2
+    a = (x0, y0); b = (x0 + ux * (L - 60), y0 + uy * (L - 60))
+    body = f"M{a[0]+nx:.1f} {a[1]+ny:.1f} L{b[0]+nx:.1f} {b[1]+ny:.1f} L{x1:.1f} {y1:.1f} L{b[0]-nx:.1f} {b[1]-ny:.1f} L{a[0]-nx:.1f} {a[1]-ny:.1f}Z"
+    out = cel(f'<path d="{body}"/>', "#3fae4a", "#2c8236", "#6fd078", -6, -6, 6)
+    m1 = (x0 + ux * L * .3, y0 + uy * L * .3); m2 = (x0 + ux * L * .62, y0 + uy * L * .62)
+    out += f'<path d="M{m1[0]+nx:.1f} {m1[1]+ny:.1f} L{m1[0]-nx:.1f} {m1[1]-ny:.1f} L{m2[0]-nx:.1f} {m2[1]-ny:.1f} L{m2[0]+nx:.1f} {m2[1]+ny:.1f}Z" fill="#f6efe2" stroke="#1d1630" stroke-width="4"/>'
+    return out
+
+def _brazo_lapiz(crayola=False):
     """Brazo derecho doblado: codo abajo, puño delante del pecho apretando el lápiz (punta arriba)."""
     def tubo(d, w, col):
         return (f'<path d="{d}" stroke="{OL}" stroke-width="{w + 14}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
@@ -248,20 +275,20 @@ def _brazo_lapiz():
     b = tubo("M680 880 L712 1010 L620 900", 58, SK)                      # brazo y antebrazo
     b += f'<path d="M680 880 L712 1010 L620 900" stroke="{SK}" stroke-width="58" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
     b += cel('<path d="M596 772 Q700 780 718 860 L726 930 L650 950 L624 880Z"/>', TEE, TEES, None, -10, 0, 7)   # manga corta
-    b += _lapiz_diag(585, 1010, 650, 560, 46)
+    b += _crayola_diag(590, 960, 640, 640, 52) if crayola else _lapiz_diag(585, 1010, 650, 560, 46)
     b += cel('<path d="M572 900 Q560 830 620 818 Q690 812 694 872 Q700 940 640 948 Q590 952 572 900Z"/>', SK, SKS, SKH, -10, -8, 7)
     for (x, y) in ((584, 842), (586, 876), (594, 910)):
         b += cel(f'<ellipse cx="{x}" cy="{y}" rx="30" ry="20"/>', SK, SKS, None, -4, -4, 5)
     return b
 
-def mateo(kind="neutral", hablando=False, lapiz=False):
+def mateo(kind="neutral", hablando=False, lapiz=False, crayola=False):
     """Mateo, 5 años y medio. hablando=True deja la boca vacía para animarla en el montaje (centro 400,560)."""
     h = _mateo_cabeza() + _cejas(kind) + _ojos(kind)
     if not hablando: h += _boca(kind)
     # cabeza grande de niño pequeño (boca hablando en 400,606)
-    cuerpo = _mateo_cuerpo(lapiz)   # con lápiz: sin el brazo derecho estirado (va doblado)
+    cuerpo = _mateo_cuerpo(lapiz or crayola)   # con lápiz: sin el brazo derecho estirado (va doblado)
     b = cuerpo + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>'
-    if lapiz: b += _brazo_lapiz()
+    if lapiz or crayola: b += _brazo_lapiz(crayola)
     return svg(800, 1900, b)
 
 def abuela(hablando=False):
@@ -468,10 +495,50 @@ def manos_movil(capa):
             b += f'<ellipse cx="{X(338)}" cy="1448" rx="14" ry="10" fill="#f6d8c8" stroke="{OL}" stroke-width="3"/>'
     return svg(1080, 1920, b)
 
+def bg_sala():
+    """Sala de estar: pared crema lisa (para la pintada de REX), sofá, lámpara, cuadro torcido."""
+    d = sky("ws", [(0, "#f7e3c4"), (1, "#ecc99c")])
+    d += '<radialGradient id="lmp" cx="0.82" cy="0.3" r="0.6"><stop offset="0" stop-color="#fff2c8" stop-opacity="0.55"/><stop offset="1" stop-color="#fff2c8" stop-opacity="0"/></radialGradient>'
+    b = '<rect width="1080" height="1920" fill="url(#ws)"/>'
+    for x in range(0, 1080, 90): b += f'<rect x="{x}" y="0" width="45" height="1300" fill="#f1d8b2" opacity="0.35"/>'
+    b += cel('<rect x="760" y="300" width="230" height="170" rx="8" transform="rotate(4 875 385)"/>', "#9a6538", "#7a4a24", None, -8, 0, 7)
+    b += '<rect x="782" y="322" width="186" height="126" fill="#8fc0e8" transform="rotate(4 875 385)"/><path d="M790 440 L850 380 L890 420 L930 370 L966 440Z" fill="#5f9455" transform="rotate(4 875 385)"/>'
+    b += f'<rect x="900" y="560" width="14" height="760" fill="#7a5a3a" stroke="{OL}" stroke-width="4"/>'
+    b += cel('<path d="M840 560 L974 560 L944 470 L870 470Z"/>', "#f2c84b", "#d1a532", None, -8, 0, 6)
+    b += '<rect x="0" y="1300" width="1080" height="30" fill="#f6efe2"/>'
+    b += '<rect x="0" y="1330" width="1080" height="600" fill="#b98a5c"/>'
+    for y in range(1330, 1920, 80): b += f'<path d="M0 {y} L1080 {y}" stroke="#9d7148" stroke-width="4"/>'
+    b += cel('<rect x="-40" y="1080" width="760" height="330" rx="60"/>', "#6a8fc7", "#4f72a8", "#86a8da", -18, -10, 8)
+    b += cel('<rect x="-40" y="980" width="760" height="170" rx="50"/>', "#5b80b8", "#456aa0", None, -10, 0, 7)
+    b += cel('<ellipse cx="130" cy="1080" rx="110" ry="80"/>', "#f2c84b", "#d1a532", None, -8, -6, 6)
+    b += '<rect width="1080" height="1920" fill="url(#lmp)"/>'
+    return svg(1080, 1920, b, d)
+
+def cereal():
+    b = cel('<path d="M140 120 L620 90 L640 900 L160 920Z"/>', "#f2a53c", "#d1852a", "#fbc46a", -18, 0, 8)
+    b += '<rect x="200" y="160" width="380" height="140" rx="20" fill="#e2483b" stroke="#1d1630" stroke-width="6" transform="rotate(-3 390 230)"/>'
+    b += '<text x="390" y="262" font-family="Anton" font-size="96" text-anchor="middle" fill="#fff" transform="rotate(-3 390 230)">CHOCO</text>'
+    b += '<circle cx="300" cy="560" r="70" fill="#7a4a24" stroke="#1d1630" stroke-width="6"/><circle cx="450" cy="620" r="60" fill="#7a4a24" stroke="#1d1630" stroke-width="6"/><circle cx="380" cy="470" r="50" fill="#7a4a24" stroke="#1d1630" stroke-width="6"/>'
+    return svg(780, 1000, b)
+
+def dibujo():
+    """El dibujo de Mateo para la exposición: el Rex bajo un sol, con REX firmado abajo."""
+    b = '<rect x="20" y="20" width="840" height="620" rx="8" fill="#fffef8" stroke="#1d1630" stroke-width="7" filter="url(#drop)"/>'
+    b += '<circle cx="720" cy="140" r="70" fill="#f8d24a" stroke="#e6a92a" stroke-width="8"/>'
+    for k in range(8):
+        import math as m; a = k * m.pi / 4
+        b += f'<path d="M{720+95*m.cos(a):.0f} {140+95*m.sin(a):.0f} L{720+130*m.cos(a):.0f} {140+130*m.sin(a):.0f}" stroke="#e6a92a" stroke-width="10" stroke-linecap="round"/>'
+    b += '<path d="M60 520 Q440 470 820 520" stroke="#5fb05a" stroke-width="16" fill="none"/>'
+    b += ('<path d="M180 470 Q200 330 330 340 Q370 250 440 262 Q500 276 480 320 L450 328 Q480 420 410 470 L405 520 M260 470 L262 520 M180 470 Q120 450 110 400" '
+          'stroke="#3fae4a" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
+    b += '<circle cx="452" cy="296" r="9" fill="#1d1630"/>'
+    for k in range(4): b += f'<path d="M{300+k*36} 345 l14 -30 l14 30" stroke="#e6a92a" stroke-width="10" fill="none"/>'
+    return svg(880, 660, b)
+
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
-          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
+          "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "lapiz_v": lapiz_v, "bg_sala": bg_sala, "cereal": cereal, "dibujo": dibujo, "mateo_feliz_crayola": lambda: mateo("feliz", False, False, True), "mateo_neutral_crayola": lambda: mateo("neutral", False, False, True), "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
           "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
-for k in ("neutral", "enojado", "llora", "triste", "timido"):
+for k in ("neutral", "enojado", "llora", "triste", "timido", "feliz", "travieso"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)
     LAYERS["mateo_" + k + "_hab"] = (lambda kk: (lambda: mateo(kk, True)))(k)
 
