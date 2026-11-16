@@ -1,1 +1,1 @@
-taller_sfx/p4_nitro_arranca.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/HOnovSrvIxxIpS2sJWmq/yh0n6fDcvyfXz5Vg13HA/content.mp3?Expires=1794841200&KeyName=assets-cdn-key-1&Signature=rUFPtnHUCnE3GR2mAtuiR4AFKrA=
+taller_story4/voz.mp3 https://elevenlabsusercontent.com/database/workspace/1d548972a5334c7590827742fd83bc4b/content_generation/nHsO7Dk8xdzzgNSGTfM7/oV35gSQNxqn9f4pRP2NY/content.mp3?Expires=1794841200&KeyName=assets-cdn-key-1&Signature=Qw518RhxlK2DNDsFOo0ev6vmZzQ=
