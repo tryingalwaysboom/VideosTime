@@ -600,3 +600,10 @@ def plate_op_tapiar():
     d.line((560, 1220, 440, 1300), fill=(120, 80, 40), width=34)
     d.line((300, 1100, 520, 900), fill=(150, 100, 50), width=30); d.polygon([(470, 860), (580, 920), (560, 960), (450, 900)], fill=(70, 72, 80))
     return im
+
+# fachada detallada (casa_hd) sustituye a la versión simple
+_plate_casa_simple = plate_casa
+@lru_cache(1)
+def plate_casa():
+    import casa_hd
+    return casa_hd.plate_casa_hd()
