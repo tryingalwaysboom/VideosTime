@@ -17,6 +17,7 @@ RAW = [
  ("G07","X","[tense] ¿Proteger? Hay una deuda de sesenta y cuatro mil euros."),
  ("G08","N","El padre de Lucía deja una llave oxidada sobre el banco."),
  ("G09","P","[serious] Esa deuda no es de Rubén. Es de quien os persigue desde el noventa y seis."),
+ ("G09B","N","¿Quién manda a esos tres hombres? Deja tu teoría: la más votada sale en el próximo vídeo."),
  ("G10","N","Fuera, unos faros se encienden. Tres coches frenan en seco."),
  ("G11","P","[urgent] Son ellos. Han venido a por el contrato."),
  ("G12","X","[tense] Pues que vengan. El contrato lo tengo yo."),

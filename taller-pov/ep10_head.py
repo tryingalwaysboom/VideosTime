@@ -11,7 +11,7 @@ import persp as P
 import ep_comun as C
 from ep_comun import linterna, humo, llamas, tinte, confeti, barra_voto, ep_chispas, AZ
 
-R.GAP.update({"G01": 0, "G02": .05, "G03": .06, "G04": .08, "G05": .08, "G06": .08, "G07": .05, "G08": .08, "G09": .08, "G10": .06, "G11": .05, "G12": .06, "G13": .12, "G14": .12, "G15": .1, "G16": .3})
+R.GAP.update({"G01": 0, "G02": .05, "G03": .06, "G04": .08, "G05": .08, "G06": .08, "G07": .05, "G08": .08, "G09": .08, "G09B": .1, "G10": .06, "G11": .05, "G12": .06, "G13": .12, "G14": .12, "G15": .1, "G16": .3})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL = R.TL['G16'][1] + .25
 R.CH = R.chunks()

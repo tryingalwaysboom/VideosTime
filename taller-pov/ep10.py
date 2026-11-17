@@ -11,7 +11,7 @@ import persp as P
 import ep_comun as C
 from ep_comun import linterna, humo, llamas, tinte, confeti, barra_voto, ep_chispas, AZ
 
-R.GAP.update({"G01": 0, "G02": .05, "G03": .06, "G04": .08, "G05": .08, "G06": .08, "G07": .05, "G08": .08, "G09": .08, "G10": .06, "G11": .05, "G12": .06, "G13": .12, "G14": .12, "G15": .1, "G16": .3})
+R.GAP.update({"G01": 0, "G02": .05, "G03": .06, "G04": .08, "G05": .08, "G06": .08, "G07": .05, "G08": .08, "G09": .08, "G09B": .1, "G10": .06, "G11": .05, "G12": .06, "G13": .12, "G14": .12, "G15": .1, "G16": .3})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL = R.TL['G16'][1] + .25
 R.CH = R.chunks()
@@ -1909,6 +1909,13 @@ def mensaje(c, T, t0, t1, user, txt):
         big = lay.resize((max(1, int(W * k)), max(1, int(H * k))), Image.BILINEAR); ox, oy = int(cx - cx * k), int(cy - cy * k)
         lay = blank(); lay.alpha_composite(big, (max(0, ox), max(0, oy)), (max(0, -ox), max(0, -oy)))
     c.alpha_composite(lay)
+    pl = blank(); pd = ImageDraw.Draw(pl)
+    pd.rounded_rectangle((200, 950, 880, 1016), 33, fill=(255, 214, 60, 245), outline=OL, width=5)
+    pd.text((540, 984), "COMENTARIO DESTACADO · PARTE 9", font=R.font(F_ANTON, 32), fill=OL, anchor="mm")
+    if abs(k - 1) > .01:
+        big = pl.resize((max(1, int(W * k)), max(1, int(H * k))), Image.BILINEAR); ox, oy = int(540 - 540 * k), int(980 - 980 * k)
+        pl = blank(); pl.alpha_composite(big, (max(0, ox), max(0, oy)), (max(0, -ox), max(0, -oy)))
+    c.alpha_composite(pl)
 
 # ---- 1. la patada (frame 0 ya es acción)
 def s_patada(T, t0, dur):
@@ -2039,6 +2046,17 @@ def s_del96(T, t0, dur):
     tx(c, T, WT("G09", "noventa"), "DESDE EL 96", 400, RED, -4, 110)
     return c
 
+# ---- 9b. pide teoría
+def s_teoria(T, t0, dur):
+    c, pr = nave_c(830, 0); dark(c, 150); tinte(c, (90, 0, 20), 75)
+    glow(c, (60, 500, 1020, 1800), (255, 80, 60), 110, 110)
+    k = ease(clamp((T - t0) / dur))
+    for x, z in ((-.9, 5.0), (.1, 4.2 - .4 * k), (1.0, 5.0)): sil(c, pr, "padre_full", x, z, 2.1, (4, 4, 8))
+    c = cam(c, T, t0, dur, 1.0, 1.15, .5, .4); vineta(c, 230)
+    tx(c, T, S("G09B") + .1, "¿QUIÉN LOS MANDA?", 400, RED, -4, 98)
+    et(c, T, WT("G09B", "teoría:") - .05, "TU TEORÍA, EN COMENTARIOS", 560, YEL, 42)
+    return c
+
 # ---- 10. faros fuera
 def s_faros(T, t0, dur):
     c = fachada(T, t0, dur, 1.0, 1.1, 1.25); dark(c, 40); tn = WT("G10", "coches")
@@ -2133,7 +2151,7 @@ def s_split10(T, t0, dur):
             c.alpha_composite(lay)
     return c
 
-AV6[:] = [S("G09") + .2]
+AV6[:] = []
 def aviso6(c, T):
     for t0 in AV6:
         if not (t0 <= T < t0 + 5.0): continue
@@ -2177,7 +2195,7 @@ add(0, s_patada)
 A_("G02", s_grito)
 A_("G03", s_sombrero); W_("G03", "sonríe", s_sonrie, -.05)
 A_("G04", s_tarde); A_("G05", s_lucia10); A_("G06", s_pacto); A_("G07", s_deuda); A_("G08", s_llave)
-A_("G09", s_del96); A_("G10", s_faros); A_("G11", s_vienen); A_("G12", s_loteng); A_("G13", s_mano)
+A_("G09", s_del96); A_("G09B", s_teoria); A_("G10", s_faros); A_("G11", s_vienen); A_("G12", s_loteng); A_("G13", s_mano)
 add(T_SPLIT, s_split10)
 PLANOS.sort(key=lambda p: p[0])
 R.SCENES = []
@@ -2229,7 +2247,7 @@ if __name__ == "__main__":
             (F("tension"), S("G03") - .1, -9), (F("impacto"), S("G02") + .05, -9),
             (F("brillo"), WT("G03", "sombrero") - .05, -8), (F("impacto"), S("G05") - .05, -8),
             (F("tension"), S("G06") - .1, -10), (F("impacto"), WT("G07", "deuda") - .05, -8),
-            (F("caja"), WT("G08", "llave") - .05, -7), (F("tension"), S("G09") - .1, -10),
+            (F("caja"), WT("G08", "llave") - .05, -7), (F("tension"), S("G09") - .1, -10), (F("tension"), S("G09B") - .05, -9), (F("brillo"), WT("G09B", "teoría:") - .05, -6),
             (llega, tf - .1, 3), (F("nitro_ruge"), tf + .5, 1), (F("petardeo"), tf + 1.3, 0),
             (F("seat_derrape"), tfr - .15, 4), (F("seat_derrape"), tfr + .25, 3), (idle1, tfr + .1, -2),
             (F("petardeo"), S("G11") + 1.0, 0), (F("tension"), S("G12") - .1, -10),
