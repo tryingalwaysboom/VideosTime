@@ -42,14 +42,19 @@ def glitch(t):
     return max([g * (1 - (t - e) / .18) for e, g in ev if 0 <= t - e < .18] + [0.0])
 
 def frame(t):
-    g = glitch(t); c = BC.lente(escena(t), t, g, True); BC.interfaz(c, t, (3, 0, 41), True, g)
+    g = glitch(t); c = E.mirada(escena(t), t, 1.3 + 1.5 * g)
+    E.linterna(c, W / 2 + 40 * math.sin(t * 2.3), 900, 560, 228)
+    bx, by = BC.respiracion(t * 1.15 + 3, .9); by = by * 1.6 - 250; sh = 22 * g * math.sin(t * 80)
+    u = ease((t - tW) / 1.2)
+    E.M.poner(c, "palma", E.lerp(250, 400, u) + bx + sh, E.lerp(2300, 1820, u) + by, "i", 1.15, 14, .7)
+    E.M.poner(c, "linterna", 860 + bx - sh, 2120 + by, "d", .95, -10, .85)
     c.alpha_composite(E.banda()); d = ImageDraw.Draw(c)
     for ws, t0, dur in CAPS:
         if not (t0 - .05 <= t < t0 + dur + .3): continue
         lens = [len(w) + 1 for w in ws]; tot = sum(lens); acc = 0; tw = []
         for L in lens: tw.append(t0 + dur * acc / tot); acc += L
         lines = [ws] if len(ws) <= 3 else [ws[:4], ws[4:]]
-        y = 1490 if len(lines) == 1 else 1440; i = 0
+        y = 1260 if len(lines) == 1 else 1210; i = 0
         for ln in lines:
             f = font(F_ANTON, 92); ls = [d.textlength(w + " ", font=f) for w in ln]; x = W / 2 - (sum(ls) - d.textlength(" ", font=f)) / 2
             for w, L in zip(ln, ls):

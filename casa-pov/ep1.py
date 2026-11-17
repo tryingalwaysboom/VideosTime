@@ -63,6 +63,7 @@ def cam(plate, z, cx, cy, rot=0.0, sx=0.0, sy=0.0):
     """Encuadre de la plancha: z=1 enseña toda la plancha; z>1 acerca. cx, cy en coordenadas de la plancha."""
     pw, ph = plate.size; cw, ch = pw / z, ph / z
     cx = min(max(cx, cw / 2), pw - cw / 2); cy = min(max(cy, ch / 2), ph - ch / 2)
+    sx = min(max(sx, -(cx - cw / 2)), pw - (cx + cw / 2)); sy = min(max(sy, -(cy - ch / 2)), ph - (cy + ch / 2))
     box = (cx - cw / 2 + sx, cy - ch / 2 + sy, cx + cw / 2 + sx, cy + ch / 2 + sy)
     if rot: return plate.transform((W, H), Image.AFFINE, _aff(box, rot), resample=Image.BILINEAR)
     return plate.resize((W, H), Image.BILINEAR, box=box)
@@ -144,7 +145,7 @@ def caption(c, T):
         f = font(F_ANTON, 94 * k); ws = [d.textlength(w + " ", font=f) for w, _, _ in g]; tot = sum(ws) - d.textlength(" ", font=f)
         if tot > 860:
             f = font(F_ANTON, 94 * k * 860 / tot); ws = [d.textlength(w + " ", font=f) for w, _, _ in g]; tot = sum(ws) - d.textlength(" ", font=f)
-        x = W / 2 - tot / 2; y = 1490
+        x = W / 2 - tot / 2; y = 1260
         for j, ((w, a, b), wd) in enumerate(zip(g, ws)):
             fin = g[j + 1][1] if j + 1 < len(g) else b + .4
             act = a - .03 <= T < fin - .03; dicha = T >= a - .03
@@ -157,8 +158,8 @@ def caption(c, T):
             x += wd
         if who in TAG:
             ft = font(F_UI, 30); tw = d.textlength(TAG[who], font=ft)
-            d.rounded_rectangle((W / 2 - tw / 2 - 20, 1388, W / 2 + tw / 2 + 20, 1436), 12, fill=(255, 170, 70))
-            d.text((W / 2, 1412), TAG[who], font=ft, fill=OL, anchor="mm")
+            d.rounded_rectangle((W / 2 - tw / 2 - 20, 1158, W / 2 + tw / 2 + 20, 1206), 12, fill=(255, 170, 70))
+            d.text((W / 2, 1182), TAG[who], font=ft, fill=OL, anchor="mm")
         return
 
 # ------------------------------------------------------------------ barra superior
@@ -257,7 +258,7 @@ def sc_contrato(T):
     if ts <= T < tcut: paste_c(c, SELLO3, W / 2 + 230, 560, s=lerp(1.8, 1.0, min(1, (T - ts) / .15)), alpha=min(1, (T - ts) / .08))
     if T >= tf:
         k = back((T - tf) / .25); d = ImageDraw.Draw(c)
-        text(d, (W / 2, 1150), "- $5,000", 170 * min(1, k), RED, stroke=11)
+        text(d, (W / 2, 990), "- $5,000", 170 * min(1, k), RED, stroke=11)
     flash(c, T, t0, .12); flash(c, T, tcut, .1, (255, 255, 255), 150)
     return c
 
@@ -314,7 +315,7 @@ def sc_pasillo(T):
 
 def sc_calendario(T):
     t0 = WT("C03", 10) - .05; t1 = S("C04") - .05; u = inout((T - t0) / max(.1, t1 - t0))
-    z = lerp(1.15, 1.6, u); cx, cy = 648, lerp(1430, 1420, u)
+    z = lerp(1.15, 1.6, u); cx, cy = 648, lerp(1560, 1560, u)
     tb = WT("C03", 13)
     sx = sy = 0
     if 0 <= T - tb < .4: sx, sy = 14 * math.sin(T * 90) * (1 - (T - tb) / .4), 10 * math.cos(T * 70) * (1 - (T - tb) / .4)
@@ -404,7 +405,7 @@ def sc_trampilla(T):
     lx, ly = lerp(150, W / 2, lu), lerp(1500, 980, lu)
     linterna(c, lx, ly, lerp(300, 520, lu), 215)
     if T >= t37:
-        k = back((T - t37) / .22); paste_c(c, SELLO2, W / 2, 1200, s=lerp(2.3, 1.0, min(1, (T - t37) / .16)), alpha=min(1, (T - t37) / .08))
+        k = back((T - t37) / .22); paste_c(c, SELLO2, W / 2, 1480, s=lerp(2.3, 1.0, min(1, (T - t37) / .16)), alpha=min(1, (T - t37) / .08))
         flash(c, T, t37, .15, (255, 230, 220), 160)
     flash(c, T, t0, .1)
     return c
@@ -462,7 +463,7 @@ def cortes():
 @lru_cache(1)
 def banda():
     a = np.zeros((H, W, 4), np.uint8); y = np.arange(H)
-    a[..., 3] = (np.clip(1 - np.abs(y - 1490) / 190, 0, 1) ** 1.2 * 120).astype(np.uint8)[:, None]
+    a[..., 3] = (np.clip(1 - np.abs(y - 1260) / 190, 0, 1) ** 1.2 * 120).astype(np.uint8)[:, None]
     return Image.fromarray(a, "RGBA")
 
 import bodycam as BC
@@ -480,9 +481,60 @@ def escena_de(T):
         if _v(a) <= T < _v(b): return n
     return "s12"
 
+import manos as M
+PARP = {"s05": None, "s09": None}
+def parpadeo(c, T, t0, abre=True, d=.35):
+    """Párpados: negro que se abre (o se cierra) desde arriba y abajo."""
+    u = clamp((T - t0) / d); u = ease(u) if abre else 1 - ease(u)
+    if u >= 1: return
+    h = int(H / 2 * (1 - u)); dr = ImageDraw.Draw(c)
+    dr.rectangle((0, 0, W, h), fill=(0, 0, 0)); dr.rectangle((0, H - h, W, H), fill=(0, 0, 0))
+    c.alpha_composite(soft((W, H), lambda dd: (dd.ellipse((-200, h - 120, W + 200, h + 60), fill=(0, 0, 0, 200)), dd.ellipse((-200, H - h - 60, W + 200, H - h + 120), fill=(0, 0, 0, 200))), 30))
+
+def manos_en(c, n, T):
+    bx, by = BC.respiracion(T * 1.15 + 3, .9); bx, by = bx * 1.4, by * 1.6 - 250
+    if n == "s01":
+        u = ease(T / .16); ts = WT("C01", 2) - .05; out = ease((T - ts - .25) / .4)
+        M.poner(c, "palma", W / 2 + 40 + bx, lerp(2300, 1430, u) + 700 * out + by, "d", 1.15, 4)
+    elif n == "s02": M.poner(c, "llave", 880 + bx, 2060 + by, "d", 1.0, -12, .7)
+    elif n == "s03":
+        M.poner(c, "pinza", 150 + bx, 2010 + by, "i", 1.0, 16, .9); M.poner(c, "pinza", 930 + bx, 2010 - by, "d", 1.0, -16, .9)
+    elif n == "s05":
+        t0 = S("C03") - GAP["C03"]; u = ease((T - t0) / 1.0)
+        M.poner(c, "palma", lerp(420, 330, u) + bx, lerp(1900, 2040, u) + by, "i", 1.2, lerp(6, 18, u), .75)
+        M.poner(c, "linterna", 860 + bx, 2120 + by, "d", .95, -10, .85)
+    elif n in ("s06", "s07"):
+        M.poner(c, "linterna", 840 + bx + 20 * math.sin(T * .9), 2110 + by, "d", .95, -8 + 6 * math.sin(T * .9), .85)
+        if n == "s07":
+            t0 = WT("C03", 12); u = ease((T - t0) / .6)
+            M.poner(c, "palma", lerp(200, 330, u) + bx, lerp(2300, 1900, u) + by, "i", 1.0, 10, .8)
+    elif n == "s09":
+        t3 = WT("C05", 4); u = ease((T - t3 - .3) / 1.0)
+        M.poner(c, "palma", lerp(700, 620, u) + bx, lerp(2400, 1900, u) + by, "d", 1.1, -6, .7)
+    elif n == "s10":
+        sh = 0
+        t0 = WT("C05", 8) - .04
+        for k in KNOCKS:
+            dt = T - (t0 + k)
+            if 0 <= dt < .3: sh = max(sh, 1 - dt / .3)
+        j = 22 * sh * math.sin(T * 80)
+        M.poner(c, "palma", 250 + bx + j, 1980 + by - j, "i", 1.15, 22, .6); M.poner(c, "palma", 830 + bx - j, 1980 + by + j, "d", 1.15, -22, .6)
+    elif n == "s11":
+        M.poner(c, "linterna", 860 + bx, 2120 + by, "d", .95, -10, .85)
+        tc = WT("C06", 5); u = ease((T - tc - .3) / 1.2); back_ = ease((T - WT("C06", 11)) / .2)
+        M.poner(c, "palma", lerp(300, 420, u) + bx - 120 * back_, lerp(2400, 1880, u) + by + 300 * back_, "i", 1.1, 12, .75)
+
+def mirada(c, T, fuerte=1.0):
+    dx, dy = BC.respiracion(T, fuerte); z = 1.025
+    return c.transform((W, H), Image.AFFINE, (1 / z, 0, (W - W / z) / 2 + dx, 0, 1 / z, (H - H / z) / 2 + dy), resample=Image.BILINEAR)
+
 def frame(T, fn):
-    n = escena_de(T); g = glitch_at(T); nv = n == "s10"
-    c = BC.lente(fn(T), T, g, nv, .6 if n in ("s01", "s03", "s04", "s12") else 1.0); BC.interfaz(c, T, HORA[n], nv, g); hud(c, T)
+    n = escena_de(T)
+    c = mirada(fn(T), T, .5 if n in ("s01", "s03", "s04", "s12") else 1.0)
+    manos_en(c, n, T)
+    if n == "s05": parpadeo(c, T, S("C03") - GAP["C03"], True, .3)
+    if n == "s09": parpadeo(c, T, S("C05") - .05, True, .55)
+    hud(c, T)
     if T < S("C07") - .05: c.alpha_composite(banda())
     caption(c, T)
     a = np.asarray(c.convert("RGB"), np.int16) + grain(int(T * FPS) % 6)[..., None]
