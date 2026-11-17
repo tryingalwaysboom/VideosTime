@@ -1075,9 +1075,10 @@ def impresora(c, T, t0, n=15):
     """La impresora sacando una hoja real del libro."""
     d = ImageDraw.Draw(c)
     u = clamp((T - t0) / 1.4)
-    pg = pagina_img(n, .5)
-    yb = 980 - pg.height * u   # la hoja sale por arriba
-    c.alpha_composite(pg, (int(540 - pg.width / 2), int(yb)))
+    pg = pagina_img(n, .4)
+    yb = 960 - pg.height * u   # la hoja sale por la ranura de arriba
+    vis = int(960 - yb)
+    if vis > 2: c.alpha_composite(pg.crop((0, 0, pg.width, vis)), (int(540 - pg.width / 2), int(yb)))
     d = ImageDraw.Draw(c)
     d.rounded_rectangle((170, 960, 910, 1330), 46, fill=(236, 236, 242), outline=OL, width=8)
     d.rounded_rectangle((250, 940, 830, 1000), 20, fill=(70, 70, 86), outline=OL, width=6)
