@@ -183,31 +183,30 @@ def sc_lijar(T):
     return c
 
 def sabanas_volando(c, T, z, cx, cy):
-    x0, y0, x1, y1 = SL.BACK
-    items = [((x1 - 370, y1 - 262, x1 - 20, y1 + 4), 1, T_SAB1), ((300 - 190, 1640 - 450, 300 + 190, 1640), 2, T_SAB2), ((520, 1440, 880, 1610), 3, T_SAB2 + .08)]
-    pl = Image.new("RGBA", (PW, PH), (0, 0, 0, 0))
-    for box, seed, t0 in items:
+    items = [("sofa", 1, T_SAB1), ("butaca", 2, T_SAB2), ("mesa", 3, T_SAB2 + .08)]
+    pl = Image.new("RGBA", (PW * 2, PH * 2), (0, 0, 0, 0))
+    for nm, seed, t0 in items:
         u = clamp((T - t0) / .55)
         if u >= 1: continue
-        SL.sabana_sobre(pl, box, seed, int(255 * (1 - u ** 2)), dy=-700 * ease(u), dx=(200 if seed % 2 else -200) * ease(u), rot=(20 if seed % 2 else -25) * u)
+        SL.sabana2(pl, SL.box2d(nm), seed, int(255 * (1 - u ** 2)), dy=-500 * ease(u), dx=(160 if seed % 2 else -160) * ease(u), rot=(20 if seed % 2 else -25) * u)
     c.alpha_composite(cam(pl, z, cx, cy))
 
 def sc_wide(estado, z0, z1, t0, t1, cy0=1250, cy1=1200):
     def fn(T):
-        u = inout((T - t0) / (t1 - t0)); z = lerp(z0, z1, u); cy = lerp(cy0, cy1, u)
-        return cam(SL.salon(*estado), z, 648, cy), z, cy
+        u = inout((T - t0) / (t1 - t0)); z = lerp(z0, z1, u); cy = lerp(cy0, cy1, u) * 2
+        return cam(SL.salon(*estado), z, 1296, cy), z, cy
     return fn
 
 def sc_entrada(T):
-    c, z, cy = sc_wide(("vieja", "moqueta", True), 1.0, 1.15, CUTS[0], CUTS[1])(T)
+    c, z, cy = sc_wide(("vieja", "moqueta", True), 1.35, 1.6, CUTS[0], CUTS[1], 1060, 1030)(T)
     BC_ = BC.respiracion(T * 1.15 + 3, .9); M.poner(c, "llave", 820 + BC_[0], 1880 + BC_[1] * 1.6 - 250 + 300 * ease((T - 2.6) / .6), "d", 1.0, -12, 1.0)
     return c
 
 def sc_sabanas(T):
-    t0, t1 = CUTS[1], CUTS[2]; u = inout((T - t0) / (t1 - t0)); z = lerp(1.15, 1.22, u); cy = 1240
-    c = cam(SL.salon("vieja", "moqueta", False), z, 648, cy)
-    sabanas_volando(c, T, z, 648, cy)
-    polvo_nube(c, T, T_SAB1 + .1, 820, 1050, 50, 1); polvo_nube(c, T, T_SAB2 + .05, 360, 1250, 60, 2)
+    t0, t1 = CUTS[1], CUTS[2]; u = inout((T - t0) / (t1 - t0)); z = lerp(1.9, 2.05, u); cy = 2 * 1040
+    c = cam(SL.salon("vieja", "moqueta", False), z, 1296 - 120, cy)
+    sabanas_volando(c, T, z, 1296 - 120, cy)
+    polvo_nube(c, T, T_SAB1 + .1, 420, 1000, 50, 1); polvo_nube(c, T, T_SAB2 + .05, 760, 1050, 60, 2)
     bx, by = BC.respiracion(T * 1.15 + 3, .9)
     for side, x, tt in (("d", 800, T_SAB1), ("i", 280, T_SAB2)):
         k = math.sin(clamp((T - tt + .15) / .6) * math.pi)
@@ -216,7 +215,7 @@ def sc_sabanas(T):
     return c
 
 def sc_debajo(T):
-    c, z, cy = sc_wide(("vieja", "parquet_sucio", False), 1.05, 1.2, CUTS[3], CUTS[4], 1300, 1240)(T)
+    c, z, cy = sc_wide(("vieja", "parquet_sucio", False), 1.4, 1.55, CUTS[3], CUTS[4], 1120, 1080)(T)
     if T >= T_ESTO:   # barrido de luz por el suelo
         u = clamp((T - T_ESTO) / .9); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         x = lerp(-300, W + 300, u); ImageDraw.Draw(lay).polygon([(x - 120, 900), (x + 60, 900), (x + 260, H), (x - 40, H)], fill=(255, 240, 200, 110))
@@ -226,13 +225,13 @@ def sc_debajo(T):
     return c
 
 def sc_brilla(T):
-    c, z, cy = sc_wide(("vieja", "parquet_brillo", False), 1.1, 1.22, CUTS[5], CUTS[6], 1300, 1240)(T)
+    c, z, cy = sc_wide(("vieja", "parquet_brillo", False), 1.45, 1.6, CUTS[5], CUTS[6], 1120, 1080)(T)
     destellos(c, T, CUTS[5] + .05, [(260, 1300), (700, 1250), (480, 1550), (900, 1650), (620, 1800)], 1.4, 1.3)
     flash(c, T, CUTS[5], .12, (255, 250, 230), 150)
     return c
 
 def antes_despues(T):
-    a = cam(SL.salon("vieja", "moqueta", True), 1.15, 648, 1250); b = cam(SL.salon("vieja", "parquet_brillo", False), 1.15, 648, 1250)
+    a = cam(SL.salon("vieja", "moqueta", True), 1.5, 1296, 2100); b = cam(SL.salon("vieja", "parquet_brillo", False), 1.5, 1296, 2100)
     c = Image.new("RGBA", (W, H)); c.paste(a.crop((W // 4, 0, W // 4 + W // 2, H)), (0, 0)); c.paste(b.crop((W // 4, 0, W // 4 + W // 2, H)), (W // 2, 0))
     d = ImageDraw.Draw(c); d.rectangle((W // 2 - 4, 0, W // 2 + 4, H), fill=(255, 255, 255))
     for x, t, col in ((W / 4, "ANTES", (230, 80, 70)), (3 * W / 4, "DESPUÉS", (90, 200, 110))):
@@ -245,7 +244,7 @@ def antes_despues(T):
 RAYO = [(560, 0), (520, 520), (580, 560), (490, 1100), (560, 1140), (470, H)]
 def sc_elige(T):
     t0 = CUTS[7]; hiA = 1.0 if T_VER <= T < T_AZU else (.35 if T_AZU <= T < T_TU else 1.0); hiB = 1.0 if T_AZU <= T < T_TU else (.35 if T_VER <= T < T_AZU else 1.0)
-    L = cam(SL.salon("salvia", "parquet_brillo", False), 1.15, 648 - 150, 1250); R = cam(SL.salon("noche", "parquet_brillo", False), 1.15, 648 + 150, 1250)
+    L = cam(SL.salon("salvia", "parquet_brillo", False), 1.6, 1296 - 300, 2080); R = cam(SL.salon("noche", "parquet_brillo", False), 1.6, 1296 + 300, 2080)
     c = R.copy(); mL = Image.new("L", (W, H), 0); ImageDraw.Draw(mL).polygon([(0, 0)] + RAYO + [(0, H)], fill=255); c.paste(L, (0, 0), mL)
     for poly, h in (([(0, 0)] + RAYO + [(0, H)], hiA), ([(W, 0)] + RAYO + [(W, H)], hiB)):
         lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).polygon(poly, fill=(0, 0, 0, int(170 * (1 - h)))); c.alpha_composite(lay)
@@ -255,7 +254,7 @@ def sc_elige(T):
         k = min(1, back((T - tin) / .3)) * (1 + .08 * h)
         text(d, (cx, 1300), t1, 100 * k, col if h > .5 else (190, 190, 200), stroke=10); text(d, (cx, 1405), t2, 100 * k, col if h > .5 else (190, 190, 200), stroke=10)
     if T < T_VER - .05:   # antes de las opciones: la pared vieja y la pregunta
-        c2 = cam(SL.salon("vieja", "parquet_brillo", False), 1.2, 648, 1240); text(ImageDraw.Draw(c2), (W / 2, 760), "¿DE QUÉ COLOR?", 120, WHITE, stroke=12); return c2
+        c2 = cam(SL.salon("vieja", "parquet_brillo", False), 1.55, 1296, 2100); text(ImageDraw.Draw(c2), (W / 2, 760), "¿DE QUÉ COLOR?", 120, WHITE, stroke=12); return c2
     flash(c, T, T_VER - .05, .14)
     return c
 
