@@ -44,17 +44,17 @@ def glitch(t):
 def frame(t):
     g = glitch(t); c = E.mirada(escena(t), t, 1.3 + 1.5 * g)
     E.linterna(c, W / 2 + 40 * math.sin(t * 2.3), 900, 560, 228)
-    bx, by = BC.respiracion(t * 1.15 + 3, .9); by = by * 1.6 - 250; sh = 22 * g * math.sin(t * 80)
+    bx, by = BC.respiracion(t * 1.15 + 3, .9); by = by * 1.6 - 330; sh = 22 * g * math.sin(t * 80)
     u = ease((t - tW) / 1.2)
     E.M.poner(c, "palma", E.lerp(250, 400, u) + bx + sh, E.lerp(2300, 1820, u) + by, "i", 1.15, 14, .7)
-    E.M.poner(c, "linterna", 860 + bx - sh, 2120 + by, "d", .95, -10, .85)
+    E.M.poner(c, "linterna", 740 + bx - sh, 2120 + by, "d", .95, -10, .85)
     c.alpha_composite(E.banda()); d = ImageDraw.Draw(c)
     for ws, t0, dur in CAPS:
         if not (t0 - .05 <= t < t0 + dur + .3): continue
         lens = [len(w) + 1 for w in ws]; tot = sum(lens); acc = 0; tw = []
         for L in lens: tw.append(t0 + dur * acc / tot); acc += L
         lines = [ws] if len(ws) <= 3 else [ws[:4], ws[4:]]
-        y = 1260 if len(lines) == 1 else 1210; i = 0
+        y = 1170 if len(lines) == 1 else 1120; i = 0
         for ln in lines:
             f = font(F_ANTON, 92); ls = [d.textlength(w + " ", font=f) for w in ln]; x = W / 2 - (sum(ls) - d.textlength(" ", font=f)) / 2
             for w, L in zip(ln, ls):
@@ -63,7 +63,7 @@ def frame(t):
             y += 104
     if tW - .05 <= t < tW + (W1 - W0) + .25:   # el susurro
         k = clamp((t - tW) / .3); jit = 4 * math.sin(t * 70)
-        d.text((W / 2 + jit, 760), "…ábreme…", font=font(F_ANTON, 120), fill=(220, 255, 220, int(230 * k)), anchor="mm", stroke_width=6, stroke_fill=(0, 20, 0))
+        d.text((W / 2 + jit, 640), "…ábreme…", font=font(F_ANTON, 120), fill=(220, 255, 220, int(230 * k)), anchor="mm", stroke_width=6, stroke_fill=(0, 20, 0))
     flash(c, t, t_eyes, .12, (255, 255, 255), 170)
     a = np.asarray(c.convert("RGB"), np.int16) + E.grain(int(t * FPS) % 6)[..., None]
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGB")

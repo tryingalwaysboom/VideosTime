@@ -77,7 +77,7 @@ def mano(pose, lado="d", s=1.0):
 
 def poner(c, pose, x, y, lado="d", s=1.0, rot=0.0, luz=1.0):
     """Coloca la mano con la muñeca en (x, y) del fotograma. Devuelve el punto de anclaje en el fotograma."""
-    s = round(s * 1.15, 3); im, (ax, ay) = mano(pose, lado, s)
+    s = round(s * 1.0, 3); im, (ax, ay) = mano(pose, lado, s)
     if luz < 1:
         m = im.split()[3]; dk = Image.new("RGBA", im.size, (8, 8, 20, int(255 * (1 - luz)))); z = Image.new("RGBA", im.size, (0, 0, 0, 0)); z.paste(dk, (0, 0), m)
         im = Image.alpha_composite(im, z)

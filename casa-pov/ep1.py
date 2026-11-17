@@ -145,7 +145,7 @@ def caption(c, T):
         f = font(F_ANTON, 94 * k); ws = [d.textlength(w + " ", font=f) for w, _, _ in g]; tot = sum(ws) - d.textlength(" ", font=f)
         if tot > 860:
             f = font(F_ANTON, 94 * k * 860 / tot); ws = [d.textlength(w + " ", font=f) for w, _, _ in g]; tot = sum(ws) - d.textlength(" ", font=f)
-        x = W / 2 - tot / 2; y = 1260
+        x = W / 2 - tot / 2; y = 1170
         for j, ((w, a, b), wd) in enumerate(zip(g, ws)):
             fin = g[j + 1][1] if j + 1 < len(g) else b + .4
             act = a - .03 <= T < fin - .03; dicha = T >= a - .03
@@ -158,8 +158,8 @@ def caption(c, T):
             x += wd
         if who in TAG:
             ft = font(F_UI, 30); tw = d.textlength(TAG[who], font=ft)
-            d.rounded_rectangle((W / 2 - tw / 2 - 20, 1158, W / 2 + tw / 2 + 20, 1206), 12, fill=(255, 170, 70))
-            d.text((W / 2, 1182), TAG[who], font=ft, fill=OL, anchor="mm")
+            d.rounded_rectangle((W / 2 - tw / 2 - 20, 1068, W / 2 + tw / 2 + 20, 1116), 12, fill=(255, 170, 70))
+            d.text((W / 2, 1092), TAG[who], font=ft, fill=OL, anchor="mm")
         return
 
 # ------------------------------------------------------------------ barra superior
@@ -173,9 +173,9 @@ def ic_cal(d, x, y, col):
 
 @lru_cache(1)
 def hud_base():
-    im = Image.new("RGBA", (W, 320), (0, 0, 0, 0)); x0, y0, x1, y1 = 36, 168, 1044, 278
-    im.alpha_composite(soft((W, 320), lambda dd: dd.rounded_rectangle((x0, y0 + 8, x1, y1 + 10), 26, fill=(0, 0, 0, 130)), 10))
-    im.alpha_composite(soft((W, 320), lambda dd: dd.rounded_rectangle((x0, y0, x1, y1), 26, outline=(255, 170, 70, 140), width=6), 6))
+    im = Image.new("RGBA", (W, 400), (0, 0, 0, 0)); x0, y0, x1, y1 = 36, 238, 1044, 348
+    im.alpha_composite(soft((W, 400), lambda dd: dd.rounded_rectangle((x0, y0 + 8, x1, y1 + 10), 26, fill=(0, 0, 0, 130)), 10))
+    im.alpha_composite(soft((W, 400), lambda dd: dd.rounded_rectangle((x0, y0, x1, y1), 26, outline=(255, 170, 70, 140), width=6), 6))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle((x0, y0, x1, y1), 26, fill=(12, 10, 26, 210), outline=(255, 170, 70, 120), width=2)
     d.rounded_rectangle((x0 + 14, y0 + 12, x0 + 160, y0 + 56), 12, fill=(255, 170, 70))
@@ -187,8 +187,8 @@ def hud_base():
 def hud(c, T):
     if T >= S("C07") - .1: return
     base = hud_base()
-    if T < .3: c.alpha_composite(base, (0, int(-320 * (1 - ease(T / .3))))); return
-    c.alpha_composite(base); d = ImageDraw.Draw(c); x0, y0 = 36, 168
+    if T < .3: c.alpha_composite(base, (0, int(-400 * (1 - ease(T / .3))))); return
+    c.alpha_composite(base); d = ImageDraw.Draw(c); x0, y0 = 36, 238
     t_caja, t_mes, t_ref = WT("C02", 16), WT("C02", 4), WT("C02", 7)
     def pop(t): return 1 + .3 * math.sin(clamp((T - t) / .3) * math.pi) if 0 <= T - t < .3 else 1
     if T < t_caja: caja = "?"
@@ -258,7 +258,7 @@ def sc_contrato(T):
     if ts <= T < tcut: paste_c(c, SELLO3, W / 2 + 230, 560, s=lerp(1.8, 1.0, min(1, (T - ts) / .15)), alpha=min(1, (T - ts) / .08))
     if T >= tf:
         k = back((T - tf) / .25); d = ImageDraw.Draw(c)
-        text(d, (W / 2, 990), "- $5,000", 170 * min(1, k), RED, stroke=11)
+        text(d, (W / 2, 870), "- $5,000", 170 * min(1, k), RED, stroke=11)
     flash(c, T, t0, .12); flash(c, T, tcut, .1, (255, 255, 255), 150)
     return c
 
@@ -315,7 +315,7 @@ def sc_pasillo(T):
 
 def sc_calendario(T):
     t0 = WT("C03", 10) - .05; t1 = S("C04") - .05; u = inout((T - t0) / max(.1, t1 - t0))
-    z = lerp(1.15, 1.6, u); cx, cy = 648, lerp(1560, 1560, u)
+    z = lerp(1.35, 1.5, u); cx, cy = 648, lerp(1400, 1420, u)
     tb = WT("C03", 13)
     sx = sy = 0
     if 0 <= T - tb < .4: sx, sy = 14 * math.sin(T * 90) * (1 - (T - tb) / .4), 10 * math.cos(T * 70) * (1 - (T - tb) / .4)
@@ -463,7 +463,7 @@ def cortes():
 @lru_cache(1)
 def banda():
     a = np.zeros((H, W, 4), np.uint8); y = np.arange(H)
-    a[..., 3] = (np.clip(1 - np.abs(y - 1260) / 190, 0, 1) ** 1.2 * 120).astype(np.uint8)[:, None]
+    a[..., 3] = (np.clip(1 - np.abs(y - 1170) / 190, 0, 1) ** 1.2 * 120).astype(np.uint8)[:, None]
     return Image.fromarray(a, "RGBA")
 
 import bodycam as BC
@@ -492,25 +492,22 @@ def parpadeo(c, T, t0, abre=True, d=.35):
     c.alpha_composite(soft((W, H), lambda dd: (dd.ellipse((-200, h - 120, W + 200, h + 60), fill=(0, 0, 0, 200)), dd.ellipse((-200, H - h - 60, W + 200, H - h + 120), fill=(0, 0, 0, 200))), 30))
 
 def manos_en(c, n, T):
-    bx, by = BC.respiracion(T * 1.15 + 3, .9); bx, by = bx * 1.4, by * 1.6 - 250
+    bx, by = BC.respiracion(T * 1.15 + 3, .9); bx, by = bx * 1.4, by * 1.6 - 330
     if n == "s01":
         u = ease(T / .16); ts = WT("C01", 2) - .05; out = ease((T - ts - .25) / .4)
         M.poner(c, "palma", W / 2 + 40 + bx, lerp(2300, 1430, u) + 700 * out + by, "d", 1.15, 4)
-    elif n == "s02": M.poner(c, "llave", 880 + bx, 2060 + by, "d", 1.0, -12, .7)
+    elif n == "s02": M.poner(c, "llave", 760 + bx, 2060 + by, "d", 1.0, -12, .7)
     elif n == "s03":
-        M.poner(c, "pinza", 150 + bx, 2010 + by, "i", 1.0, 16, .9); M.poner(c, "pinza", 880 + bx, 1900 - by, "d", 1.0, -20, .9)
+        M.poner(c, "pinza", 150 + bx, 2010 + by, "i", 1.0, 16, .9); M.poner(c, "pinza", 820 + bx, 1990 + by, "d", 1.0, -20, .9)
     elif n == "s05":
         t0 = S("C03") - GAP["C03"]; u = ease((T - t0) / 1.0)
         M.poner(c, "palma", lerp(420, 330, u) + bx, lerp(1900, 2040, u) + by, "i", 1.2, lerp(6, 18, u), .75)
-        M.poner(c, "linterna", 860 + bx, 2120 + by, "d", .95, -10, .85)
+        M.poner(c, "linterna", 740 + bx, 2120 + by, "d", .95, -10, .85)
     elif n in ("s06", "s07"):
-        M.poner(c, "linterna", 840 + bx + 20 * math.sin(T * .9), 2110 + by, "d", .95, -8 + 6 * math.sin(T * .9), .85)
-        if n == "s07":
-            t0 = WT("C03", 12); u = ease((T - t0) / .6)
-            M.poner(c, "palma", lerp(200, 330, u) + bx, lerp(2300, 1900, u) + by, "i", 1.0, 10, .8)
+        M.poner(c, "linterna", 720 + bx + 20 * math.sin(T * .9), 2110 + by, "d", .95, -8 + 6 * math.sin(T * .9), .85)
     elif n == "s09":
         t3 = WT("C05", 4); u = ease((T - t3 - .3) / 1.0)
-        M.poner(c, "palma", lerp(700, 620, u) + bx, lerp(2400, 1900, u) + by, "d", 1.1, -6, .7)
+        M.poner(c, "palma", lerp(640, 580, u) + bx, lerp(2400, 1900, u) + by, "d", 1.1, -6, .7)
     elif n == "s10":
         sh = 0
         t0 = WT("C05", 8) - .04
@@ -518,9 +515,9 @@ def manos_en(c, n, T):
             dt = T - (t0 + k)
             if 0 <= dt < .3: sh = max(sh, 1 - dt / .3)
         j = 22 * sh * math.sin(T * 80)
-        M.poner(c, "palma", 250 + bx + j, 1980 + by - j, "i", 1.15, 22, .6); M.poner(c, "palma", 830 + bx - j, 1980 + by + j, "d", 1.15, -22, .6)
+        M.poner(c, "palma", 250 + bx + j, 1980 + by - j, "i", 1.15, 22, .6); M.poner(c, "palma", 760 + bx - j, 1980 + by + j, "d", 1.15, -22, .6)
     elif n == "s11":
-        M.poner(c, "linterna", 860 + bx, 2120 + by, "d", .95, -10, .85)
+        M.poner(c, "linterna", 740 + bx, 2120 + by, "d", .95, -10, .85)
         tc = WT("C06", 5); u = ease((T - tc - .3) / 1.2); back_ = ease((T - WT("C06", 11)) / .2)
         M.poner(c, "palma", lerp(300, 420, u) + bx - 120 * back_, lerp(2400, 1880, u) + by + 300 * back_, "i", 1.1, 12, .75)
 
