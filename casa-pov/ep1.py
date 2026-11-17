@@ -405,7 +405,7 @@ def sc_trampilla(T):
     lx, ly = lerp(150, W / 2, lu), lerp(1500, 980, lu)
     linterna(c, lx, ly, lerp(300, 520, lu), 215)
     if T >= t37:
-        k = back((T - t37) / .22); paste_c(c, SELLO2, W / 2, 1480, s=lerp(2.3, 1.0, min(1, (T - t37) / .16)), alpha=min(1, (T - t37) / .08))
+        k = back((T - t37) / .22); paste_c(c, SELLO2, W / 2, 880, s=lerp(2.3, 1.0, min(1, (T - t37) / .16)), alpha=min(1, (T - t37) / .08))
         flash(c, T, t37, .15, (255, 230, 220), 160)
     flash(c, T, t0, .1)
     return c
@@ -498,7 +498,7 @@ def manos_en(c, n, T):
         M.poner(c, "palma", W / 2 + 40 + bx, lerp(2300, 1430, u) + 700 * out + by, "d", 1.15, 4)
     elif n == "s02": M.poner(c, "llave", 880 + bx, 2060 + by, "d", 1.0, -12, .7)
     elif n == "s03":
-        M.poner(c, "pinza", 150 + bx, 2010 + by, "i", 1.0, 16, .9); M.poner(c, "pinza", 930 + bx, 2010 - by, "d", 1.0, -16, .9)
+        M.poner(c, "pinza", 150 + bx, 2010 + by, "i", 1.0, 16, .9); M.poner(c, "pinza", 880 + bx, 1900 - by, "d", 1.0, -20, .9)
     elif n == "s05":
         t0 = S("C03") - GAP["C03"]; u = ease((T - t0) / 1.0)
         M.poner(c, "palma", lerp(420, 330, u) + bx, lerp(1900, 2040, u) + by, "i", 1.2, lerp(6, 18, u), .75)
