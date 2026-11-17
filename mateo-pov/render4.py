@@ -997,9 +997,9 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((60, 900, 560, 1400), fill=(120, 190, 255, 140))
+        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((80, 1500, 580, 1950), fill=(120, 190, 255, 140))
         A.alpha_composite(glow.filter(ImageFilter.GaussianBlur(50)))
-        put(A, "tablet", 300, 1150, .3, rot=-6); put(A, "mateo_feliz", 280, 1500 + 400 * .7, .7)
+        put(A, "mateo_feliz", 280, 1450 + 400 * .7, .7); put(A, "tablet", 330, 1760, .3, rot=-6)
         A.alpha_composite(Image.new("RGBA", (W, H), (30, 40, 110, 80)))
     else:
         A = bg("bg_cocina", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")

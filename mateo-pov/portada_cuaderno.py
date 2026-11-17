@@ -116,9 +116,31 @@ def p3():
     etiqueta_parte(c, 3, 540, OY + 1340, 3)
     return c
 
+def escena_p4():
+    """Ganó dejarlo así: su MATEO con la E al revés, con la estrella de la maestra y Mateo feliz delante."""
+    import render4 as R4
+    s = R4.pared_expo(0, False)
+    s = R4.seguir(s, 600, 1080, 1.6, f=1.0)
+    R4.estrella(ImageDraw.Draw(s), 680, 1015, 70)
+    put(s, "mateo_feliz", 830, 1440 + 400 * .62, .62)
+    return s.crop((0, 600, 1080, 1680))
+
+def p4():
+    c = cuaderno()
+    garabatos(c, 4)
+    cx, cy = 540, OY + 480
+    foto(c, escena_p4(), cx, cy, 680, 680, -2)
+    cinta(c, cx - 285, cy - 382, 210, 28, (232, 110, 140)); cinta(c, cx + 275, cy - 395, 210, -30, (120, 200, 230))
+    d = ImageDraw.Draw(c)
+    d.text((540, OY + 955), "así está...", font=font(F_HAND, 110), fill=NAVY, anchor="mm")
+    d.text((546, OY + 1101), "¡perfecto!", font=font(F_HAND, 170), fill=(20, 70, 30), anchor="mm")
+    d.text((540, OY + 1095), "¡perfecto!", font=font(F_HAND, 170), fill=(58, 168, 72), anchor="mm")
+    etiqueta_parte(c, 4, 540, OY + 1340, -3)
+    return c
+
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    c = {2: p2, 3: p3}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
+    c = {2: p2, 3: p3, 4: p4}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
     c.save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}_9x16.jpg"), quality=100, subsampling=0)
     c.crop((0, OY, CW, OY + 1440)).save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}.jpg"), quality=95)
     print("ok")
