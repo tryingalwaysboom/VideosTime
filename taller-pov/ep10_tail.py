@@ -20,6 +20,30 @@ def sombrero(c, cx, cy, w, ang=0):
 def padre(c, pr, T, x, z, alto, lid=None, hat=True, flip=False):
     return pj(c, pr, "padre_full" if hat else "padre_sin_sombrero", x, z, alto, T, lid, flip)
 
+def mensaje(c, T, t0, t1, user, txt):
+    if not (t0 <= T < t1): return
+    k = popscale(T, t0, .35)
+    if T > t1 - .3: k *= clamp((t1 - T) / .3)
+    if k <= 0: return
+    lay = blank(); d = ImageDraw.Draw(lay); x0, y0, x1, y1 = 90, 690, 990, 930
+    d.rounded_rectangle((x0, y0, x1, y1), 38, fill=(255, 255, 255, 245), outline=OL, width=6)
+    d.ellipse((x0 + 28, y0 + 30, x0 + 108, y0 + 110), fill=(60, 120, 230), outline=OL, width=4)
+    d.text((x0 + 68, y0 + 70), user[0].upper(), font=R.font(F_ANTON, 44), fill=WHITE, anchor="mm")
+    d.text((x0 + 130, y0 + 48), "@" + user, font=R.font(F_ANTON, 38), fill=OL, anchor="lm")
+    d.text((x0 + 130, y0 + 90), "MENSAJE NUEVO", font=R.font(F_UI, 24), fill=(200, 50, 50), anchor="lm")
+    f = R.font(F_UI, 36); words = txt.split(); lines = []; cur = ""
+    for w in words:
+        t = (cur + " " + w).strip()
+        if d.textlength(t, font=f) > x1 - x0 - 70: lines.append(cur); cur = w
+        else: cur = t
+    lines.append(cur)
+    for i, l in enumerate(lines): d.text((x0 + 35, y0 + 140 + i * 44), l, font=f, fill=OL, anchor="lm")
+    if abs(k - 1) > .01:
+        cx, cy = 540, (y0 + y1) // 2
+        big = lay.resize((max(1, int(W * k)), max(1, int(H * k))), Image.BILINEAR); ox, oy = int(cx - cx * k), int(cy - cy * k)
+        lay = blank(); lay.alpha_composite(big, (max(0, ox), max(0, oy)), (max(0, -ox), max(0, -oy)))
+    c.alpha_composite(lay)
+
 # ---- 1. la patada (frame 0 ya es acción)
 def s_patada(T, t0, dur):
     tp = WT("G01", "patada.")
@@ -31,6 +55,7 @@ def s_patada(T, t0, dur):
         u = clamp((T - tp) / .35); fl = Image.new("RGBA", (W, H), (255, 240, 200, int(170 * (1 - u)))); c.alpha_composite(fl)
     lluvia(c, T, 110, 120, 1400); vineta(c, 220); c = shake(c, T, 3 + 6 * (T >= tp and T < tp + .4), 44)
     if T < tp + .8: et(c, T, .12, "ELEGISTEIS LA A", 440, YEL, 46)
+    mensaje(c, T, .5, tp - .35, "danineos100", "Toca plantarle cara y enterarse de toda la historia")
     tx(c, T, tp, "¡A PATADA!", 600, RED, -5, 128)
     return c
 
@@ -298,6 +323,20 @@ R.IMPACTS = [WT("G01", "patada.") - .05, S("G02"), WT("G03", "sombrero"), S("G05
 R.draw_hud = draw_hud10
 R.HIDE_LAST_CAPTION = False
 
+def lecho(nombre, src, dur, fade=.4, loop=False):
+    import numpy as np, wave
+    out = os.path.join(R.HERE, "sfx", nombre + ".wav"); sr = 44100
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", os.path.join(R.HERE, "sfx", src + ".wav"), "-ac", "2", "-ar", str(sr), "-f", "s16le", "-"], capture_output=True).stdout
+    x = np.frombuffer(raw, np.int16).astype(np.float32).reshape(-1, 2) / 32768
+    n = int(dur * sr)
+    if loop: y = np.tile(x, (n // len(x) + 1, 1))[:n]
+    else:
+        y = np.zeros((n, 2), np.float32); m = min(n, len(x)); y[:m] = x[:m]
+    f = int(fade * sr); y[-f:] *= np.linspace(1, 0, f)[:, None]
+    w = wave.open(out, "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr)
+    w.writeframes((np.clip(y, -1, 1) * 32767).astype(np.int16).tobytes()); w.close()
+    return out
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "still":
@@ -313,15 +352,24 @@ if __name__ == "__main__":
     elif cmd == "mix":
         import mix
         F = lambda n: os.path.join(R.HERE, "sfx", n + ".wav")
+        tf = S("G10"); tfr = WT("G10", "frenan")
+        idle0 = lecho("e10_idle_nitro", "nitro_ralenti", 4.6, .6, True)
+        llega = lecho("e10_llegan", "nitro_motor", tfr - tf + .4, .15)
+        idle1 = lecho("e10_idle_coches", "v8_ralenti", WT("G13", "extiende") - tfr + 2.5, 1.0, True)
+        huye = lecho("e10_huye", "seat_acelera", 3.0, .5)
         efectos = [
-            (F("impacto"), WT("G01", "patada.") - .08, -3), (F("puerta_nave"), WT("G01", "patada.") - .45, -5), (F("brillo"), .3, -8),
+            (F("impacto"), WT("G01", "patada.") - .08, -3), (F("puerta_nave"), WT("G01", "patada.") - .45, -5), (F("movil"), .5, -2), (F("brillo"), .3, -8),
+            (F("seat_derrape"), .05, 1), (idle0, .3, -1), (F("petardeo"), 2.4, 0),
             (F("tension"), S("G03") - .1, -9), (F("impacto"), S("G02") + .05, -9),
             (F("brillo"), WT("G03", "sombrero") - .05, -8), (F("impacto"), S("G05") - .05, -8),
             (F("tension"), S("G06") - .1, -10), (F("impacto"), WT("G07", "deuda") - .05, -8),
             (F("caja"), WT("G08", "llave") - .05, -7), (F("tension"), S("G09") - .1, -10),
-            (F("nitro_ruge"), S("G10") + .1, -7), (F("se_aleja"), S("G10") + .6, -9), (F("impacto"), WT("G10", "frenan") - .1, -6),
-            (F("impacto"), S("G11") - .05, -6), (F("tension"), S("G12") - .1, -10),
-            (F("brillo"), WT("G13", "extiende") - .05, -7), (F("impacto"), T_SPLIT, -6), (F("impacto"), WT("G15", "huir.") - .05, -9),
+            (llega, tf - .1, 3), (F("nitro_ruge"), tf + .5, 1), (F("petardeo"), tf + 1.3, 0),
+            (F("seat_derrape"), tfr - .15, 4), (F("seat_derrape"), tfr + .25, 3), (idle1, tfr + .1, -2),
+            (F("petardeo"), S("G11") + 1.0, 0), (F("tension"), S("G12") - .1, -10),
+            (F("impacto"), S("G11") - .05, -6),
+            (F("brillo"), WT("G13", "extiende") - .05, -7), (F("impacto"), T_SPLIT, -6),
+            (huye, WT("G15", "huir.") - .15, 3), (F("petardeo"), WT("G15", "huir.") + .9, 0),
             (F("brillo"), WT("G16", "Comenta") - .05, -4),
         ]
         mix.main(os.path.join(R.HERE, "el_taller_de_ruben_ep10_corto.mp4"), "e10s", efectos)

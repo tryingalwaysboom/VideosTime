@@ -21,7 +21,6 @@ RAW = [
  ("G11","P","[urgent] Son ellos. Han venido a por el contrato."),
  ("G12","X","[tense] Pues que vengan. El contrato lo tengo yo."),
  ("G13","N","Nitro saca el papel. Y el padre de Lucía… extiende la mano."),
- ("G14","N","Tú eliges: o confías en él… o te llevas el contrato y huyes."),
  ("G15","N","Confiar. O huir."),
  ("G16","N","Comenta confiar o huir: la parte once la decides tú."),
 ]
