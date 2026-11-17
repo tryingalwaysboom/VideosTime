@@ -465,10 +465,28 @@ def banda():
     a[..., 3] = (np.clip(1 - np.abs(y - 1490) / 190, 0, 1) ** 1.2 * 120).astype(np.uint8)[:, None]
     return Image.fromarray(a, "RGBA")
 
+import bodycam as BC
+HORA = {"s01": (22, 38, 5), "s02": (22, 40, 12), "s03": (22, 38, 20), "s04": (22, 38, 30), "s05": (22, 47, 2), "s06": (22, 47, 9), "s07": (22, 47, 18),
+        "s08": (22, 52, 40), "s09": (2, 59, 40), "s10": (3, 0, 3), "s11": (3, 0, 41), "s12": (3, 1, 30)}
+@lru_cache(1)
+def eventos():
+    ev = [(WT("C02", 12), .9), (WT("C03", 13), .9), (WT("C06", 11), 1.0), (WT("C01", 2), .5)]
+    t0 = WT("C05", 8) - .04; ev += [(t0 + k, 1.0) for k in KNOCKS]
+    ev += [(_v(a), .45) for _n, a, _b, _f in ESCENAS[1:]]
+    return ev
+def glitch_at(T): return max([g * (1 - (T - t) / .16) for t, g in eventos() if 0 <= T - t < .16] + [0.0])
+def escena_de(T):
+    for n, a, b, _f in ESCENAS:
+        if _v(a) <= T < _v(b): return n
+    return "s12"
+
 def frame(T, fn):
-    c = fn(T); hud(c, T)
+    n = escena_de(T); g = glitch_at(T); nv = n == "s10"
+    c = BC.lente(fn(T), T, g, nv, .6 if n in ("s01", "s03", "s04", "s12") else 1.0); BC.interfaz(c, T, HORA[n], nv, g); hud(c, T)
     if T < S("C07") - .05: c.alpha_composite(banda())
-    caption(c, T); return finish(c, T).convert("RGB")
+    caption(c, T)
+    a = np.asarray(c.convert("RGB"), np.int16) + grain(int(T * FPS) % 6)[..., None]
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGB")
 
 def render_escena(args):
     name, fa, fb, _ = args; fn = dict((n, f) for n, *_x, f in ESCENAS)[name]
