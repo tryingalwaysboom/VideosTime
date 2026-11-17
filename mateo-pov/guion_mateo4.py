@@ -7,8 +7,6 @@ VOCES = {
 LINEAS = [
  ("F01","N","[excited] Eligieron: dejarlo así. Le detienes la mano… y le susurras: está perfecto.",
   "*Eligieron:* dejarlo *así.* Le *detienes* la mano… y le susurras: está *perfecto.*"),
- ("F02","N","La maestra se acerca… mira la E… y sonríe.",
-  "La *maestra* se acerca… mira la *E…* y *sonríe.*"),
  ("F03","P","Es normal que la escriban al revés al principio. ¡Y lo escribió él solito!",
   "Es *normal* que la escriban al *revés* al principio. *¡Y* lo escribió él *solito!*"),
  ("F04","N","La mamá que se reía… ya no se ríe.",
@@ -21,6 +19,8 @@ LINEAS = [
   "Y antes de *dormir…* escribe algo *más.* Para *ti.*"),
  ("F08","K","[softly] Ma… má.",
   "*Ma…* *má.*"),
+ ("F08B","N","Las hojas que usa Mateo son del libro de Pinti… lo tienes en el link de mi bio.",
+  "Las *hojas* que usa Mateo son del *libro* de *Pinti…* lo tienes en el *link* de mi *bio.*"),
  ("F09","N","Al día siguiente, te pide la tablet de premio. ¿Qué haces? A: se la das, se la ganó. B: un premio sin pantallas. Vota… y dime por qué.",
   "Al día *siguiente,* te pide la *tablet* de *premio.* ¿Qué *haces?* *A:* se la das, se la *ganó.* *B:* un premio sin *pantallas.* *Vota…* y dime por *qué.*"),
 ]

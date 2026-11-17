@@ -25,7 +25,7 @@ F_BAL = os.path.join(HERE, "fonts", "Baloo2-ExtraBold.ttf")  # rótulos de la ba
 NAVY = (44, 36, 78)
 
 # pausas entre frases (respiración dramática donde hace falta)
-R.GAP.update({"F02": .3, "F03": .25, "F04": .3, "F05": .3, "F06": 1.0, "F07": .3, "F08": 1.4, "F09": .5})
+R.GAP.update({"F03": .3, "F04": .25, "F05": .3, "F06": .6, "F07": .3, "F08": 1.25, "F08B": .5, "F09": .4})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL -= .1   # la voz arranca en el frame 0
 R.CH = R.chunks(); TL = R.TL; TOTAL = R.TOTAL
@@ -871,7 +871,7 @@ def sc_perfecto(T):
 
 def sc_maestra(T):
     """F02-F03: la maestra mira la E y sonríe; le pega una estrella. 'Es normal que la escriban al revés al principio.'"""
-    s0 = S("F02"); ts = WT("F02", "sonríe.")
+    s0 = S("F03"); ts = S("F03") + .4
     c = pared_expo(T)
     xs = 540 + 150
     if T >= ts - .2:
@@ -957,7 +957,7 @@ def sc_mama(T):
     put(c, "hoja", *HOJA); pinti(c, 920, 640, 150, rot=-8)
     yt, yb = fila(*HOJA, 0); h = yb - yt
     L = mama_trazos(540 - ancho_nino("MAMA", h) / 2, yt, h)
-    t0, t1 = WT("F07", "escribe") - .1, e0 + 1.6
+    t0, t1 = WT("F07", "escribe") - .1, e0 + 1.1
     tip, u = escribir(c, L, T, t0, t1, h * .1, .55, entra=.5)
     c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (yt + yb) / 2, 1.4, f=.6)
     if T >= WT("F07", "ti."): etiqueta(c, T, WT("F07", "ti."), "PARA TI", 540, 1220, ROSA, WHITE, 44)
@@ -1037,9 +1037,132 @@ def sc_final(T):
             text(d, (540, 1328), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
     return c
 
+# ---------------------------------------------------------------- hojas reales del libro de Pinti (venta discreta)
+LIBRO = os.path.join(HERE, "..", "pinti-organico", "assets")
+_PG = {}
+def pagina_img(n, s):
+    k = (n, round(s, 3))
+    if k not in _PG:
+        f = os.path.join(LIBRO, "portada.jpg" if n == 0 else f"paginas/pagina-{n:02d}.jpg")
+        im = Image.open(f).convert("RGBA"); _PG[k] = im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)
+    return _PG[k]
+
+def pagina(c, n, px, py, cx, cy, s, sombra=True):
+    """Pone la página n del libro (escala s) de modo que su punto (px, py) caiga en (cx, cy). Devuelve el mapeo página->pantalla."""
+    im = pagina_img(n, s); x0, y0 = cx - px * s, cy - py * s
+    if sombra:
+        sh = Image.new("RGBA", (im.width + 60, im.height + 60), (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle((30, 30, im.width + 30, im.height + 30), fill=(40, 30, 20, 110))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)), (int(x0 - 18), int(y0 - 14)))
+    c.alpha_composite(im, (int(x0), int(y0)))
+    return lambda x, y: (x0 + x * s, y0 + y * s)
+
+def pill_libro(c, T, t0, dur=3.2, y=440):
+    """Píldora discreta: miniatura de la portada + 'Hojas del libro de Pinti · link en mi bio'."""
+    if not (t0 <= T < t0 + dur): return
+    k = ease((T - t0) / .3) * (1 - ease((T - t0 - dur + .3) / .3))
+    if k <= .02: return
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    w = 640
+    d.rounded_rectangle((540 - w / 2, y - 50, 540 + w / 2, y + 50), 50, fill=(255, 252, 244, 245), outline=(240, 140, 60), width=5)
+    cov = pagina_img(0, 64 / 1588 * 1.0)
+    lay.alpha_composite(cov, (int(540 - w / 2 + 34), int(y - cov.height / 2)))
+    d.text((540 - w / 2 + 120, y - 18), "Hojas del libro de Pinti", font=font(F_BAL, 34), fill=NAVY, anchor="lm")
+    d.text((540 - w / 2 + 120, y + 20), "lo tienes en el link de mi bio", font=font(F_BAL, 28), fill=(220, 110, 40), anchor="lm")
+    if k < 1: lay = Image.blend(Image.new("RGBA", (W, H), (0, 0, 0, 0)), lay, k)
+    c.alpha_composite(lay, (0, int(-30 * (1 - k))))
+
+def impresora(c, T, t0, n=15):
+    """La impresora sacando una hoja real del libro."""
+    d = ImageDraw.Draw(c)
+    u = clamp((T - t0) / 1.4)
+    pg = pagina_img(n, .5)
+    yb = 980 - pg.height * u   # la hoja sale por arriba
+    c.alpha_composite(pg, (int(540 - pg.width / 2), int(yb)))
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((170, 960, 910, 1330), 46, fill=(236, 236, 242), outline=OL, width=8)
+    d.rounded_rectangle((250, 940, 830, 1000), 20, fill=(70, 70, 86), outline=OL, width=6)
+    d.rounded_rectangle((250, 1160, 830, 1230), 20, fill=(210, 210, 220), outline=OL, width=5)
+    d.ellipse((780, 1040, 830, 1090), fill=(90, 210, 120) if int(T * 4) % 2 else (60, 160, 90), outline=OL, width=4)
+
+def pagina_trazos_E(mp):
+    """Los 4 trazos de una E punteada de la página 15 (en coordenadas de la página), en el orden del libro."""
+    out = []
+    for x0, x1, xm in ((255, 290, 285), (329, 364, 359)):
+        p = [[(x0, 589), (x0, 660)], [(x0, 589), (x1, 589)], [(x0, 625), (xm, 625)], [(x0, 660), (x1, 660)]]
+        out.append([[mp(*q) for q in s] for s in p])
+    return out
+
+def sc_truco(T):
+    """F05: imprimes la hoja de la E del libro; el truco de Rex: la E mira hacia adelante. Mateo repasa las E punteadas de la página real."""
+    s0, e0 = TL["F05"]; tr = WT("F05", "Rex") - .1
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (50,)))
+    if T < tr:
+        impresora(c, T, s0 - .1)
+        return c
+    mp = pagina(c, 15, 230, 560, 400, 900, 1.5)
+    Es = pagina_trazos_E(mp)
+    t0, t1 = WT("F05", "adelante,") - .2, e0 + .45
+    tip, u = escribir(c, Es, T, t0, t1, 15, .5, entra=.6)
+    # Rex camina hacia adelante por la línea de abajo
+    if T >= WT("F05", "adelante,") - .2:
+        uu = clamp((T - WT("F05", "adelante,") + .2) / 2.5); bx, by = mp(250 + 260 * uu, 700)
+        put(c, "dino", bx, by - 40 + 8 * abs(math.sin(T * 9)), .12)
+        d = ImageDraw.Draw(c); ax = bx + 80
+        d.line((ax, by - 50, ax + 60, by - 50), fill=ROSA, width=10); d.polygon([(ax + 60, by - 68), (ax + 88, by - 50), (ax + 60, by - 32)], fill=ROSA)
+    for i, tf in enumerate(fines(Es, t0, t1)):
+        if T >= tf:
+            x, y = mp((255, 329)[i] + 18, 560); k = popscale(T, tf, .3); d = ImageDraw.Draw(c); r = 26 * k
+            d.ellipse((x - r, y - r, x + r, y + r), fill=VERDE, outline=WHITE, width=4)
+            if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
+    c = seguir(c, tip[0] if tip else 480, tip[1] if tip else 900, 1.3, f=.5)
+    if T < WT("F05", "adelante,"): etiqueta(c, T, tr, "EL TRUCO DE REX", 540, 1220, CREMA, OL, 40)
+    else: etiqueta(c, T, WT("F05", "adelante,"), "LA E MIRA HACIA ADELANTE", 540, 1220, VERDE, WHITE, 38)
+    pill_libro(c, T, tr + .2, 3.4)
+    return c
+
+def sc_mama(T):
+    """F07: antes de dormir escribe algo más, para ti: MAMÁ, en la hoja de práctica del libro, con su mano."""
+    s0, e0 = TL["F07"]
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (60,)))
+    mp = pagina(c, 85, 540, 320, 540, 900, 1.5)
+    (xa, yt), (_, yb) = mp(0, 265), mp(0, 374); h = yb - yt
+    L = mama_trazos(540 - ancho_nino("MAMA", h) / 2, yt, h)
+    t0, t1 = WT("F07", "escribe") - .1, e0 + 1.1
+    tip, u = escribir(c, L, T, t0, t1, h * .1, .55, entra=.5)
+    c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (yt + yb) / 2, 1.3, f=.55)
+    if T >= WT("F07", "ti."): etiqueta(c, T, WT("F07", "ti."), "PARA TI", 540, 1220, ROSA, WHITE, 44)
+    pill_libro(c, T, t0 + .3, 3.0)
+    return c
+
+def sc_hojas(T):
+    """F08B: las hojas que usa Mateo son del libro de Pinti; está en el link de la bio. Hojas reales en abanico."""
+    s0, e0 = TL["F08B"]
+    c = bg("bg_mesa", T, s0, 1.15, 1.2, 4, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), (255, 220, 170, 40)))
+    for i, (n, x, y, rot) in enumerate(((20, 330, 880, -12), (85, 750, 900, 11), (15, 540, 860, -2))):
+        k = popscale(T, s0 - .1 + i * .25, .35)
+        if k <= 0: continue
+        pg = pagina_img(n, .42 * k).rotate(rot, expand=True, resample=Image.BICUBIC)
+        sh = Image.new("RGBA", pg.size, (40, 30, 20, 0)); sh.putalpha(pg.getchannel("A").point(lambda v: int(v * .35)))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(14)), (int(x - pg.width / 2 + 12), int(y - pg.height / 2 + 16)))
+        c.alpha_composite(pg, (int(x - pg.width / 2), int(y - pg.height / 2)))
+    tl_ = WT("F08B", "link")
+    if T >= s0 + .8:   # la portada del libro
+        k = popscale(T, s0 + .8, .4); cov = pagina_img(0, .2 * k).rotate(6, expand=True, resample=Image.BICUBIC)
+        c.alpha_composite(cov, (int(830 - cov.width / 2), int(1270 - cov.height / 2)))
+    if T >= tl_ - .2:
+        k = popscale(T, tl_ - .2, .35); d = ImageDraw.Draw(c)
+        d.rounded_rectangle((540 - 300 * k, 440 - 55 * k, 540 + 300 * k, 440 + 55 * k), 55, fill=(240, 140, 60), outline=WHITE, width=6)
+        if k > .7:
+            d.text((540, 442), "LINK EN MI BIO", font=font(F_BAL, 56), fill=WHITE, anchor="mm")
+            d.polygon([(540, 330 - 10 * math.sin(T * 6)), (505, 370 - 10 * math.sin(T * 6)), (575, 370 - 10 * math.sin(T * 6))], fill=(240, 140, 60))
+    return c
+
 SCENES = [
-    (0, sc_perfecto), (S("F02") - .15, sc_maestra), (S("F04") - .15, sc_ya_no), (S("F05") - .2, sc_truco),
-    (S("F06") - .15, sc_bien), (S("F07") - .15, sc_mama), (S("F08") - .1, sc_mama2), (S("F09") - .2, sc_premio),
+    (0, sc_perfecto), (S("F03") - .15, sc_maestra), (S("F04") - .15, sc_ya_no), (S("F05") - .2, sc_truco),
+    (S("F06") - .15, sc_bien), (S("F07") - .15, sc_mama), (S("F08") - .1, sc_mama2), (S("F08B") - .2, sc_hojas), (S("F09") - .2, sc_premio),
     (WT("F09", "A:") - .4, sc_final),
 ]
 IMPACTS = [WT("F01", "perfecto."), WT("F03", "solito!"), WT("F04", "ríe."), WT("F09", "premio."), WT("F09", "A:") - .4]

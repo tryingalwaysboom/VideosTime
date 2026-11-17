@@ -11,13 +11,13 @@ def efectos():
     e = [(sx("resultado"), .15, -4),
          (sx("borrar"), WT("F01", "detienes") + .2, -6),
          (sx("brillo"), WT("F01", "perfecto.") - .05, -4),
-         (sx("brillo"), WT("F02", "sonríe.") - .2, -3),
+         (sx("brillo"), S("F03") + .3, -3),
          (sx("risa"), S("F04") - .1, -9),
-         (sx("crayola"), WT("F05", "Rex", 2) - .2, -3),
+         (sx("crayola"), WT("F05", "adelante,") - .2, -3),
          (sx("brillo"), S("F06") - .1, -4),
          (sx("crayola"), WT("F07", "escribe") - .1, -3), (sx("crayola"), WT("F07", "escribe") + 2.6, -4),
          (sx("piano"), S("F08") - .1, -7),
-         (sx("movil"), WT("F09", "tablet") - .2, -5),
+         (sx("brillo"), WT("F08B", "link") - .2, -5), (sx("movil"), WT("F09", "tablet") - .2, -5),
          (sx("brillo"), WT("F09", "A:") - .1, -5), (sx("brillo"), WT("F09", "B:") - .1, -5)]
     for t, fn in SCENES[1:]:
         if t not in SUAVES: e.append((sx("whoosh"), t - .05, -7))
