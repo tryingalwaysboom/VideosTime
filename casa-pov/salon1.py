@@ -12,10 +12,12 @@ from ep1 import cam, text, flash, ease, back, clamp, inout, paste_c, banda, grai
 HERE = os.path.dirname(os.path.abspath(__file__)); FPS = 30
 SRC = os.path.join(HERE, "..", "descargas", "casa_salon"); SFXD = os.path.join(HERE, "..", "descargas", "casa_sfx")
 TMP = os.path.join(HERE, "tmp_salon"); OUT = os.path.join(HERE, "out"); os.makedirs(TMP, exist_ok=True)
-VOZ = os.path.join(SRC, "V01.mp3")
-DISP = {"olía": "olía a", "300": "$300", "1840.": "$1,840.", "¡Fuera": "¡Fuera"}
-RAW = json.load(open(os.path.join(SRC, "V01.json")))
-WD = [(DISP.get(w["p"], w["p"]), w["inicio"], w["fin"]) for w in RAW]
+VOZ = os.path.join(SRC, "V02.mp3")
+DISP = {"olía": "olía a", "dos": "$2,140", "mil": None, "140": None, "120": "$120", "180.": "$180.", "1840.": "$1,840.", "Fuera": "¡Fuera", "fuera": "¡fuera", "sábanas,": "sábanas!", "polvo.": "polvo!", "salón,": "salón.", "tengo": "Tengo", "verde": "¿Verde", "noche.": "noche?", "esto,": "esto:"}
+RAW = json.load(open(os.path.join(SRC, "V02.json")))
+WD = [(DISP.get(w["p"], w["p"]), w["inicio"], w["fin"]) for w in RAW if DISP.get(w["p"], w["p"]) is not None]
+for i, (w, a, b) in enumerate(WD):
+    if w == "$2,140": WD[i] = (w, a, [x for x in RAW if x["p"] == "140"][0]["fin"])
 def wt(word, n=1):
     k = 0
     for w, a, b in WD:
@@ -30,10 +32,11 @@ TOTAL = VDUR + .3
 T_SAB1, T_SAB2 = wt("sábanas") - .1, wt("polvo") - .15
 T_MOQ, T_ARR = wt("moqueta"), wt("arranqué") - .2
 T_ESTO = wt("esto")
-T_LIJ, T_BAR, T_BRI = wt("Lijado"), wt("barniz"), wt("brilla")
-T_300, T_QUE = wt("$300"), wt("$1,840.")
+T_LIJ, T_BAR, T_BRI = wt("Alquilar"), wt("barniz"), wt("brilla")
+T_PRES, T_GRATIS, T_120, T_180 = wt("Tengo"), wt("gratis"), wt("$120"), wt("$180")
+T_QUE = wt("quedan")
 T_PAR, T_VER, T_AZU, T_TU = wt("paredes"), wt("Verde"), wt("azul"), wt("Tú")
-CUTS = [0.0, wt("Fuera") - .08, T_MOQ - .2, wt("Y", 2) - .05, T_LIJ - .1, T_BRI - .08, wt("Llevo") - .1, T_VER - .25, TOTAL]
+CUTS = [0.0, wt("Fuera") - .08, T_MOQ - .2, wt("Y", 2) - .05, T_LIJ - .1, wt("Y", 3) - .08, wt("me") - .1, T_VER - .25, TOTAL]
 
 # ------------------------------------------------------------------ subtítulos
 def chunks():
@@ -77,9 +80,10 @@ def hud(c, T):
     if T < .3: c.alpha_composite(base, (0, int(-400 * (1 - ease(T / .3))))); return
     c.alpha_composite(base); d = ImageDraw.Draw(c); x0, y0 = 36, 238
     def pop(t): return 1 + .3 * math.sin(clamp((T - t) / .3) * math.pi) if 0 <= T - t < .3 else 1
-    v = int(lerp(2140, 1840, ease((T - T_300) / .6))) if T >= T_300 else 2140
-    ic_coin(d, x0 + 230, y0 + 34); d.text((x0 + 256, y0 + 35), f"${v:,}", font=font(F_ANTON, 36 * pop(T_300)), fill=(255, 120, 110) if T_300 <= T < T_300 + 1 else WHITE, anchor="lm")
-    pct = 8 if T >= T_BRI else 0
+    v = int(2140 - 120 * ease((T - T_120) / .5) * (T >= T_120) - 180 * ease((T - T_180) / .5) * (T >= T_180))
+    hot = (T_120 <= T < T_120 + 1) or (T_180 <= T < T_180 + 1); pp = max(pop(T_120), pop(T_180), pop(T_PRES))
+    ic_coin(d, x0 + 230, y0 + 34); d.text((x0 + 256, y0 + 35), f"${v:,}", font=font(F_ANTON, 36 * pp), fill=(255, 120, 110) if hot else WHITE, anchor="lm")
+    pct = 8 if T >= CUTS[5] else 0
     ic_casa(d, x0 + 470, y0 + 34, (255, 170, 70)); d.text((x0 + 498, y0 + 35), f"CASA {pct}%", font=font(F_ANTON, 34 * pop(T_BRI)), fill=(120, 230, 120) if T >= T_BRI else WHITE, anchor="lm")
     ic_cal(d, x0 + 770, y0 + 34, WHITE); d.text((x0 + 798, y0 + 35), "12 MESES", font=font(F_ANTON, 34), fill=WHITE, anchor="lm")
 
@@ -156,13 +160,14 @@ def sc_moqueta(T):
         yh = max(1250, min(1800, yy + 300)); M.poner(c, "pinza", 260 + bx, yh + 280, "i", 1.0, 14, 1.0); M.poner(c, "pinza", 800 + bx, yh + 280, "d", 1.0, -14, 1.0)
     else:
         M.poner(c, "palma", 300 + bx, 1880 + by * 1.6 - 330 + 300, "i", 1.0, 10, 1.0)
+    precio(c, T, T_GRATIS - .05, CUTS[3], "ARRANCAR MOQUETA", "GRATIS", (120, 230, 120), 700)
     flash(c, T, t0, .1)
     return c
 
 def sc_lijar(T):
     t0, t1 = CUTS[4], CUTS[5]
     sx = lerp(-.1, 1.1, ease((T - t0) / (T_BAR - t0 - .1)))   # avance del lijado (fracción del ancho)
-    vb = ease((T - T_BAR) / (T_BRI - T_BAR - .15)) if T >= T_BAR else 0   # avance del barniz
+    vb = ease((T - T_BAR) / (CUTS[5] - T_BAR - .15)) if T >= T_BAR else 0   # avance del barniz
     def capa():
         t = SL.tex_parquet_sucio().copy()
         xs = int(SL.TS * sx)
@@ -176,9 +181,11 @@ def sc_lijar(T):
         x = lerp(260, 820, clamp(sx)); y = 1420 + 60 * math.sin(T * 7)
         M.poner(c, "puno", x + bx, y + 560, "d", 1.0, 0, 1.0); lijadora(c, x + bx, y + 560 - 300, T)
         polvo_nube(c, T, t0 + .2, x, y, 30, 5, 1.2)
+        precio(c, T, T_120 - .05, T_BAR - .05, "ALQUILER LIJADORA", "- $120", (255, 120, 100), 700)
     else:
         x = lerp(300, 820, clamp(vb)); y = 1400 + 40 * math.sin(T * 9)
         brocha(c, x + bx, y + 560 - 250); M.poner(c, "puno", x + bx, y + 560, "d", 1.0, 0, 1.0)
+        precio(c, T, T_180 - .05, CUTS[5], "BARNIZ", "- $180", (255, 120, 100), 700)
     flash(c, T, t0, .1)
     return c
 
@@ -197,8 +204,18 @@ def sc_wide(estado, z0, z1, t0, t1, cy0=1250, cy1=1200):
         return cam(SL.salon(*estado), z, 1296, cy), z, cy
     return fn
 
+def precio(c, T, t0, t1, linea1, linea2, col, y=640):
+    if not (t0 <= T < t1): return
+    k = min(1, back((T - t0) / .3)); d = ImageDraw.Draw(c)
+    w, h = 620 * k, 230 * k
+    c.alpha_composite(soft((W, H), lambda dd: dd.rounded_rectangle((W / 2 - w / 2, y - h / 2 + 12, W / 2 + w / 2, y + h / 2 + 12), 34, fill=(0, 0, 0, 140)), 14)); d = ImageDraw.Draw(c)
+    d.rounded_rectangle((W / 2 - w / 2, y - h / 2, W / 2 + w / 2, y + h / 2), 34, fill=(18, 14, 28, 235), outline=col, width=6)
+    if k > .6:
+        d.text((W / 2, y - 52), linea1, font=font(F_ANTON, 54), fill=col, anchor="mm"); text(d, (W / 2, y + 40), linea2, 118, WHITE, stroke=0)
+
 def sc_entrada(T):
     c, z, cy = sc_wide(("vieja", "moqueta", True), 1.35, 1.6, CUTS[0], CUTS[1], 1060, 1030)(T)
+    precio(c, T, T_PRES, CUTS[1], "PRESUPUESTO", "$2,140", (255, 206, 60))
     BC_ = BC.respiracion(T * 1.15 + 3, .9); M.poner(c, "llave", 820 + BC_[0], 1880 + BC_[1] * 1.6 - 250 + 300 * ease((T - 2.6) / .6), "d", 1.0, -12, 1.0)
     return c
 
@@ -236,8 +253,8 @@ def antes_despues(T):
     d = ImageDraw.Draw(c); d.rectangle((W // 2 - 4, 0, W // 2 + 4, H), fill=(255, 255, 255))
     for x, t, col in ((W / 4, "ANTES", (230, 80, 70)), (3 * W / 4, "DESPUÉS", (90, 200, 110))):
         d.rounded_rectangle((x - 150, 420, x + 150, 500), 20, fill=col); d.text((x, 460), t, font=font(F_ANTON, 58), fill=WHITE, anchor="mm")
-    if T >= T_300:
-        k = min(1, back((T - T_300) / .3)); text(d, (W / 2, 820), "- $300", 170 * k, RED, stroke=12)
+    if T >= CUTS[6] + .1:
+        k = min(1, back((T - CUTS[6] - .1) / .3)); text(d, (W / 2, 760), "GASTADO", 70 * k, WHITE, stroke=8); text(d, (W / 2, 880), "- $300", 170 * k, RED, stroke=12)
     flash(c, T, CUTS[6], .1)
     return c
 
@@ -286,7 +303,7 @@ def mezcla(wav):
     SFX = [(s("sabana"), T_SAB1 - .55, 0), (s("polvo"), T_SAB1 + .05, -2), (s("sabana"), T_SAB2 - .55, -1), (s("polvo"), T_SAB2 + .05, 0),
            (s("moqueta"), T_ARR - .05, 3), (s("whoosh"), CUTS[3] - .2, -4), (s("brillo"), T_ESTO + .15, 0),
            (s("lijadora"), CUTS[4] + .05, 1), (s("lijadora"), CUTS[4] + .95, 1), (s("barniz"), T_BAR, 2), (s("barniz"), T_BAR + .7, 2),
-           (s("brillo"), CUTS[5], 2), (s("caja"), T_300 - .05, 0), (s("whoosh"), CUTS[7] - .25, -2), (s("whoosh"), T_VER - .2, -4)]
+           (s("brillo"), CUTS[5], 2), (s("caja"), T_120 - .05, -1), (s("caja"), T_180 - .05, -1), (s("caja"), CUTS[6] + .05, -3), (s("whoosh"), CUTS[7] - .25, -2), (s("whoosh"), T_VER - .2, -4)]
     ins = ["-i", VOZ]; flt = [f"[0:a]aresample=48000,apad=pad_dur=4,acompressor=threshold=-18dB:ratio=3:attack=5:release=120,loudnorm=I=-15:TP=-1.5:LRA=9,atrim=0:{TOTAL:.2f}[v]"]
     for k, (p, t, db) in enumerate(SFX):
         ins += ["-i", p]; ms = int(max(0, t) * 1000); flt.append(f"[{k + 1}:a]aresample=48000,loudnorm=I=-26:TP=-6,volume={db}dB,adelay={ms}|{ms},apad[s{k}]")
