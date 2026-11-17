@@ -607,3 +607,23 @@ _plate_casa_simple = plate_casa
 def plate_casa():
     import casa_hd
     return casa_hd.plate_casa_hd()
+
+# interiores detallados (interior_hd) sustituyen a las versiones simples
+_plate_calendario_simple = plate_calendario
+@lru_cache(1)
+def plate_pasillo():
+    import interior_hd; return interior_hd.plate_pasillo_hd()
+@lru_cache(1)
+def plate_porche():
+    import interior_hd; return interior_hd.plate_porche_hd()
+@lru_cache(1)
+def plate_calendario():
+    import interior_hd; return interior_hd.plate_calendario_hd()
+@lru_cache(1)
+def plate_reloj():
+    import interior_hd; return interior_hd.plate_reloj_hd()
+@lru_cache(1)
+def plate_trampilla():
+    import interior_hd; return interior_hd.plate_trampilla_hd()
+def door_leaf(w, h):
+    import interior_hd; return interior_hd.door_leaf_hd(w, h)

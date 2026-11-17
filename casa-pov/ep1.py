@@ -314,7 +314,7 @@ def sc_pasillo(T):
 
 def sc_calendario(T):
     t0 = WT("C03", 10) - .05; t1 = S("C04") - .05; u = inout((T - t0) / max(.1, t1 - t0))
-    z = lerp(1.15, 1.6, u); cx, cy = 648, lerp(1300, 1260, u)
+    z = lerp(1.15, 1.6, u); cx, cy = 648, lerp(1430, 1420, u)
     tb = WT("C03", 13)
     sx = sy = 0
     if 0 <= T - tb < .4: sx, sy = 14 * math.sin(T * 90) * (1 - (T - tb) / .4), 10 * math.cos(T * 70) * (1 - (T - tb) / .4)
