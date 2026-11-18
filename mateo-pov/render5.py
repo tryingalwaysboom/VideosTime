@@ -1337,7 +1337,6 @@ def sc_r(T):
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
     if T < WT("F06", "Rex."): etiqueta(c, T, tr, "LA R DE REGALO", 540, 1220, CREMA, OL, 40)
     else: etiqueta(c, T, WT("F06", "Rex."), "...Y DE REX", 540, 1220, VERDE, WHITE, 42)
-    pill_libro(c, T, t0 + .3, e0 + .5 - (t0 + .3))
     return c
 
 def sc_noche_carta(T):
@@ -1390,7 +1389,6 @@ def sc_l(T):
     tip, u = escribir(c, Ls, T, t0, t1, 15, .5, entra=1.0)
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
     etiqueta(c, T, WT("F11", "solo"), "ÉL SOLO", 540, 1220, VERDE, WHITE, 46) if T >= WT("F11", "solo") else None
-    pill_libro(c, T, t0 + .3, e0 + .3 - (t0 + .3))
     return c
 
 def sc_luna(T):
@@ -1418,7 +1416,7 @@ def sc_luna(T):
     for i, t in enumerate(ws):
         nxt = ws[i + 1] if i < 3 else e0 + 1.5
         if t <= T < nxt: etiqueta(c, T, t, f"{'LUNA'[i]} = {labs[i]}", 540, 1220, CREMA, OL, 38)
-    pill_libro(c, T, ws[0] - .3, e0 + .4 - (ws[0] - .3))
+    pill_libro(c, T, ws[0] - .2, 5.0)   # una sola vez por vídeo, ~5 s
     return c
 
 def sc_listo(T):
