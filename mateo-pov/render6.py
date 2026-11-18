@@ -1620,10 +1620,20 @@ def sc_no(T):
     return c
 
 def sc_maestro(T):
-    """F03-F04: Rex necesita un maestro. '¿Yo le enseño a Rex?'"""
+    """F03-F04: Rex necesita un maestro. '¿Yo le enseño a Rex?'. F04B: Mateo se sienta derechito con la crayola (narra Lily: sin mover su boca)."""
     s0 = S("F03")
+    if T >= S("F04B") - .1:
+        c = bg("bg_mesa", T, S("F04B"), 1.1, 1.2, 6, .5, .5)
+        u = ease((T - S("F04B")) / .7)
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle((680, 1130, 1020, 1220), 22, fill=(176, 120, 72), outline=OL, width=6)   # taburete de Rex
+        d.rectangle((720, 1220, 750, 1400), fill=(150, 100, 60)); d.rectangle((950, 1220, 980, 1400), fill=(150, 100, 60))
+        put(c, "dino", 850, 1100 - 8 * abs(math.sin(T * 2)), .5)
+        mateo(c, "neutral_crayola", 380, 1020 + 60 * (1 - u), .82, T)   # se sienta derechito, crayola en la mano
+        etiqueta(c, T, S("F04B") + .3, "COMO UN MAESTRO DE VERDAD", 540, 470, CREMA, OL, 38)
+        return c
     c = bg("bg_cocina", T, s0 - .1, 1.15, 1.25, 6, .5, .6)
-    mateo(c, "feliz" if T >= S("F04") else "neutral", 420, 1260, 1.05, T, "F04B" if T >= S("F04B") else "F04")
+    mateo(c, "feliz" if T >= S("F04") else "neutral", 420, 1260, 1.05, T, "F04")
     put(c, "dino", 830, 1300, .5, rot=5 * math.sin(T * 3))
     etiqueta(c, T, WT("F03", "maestro."), "REX NECESITA UN MAESTRO", 540, 470, CREMA, OL, 40) if T >= WT("F03", "maestro.") - .2 else None
     if T >= S("F04"): brillos(c, T, S("F04"), 420, 1000, 220)
@@ -1698,11 +1708,19 @@ def sc_feliz6(T):
     if T < S("F11") - .1:
         mateo(c, "feliz", 420, 1270, 1.05, T, "F10")
         sobre(c, 800, 1180 + 20 * math.sin(T * 8), 1.0, rot=10 * math.sin(T * 5)); brillos(c, T, S("F10"), 800, 1180, 170)
+    elif T >= S("F11B") - .1:   # en el cole enseña la E a sus compañeros (narra Lily: sin mover la boca de Mateo)
+        c = bg("bg_escuela", T, S("F11B"), 1.1, 1.2, 6, .5, .5)
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle((90, 520, 990, 1020), 20, fill=(46, 84, 66), outline=(150, 100, 60), width=24)
+        k = popscale(T, S("F11B") + .2, .4)
+        if k > 0: d.text((540, 770), "E", font=font(F_ESC, int(380 * k)), fill=(245, 245, 235), anchor="mm")
+        mateo(c, "neutral_crayola", 800, 1110, .78, T)
+        etiqueta(c, T, S("F11B") + .2, "YA ENSEÑA LA E EN EL COLE", 540, 470, CREMA, OL, 40)
+        return c
     else:
         mateo(c, "feliz", 540, 1250, 1.25, T)
         brillos(c, T, S("F11"), 540, 900, 260)
         etiqueta(c, T, WT("F11", "pidas."), "SIN QUE SE LO PIDAS", 540, 470, CREMA, OL, 42) if WT("F11", "pidas.") - .6 <= T < S("F11B") else None
-        etiqueta(c, T, S("F11B"), "YA ENSEÑA LA E EN EL COLE", 540, 470, CREMA, OL, 40) if T >= S("F11B") else None
     return c
 
 def sc_carta_nueva(T):
