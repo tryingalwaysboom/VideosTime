@@ -1571,7 +1571,7 @@ def sc_final(T):
     for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "ABRIR LA CARTA\nJUNTOS", "+ Sin secretos", "- Se asusta", AZ, ta, hiA),
                                            (790, "B", "GUARDARLA\nY AVERIGUAR", "+ Lo descubres sola", "- Le mientes más", VERDE, tb, hiB)):
         k = popscale(T, t0, .35)
-        if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, .9 if h is False else .96)
+        if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
     if T >= tv - .1:
         k = popscale(T, tv - .1, .4)
         d.rounded_rectangle((540 - 390 * k, 1250, 540 + 390 * k, 1350), 50, fill=WHITE, outline=OL, width=6)
@@ -1609,7 +1609,14 @@ def sc_no(T):
     for i in range(3):
         k = popscale(T, S("F02") + i * .25, .3)
         if k > 0: text(d, (700 + i * 90, 640 - i * 70), "?", int(110 * k), YEL, stroke=8)
-    if T < S("F02"): etiqueta(c, T, s0 + 2.2, "NO SOY REX", 540, 470, CREMA, OL, 44)
+    if T < WT("F01", "Respiras") - .1:   # la tarjeta de la opción ganadora, igual que en la Parte 5
+        k = max(.02, popscale(T, 0, .3)); y = 470
+        d.rounded_rectangle((540 - 400 * k, y - 75, 540 + 400 * k, y + 75), 36, fill=WHITE, outline=NAVY, width=6)
+        if k > .8:
+            d.ellipse((170, y - 50, 270, y + 50), fill=VERDE, outline=WHITE, width=5); d.text((220, y + 2), "B", font=font(F_ANTON, 60), fill=WHITE, anchor="mm")
+            d.text((300, y - 24), "ELIGIERON:", font=font(F_BAL, 34), fill=(150, 130, 160), anchor="lm")
+            d.text((300, y + 22), "Seguir con la magia de Rex", font=font(F_BAL, 40), fill=NAVY, anchor="lm")
+            if T > .4: confeti(c, T, .4, 40)
     return c
 
 def sc_maestro(T):
