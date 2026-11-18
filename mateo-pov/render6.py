@@ -811,6 +811,734 @@ def _lado(name):
     _FC[name] = A
     return A
 
+def sc_final(T):
+    s0, e0 = TL["F13"]; ta, tb, tv = WT("F13", "A:"), WT("F13", "B:"), WT("F13", "Vota…")
+    hiA = ta <= T < tb; hiB = tb <= T < tv
+    A, B = _lado("A"), _lado("B")
+    u = ease((T - s0 + .25) / .45)
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255)); negro = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    c.alpha_composite(B if not hiA else Image.blend(B, negro, .45), (int(500 * (1 - u)), 0))
+    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO + [(0, H)], fill=255)
+    c.paste(A if not hiB else Image.blend(A, negro, .45), (int(-700 * (1 - u)), 0), mask)
+    d = ImageDraw.Draw(c)
+    if u > .9:
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(RAYO, fill=(255, 210, 120, 255), width=40, joint="curve")
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(14))); d = ImageDraw.Draw(c)
+        d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=YEL, width=5, joint="curve")
+    k0 = popscale(T, s0, .4)
+    text(d, (540, 220), "¿QUÉ HARÍAS TÚ?", 96 * max(k0, .01), YEL, stroke=8)
+    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "DEJARLO\nASÍ", "+ Orgulloso de él", "- Con la E al revés", AZ, ta, hiA),
+                                           (790, "B", "QUE LO\nBORRE", "+ Lo aprende bien", "- Delante de todos", VERDE, tb, hiB)):
+        k = popscale(T, t0, .35)
+        if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
+    if T >= tv - .1:
+        k = popscale(T, tv - .1, .4)
+        d.rounded_rectangle((540 - 390 * k, 1250, 540 + 390 * k, 1350), 50, fill=WHITE, outline=OL, width=6)
+        if k > .5:
+            text(d, (540, 1286), "VOTA EN LA ENCUESTA", 54, OL)
+            text(d, (540, 1328), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
+    return c
+
+# ---------------------------------------------------------------- escenas de la Parte 4 (ganó la A: dejarlo así)
+LETRA_OK.update({"M": -9, "A": -9, "T": -9, "O": -9})
+
+def estrella(d, cx, cy, r, col=(255, 200, 40)):
+    pts = [(cx + r * (1 if i % 2 == 0 else .45) * math.cos(math.radians(-90 + i * 36)), cy + r * (1 if i % 2 == 0 else .45) * math.sin(math.radians(-90 + i * 36))) for i in range(10)]
+    d.polygon(pts, fill=col, outline=OL); d.line(pts + [pts[0]], fill=OL, width=5)
+
+def sc_perfecto(T):
+    """F01: eligieron dejarlo así. Le detienes la mano (el borrador se cae) y le susurras: está perfecto."""
+    s0, e0 = TL["F01"]
+    c = pared_expo(T).filter(ImageFilter.GaussianBlur(7))
+    td, tp = WT("F01", "detienes"), WT("F01", "perfecto.")
+    mateo(c, "feliz" if T >= tp - .1 else "timido", 540, 1260, 1.0, T)
+    if T < td + .1: borrador(c, 780, 1520, .9, 20)
+    elif T < td + 1.2:   # se le cae de la mano
+        k = (T - td - .1) / 1.1; borrador(c, 780 + 60 * k, 1520 + 700 * k * k, .9, 20 + 200 * k)
+    d = ImageDraw.Draw(c)
+    if T < WT("F01", "Le") - .1:   # resultado de la encuesta, sin números inventados
+        k = max(.02, popscale(T, 0, .3)); y = 470
+        d.rounded_rectangle((540 - 400 * k, y - 75, 540 + 400 * k, y + 75), 36, fill=WHITE, outline=NAVY, width=6)
+        if k > .8:
+            d.ellipse((170, y - 50, 270, y + 50), fill=AZ, outline=WHITE, width=5); d.text((220, y + 2), "A", font=font(F_ANTON, 60), fill=WHITE, anchor="mm")
+            d.text((300, y - 24), "ELIGIERON:", font=font(F_BAL, 34), fill=(150, 130, 160), anchor="lm")
+            d.text((300, y + 22), "Dejarlo así", font=font(F_BAL, 48), fill=NAVY, anchor="lm")
+            if T > .4: confeti(c, T, .4, 40)
+    if T >= tp:
+        corazones(c, T, tp, 540, 900)
+        stamp(c, T, tp, "¡ESTÁ PERFECTO!", 540, 520, ROSA, -5, 86)
+    return c
+
+def sc_maestra(T):
+    """F02-F03: la maestra mira la E y sonríe; le pega una estrella. 'Es normal que la escriban al revés al principio.'"""
+    s0 = S("F03"); ts = S("F03") + .4
+    c = pared_expo(T)
+    xs = 540 + 150
+    if T >= ts - .2:
+        k = popscale(T, ts - .2, .4); estrella(ImageDraw.Draw(c), xs, 1050, 55 * k)
+    z = 1.0 + .7 * ease((T - s0) / 1.5)
+    c = seguir(c, 540, 1080, z, f=1.0)
+    siluetas(c, T)
+    if T >= WT("F03", "normal"): etiqueta(c, T, WT("F03", "normal"), "¡ES NORMAL AL PRINCIPIO!", 540, 470, CREMA, OL, 40)
+    if T >= WT("F03", "solito!"): stamp(c, T, WT("F03", "solito!"), "¡ÉL SOLITO!", 540, 1250, VERDE, -5, 90)
+    return c
+
+def sc_ya_no(T):
+    """F04: la mamá que se reía... ya no se ríe."""
+    s0, e0 = TL["F04"]
+    c = pared_expo(T); c = seguir(c, 540, 1000, 1.15, f=1.0)
+    estrella(ImageDraw.Draw(c), 540 + 150 * 1.15, 1050 + 50 * 1.15, 60)
+    siluetas(c, T)
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((60, 1250, 400, 1370), 40, fill=WHITE, outline=OL, width=6)
+    d.polygon([(110, 1370), (150, 1370), (100, 1440)], fill=WHITE)
+    d.text((230, 1310), "jajaja", font=font(F_BAL, 64), fill=(214, 84, 120), anchor="mm")
+    tr = WT("F04", "ríe.")
+    if T >= tr - .3:
+        k = clamp((T - tr + .3) / .3); d.line((80, 1360, 80 + 300 * k, 1260), fill=ROJO, width=14)
+    if T >= tr: stamp(c, T, tr, "YA NO SE RÍE", 600, 520, NAVY, -4, 86)
+    return c
+
+def sc_truco(T):
+    """F05: el truco de Rex: la E mira hacia adelante, como Rex cuando camina. Mateo la repasa al derecho."""
+    s0, e0 = TL["F05"]
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (50,)))
+    put(c, "hoja", *HOJA); pinti(c, 920, 640, 150, rot=-8)
+    yt, yb = fila(*HOJA, 0); h = yb - yt
+    # a la izquierda, su E al revés tachada; a la derecha la E buena en puntitos
+    eal = nino_trazos("E", 250, yt, h, erev=True, seed=1)
+    dibuja_trazos(c, [p for L in eal for p in L], h * .1, (150, 160, 170))
+    d = ImageDraw.Draw(c); te = WT("F05", "E")
+    if T >= te:
+        k = clamp((T - te) / .3); d.line((220, yt - 10, 220 + 140 * k, yt - 10 + (h + 20) * k), fill=ROJO, width=12)
+        d.line((360, yt - 10, 360 - 140 * k, yt - 10 + (h + 20) * k), fill=ROJO, width=12)
+    Ebuena = letra_trazos("E", 600, yt, yb)[0]
+    puntitos(c, Ebuena, h)
+    # Rex camina hacia adelante por la línea de abajo, con su flecha
+    y1, b1 = fila(*HOJA, 1); tc = WT("F05", "camina.")
+    if T >= WT("F05", "adelante,") - .2:
+        u = clamp((T - WT("F05", "adelante,") + .2) / 2.5)
+        put(c, "dino", 260 + 480 * u, b1 - 50 + 8 * abs(math.sin(T * 9)), .14)
+        d = ImageDraw.Draw(c); ax = 260 + 480 * u + 90
+        d.line((ax, b1 - 60, ax + 70, b1 - 60), fill=ROSA, width=10); d.polygon([(ax + 70, b1 - 80), (ax + 100, b1 - 60), (ax + 70, b1 - 40)], fill=ROSA)
+    t0, t1 = WT("F05", "Rex", 2) - .2, e0 + .8
+    tip, u = escribir(c, [Ebuena], T, t0, t1, h * .13, .55, entra=.5)
+    if u is not None and T >= t1:
+        k = popscale(T, t1, .3); d = ImageDraw.Draw(c); r = 30 * k
+        d.ellipse((720 - r, yt - 70 - r, 720 + r, yt - 70 + r), fill=VERDE, outline=WHITE, width=4)
+        if k > .6: d.line([(707, yt - 70), (716, yt - 60), (735, yt - 84)], fill=WHITE, width=6)
+    c = seguir(c, tip[0] if tip else 480, tip[1] if tip else (yt + b1) / 2, 1.35, f=.55)
+    if T >= WT("F05", "truco:") and T < WT("F05", "adelante,"): etiqueta(c, T, WT("F05", "truco:"), "EL TRUCO DE REX", 540, 1220, CREMA, OL, 40)
+    if T >= WT("F05", "adelante,"): etiqueta(c, T, WT("F05", "adelante,"), "LA E MIRA HACIA ADELANTE", 540, 1220, VERDE, WHITE, 38)
+    return c
+
+def sc_bien(T):
+    """F06: '¡Mami, ya me salió bien!'"""
+    s0, e0 = TL["F06"]
+    c = bg("bg_cocina", T, s0 - .2, 1.2, 1.28, 6, .5, .6)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (50,)))
+    mateo(c, "feliz", 420, 1260, 1.05, T, "F06")
+    letra_grande(c, "E", 820, 760, 380, T, s0)
+    brillos(c, T, s0 + .2, 820, 760, 200)
+    return c
+
+def mama_trazos(x, y, sz):
+    L = nino_trazos("MAMA", x, y, sz, seed=2)
+    xs = [q[0] for p in L[3] for q in p]; ax = (min(xs) + max(xs)) / 2
+    L[3] = L[3] + [[(ax - sz * .05, y - sz * .12), (ax + sz * .14, y - sz * .3)]]   # la tilde de MAMÁ
+    return L
+
+def sc_mama(T):
+    """F07: antes de dormir escribe algo más, para ti: MAMÁ, letra a letra, con su mano."""
+    s0, e0 = TL["F07"]
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (60,)))
+    put(c, "hoja", *HOJA); pinti(c, 920, 640, 150, rot=-8)
+    yt, yb = fila(*HOJA, 0); h = yb - yt
+    L = mama_trazos(540 - ancho_nino("MAMA", h) / 2, yt, h)
+    t0, t1 = WT("F07", "escribe") - .1, e0 + 1.1
+    tip, u = escribir(c, L, T, t0, t1, h * .1, .55, entra=.5)
+    c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (yt + yb) / 2, 1.4, f=.6)
+    if T >= WT("F07", "ti."): etiqueta(c, T, WT("F07", "ti."), "PARA TI", 540, 1220, ROSA, WHITE, 44)
+    return c
+
+def sc_mama2(T):
+    """F08: 'Ma... má.' Te enseña la hoja y se te nubla la vista."""
+    s0, e0 = TL["F08"]
+    c = bg("bg_cocina", T, s0 - .3, 1.15, 1.2, 6, .5, .6)
+    c.alpha_composite(Image.new("RGBA", (W, H), (255, 200, 120, 50)))
+    mateo(c, "feliz", 540, 1330, .95, T, "F08")
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); put(lay, "hoja", 540, 700, .62)
+    dibuja_trazos(lay, [p for Lx in mama_trazos(540 - ancho_nino("MAMA", 100) / 2, 600, 100) for p in Lx], 10)
+    c.alpha_composite(lay.rotate(-3 + 2 * math.sin(T * 3), center=(540, 700), resample=Image.BICUBIC))
+    corazones(c, T, s0 - .3, 540, 900)
+    k = ease((T - s0 - .6) / 1.2)
+    if k > 0:
+        c = Image.blend(c, c.filter(ImageFilter.GaussianBlur(9)), .7 * k)
+    return c
+
+def sc_premio(T):
+    """F09 (inicio): al día siguiente te pide la tablet de premio."""
+    s0, e0 = TL["F09"]
+    c = bg("bg_cuarto", T, s0, 1.15, 1.22, 8, .5, .55)
+    mateo(c, "feliz", 400, 1270, 1.0, T)
+    tt = WT("F09", "tablet")
+    if T >= tt - .2:
+        k = popscale(T, tt - .2, .4)
+        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((560, 620, 1060, 1060), fill=(120, 190, 255, 120))
+        c.alpha_composite(glow.filter(ImageFilter.GaussianBlur(50)))
+        put(c, "tablet", 810, 840, .32 * k, rot=-8)
+    if T >= WT("F09", "premio."): stamp(c, T, WT("F09", "premio."), "¿Y MI PREMIO?", 600, 520, ROSA, -5, 86)
+    return c
+
+_FC = {}
+def _lado(name):
+    if name in _FC: return _FC[name]
+    if name == "A":
+        A = bg("bg_cuarto", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
+        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((80, 1500, 580, 1950), fill=(120, 190, 255, 140))
+        A.alpha_composite(glow.filter(ImageFilter.GaussianBlur(50)))
+        put(A, "mateo_feliz", 280, 1450 + 400 * .7, .7); put(A, "tablet", 330, 1760, .3, rot=-6)
+        A.alpha_composite(Image.new("RGBA", (W, H), (30, 40, 110, 80)))
+    else:
+        A = bg("bg_cocina", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
+        put(A, "mateo_feliz", 820, 1450 + 400 * .72, .72); put(A, "dino", 950, 1700, .35, rot=6)
+        put(A, "crayola", 700, 1720, .3, rot=-20)
+        A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 80)))
+    _FC[name] = A
+    return A
+
+def sc_final(T):
+    s0, e0 = TL["F09"]; ta, tb, tv = WT("F09", "A:"), WT("F09", "B:"), WT("F09", "Vota…")
+    hiA = ta <= T < tb; hiB = tb <= T < tv
+    A, B = _lado("A"), _lado("B")
+    u = ease((T - ta + .4) / .45)
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255)); negro = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    c.alpha_composite(B if not hiA else Image.blend(B, negro, .45), (int(500 * (1 - u)), 0))
+    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO + [(0, H)], fill=255)
+    c.paste(A if not hiB else Image.blend(A, negro, .45), (int(-700 * (1 - u)), 0), mask)
+    d = ImageDraw.Draw(c)
+    if u > .9:
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(RAYO, fill=(255, 210, 120, 255), width=40, joint="curve")
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(14))); d = ImageDraw.Draw(c)
+        d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=YEL, width=5, joint="curve")
+    k0 = popscale(T, ta - .4, .4)
+    text(d, (540, 220), "¿QUÉ HARÍAS TÚ?", 96 * max(k0, .01), YEL, stroke=8)
+    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "DARLE LA\nTABLET", "+ Se lo ganó", "- Vuelve la pantalla", AZ, ta, hiA),
+                                           (790, "B", "PREMIO SIN\nPANTALLAS", "+ Juegan juntos", "- Puede enojarse", VERDE, tb, hiB)):
+        k = popscale(T, t0, .35)
+        if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
+    if T >= tv - .1:
+        k = popscale(T, tv - .1, .4)
+        d.rounded_rectangle((540 - 390 * k, 1250, 540 + 390 * k, 1350), 50, fill=WHITE, outline=OL, width=6)
+        if k > .5:
+            text(d, (540, 1286), "VOTA EN LA ENCUESTA", 54, OL)
+            text(d, (540, 1328), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
+    return c
+
+# ---------------------------------------------------------------- hojas reales del libro de Pinti (venta discreta)
+LIBRO = os.path.join(HERE, "..", "pinti-organico", "assets")
+_PG = {}
+def pagina_img(n, s):
+    k = (n, round(s, 3))
+    if k not in _PG:
+        f = os.path.join(LIBRO, "portada.jpg" if n == 0 else f"paginas/pagina-{n:02d}.jpg")
+        im = Image.open(f).convert("RGBA"); _PG[k] = im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)
+    return _PG[k]
+
+def pagina(c, n, px, py, cx, cy, s, sombra=True):
+    """Pone la página n del libro (escala s) de modo que su punto (px, py) caiga en (cx, cy). Devuelve el mapeo página->pantalla."""
+    im = pagina_img(n, s); x0, y0 = cx - px * s, cy - py * s
+    if sombra:
+        sh = Image.new("RGBA", (im.width + 60, im.height + 60), (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle((30, 30, im.width + 30, im.height + 30), fill=(40, 30, 20, 110))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)), (int(x0 - 18), int(y0 - 14)))
+    c.alpha_composite(im, (int(x0), int(y0)))
+    return lambda x, y: (x0 + x * s, y0 + y * s)
+
+_PL = {}
+def _pl_rmask(size, r):
+    m = Image.new("L", (size[0] * 2, size[1] * 2), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, size[0] * 2 - 1, size[1] * 2 - 1), r * 2, fill=255)
+    return m.resize(size, Image.LANCZOS)
+
+def _pl_grad(size, a, b):
+    g = Image.linear_gradient("L").resize(size)
+    return Image.composite(Image.new("RGB", size, b), Image.new("RGB", size, a), g)
+
+def _pl_book(h):
+    im = pagina_img(0, 1.0).convert("RGBA"); sw, sh = im.size
+    d = ImageDraw.Draw(im)   # tapa la insignia '88 páginas' de la portada (el libro actual tiene 109)
+    d.ellipse((sw * .045, sh * .815, sw * .225, sh * .93), fill=im.getpixel((int(sw * .035), int(sh * .87))))
+    im = im.resize((int(sw * h / sh), h), Image.LANCZOS); w = im.width; d = ImageDraw.Draw(im)
+    for i in range(10): d.line((i, 0, i, h), fill=(0, 0, 0, int(70 - i * 7)))
+    d.line((12, 0, 12, h), fill=(255, 255, 255, 50), width=2)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0)); out.paste(im, (0, 0), _pl_rmask((w, h), 8)); return out
+
+def _pl_base():
+    """Tarjeta base (sin barra de progreso), con sombra. Se cachea."""
+    if "b" in _PL: return _PL["b"]
+    ORG, ORG2, NV, NV2 = (244, 124, 42), (255, 160, 70), (22, 36, 66), (34, 54, 96)
+    cw, ch, pad = 980, 285, 60
+    lay = Image.new("RGBA", (cw + 2 * pad, ch + 2 * pad), (0, 0, 0, 0))
+    sh = Image.new("RGBA", lay.size, (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((pad, pad + 18, pad + cw, pad + ch + 18), 40, fill=(0, 0, 0, 140))
+    lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26)))
+    lay.paste(_pl_grad((cw, ch), NV2, NV).convert("RGBA"), (pad, pad), _pl_rmask((cw, ch), 40))
+    d = ImageDraw.Draw(lay); d.rounded_rectangle((pad, pad, pad + cw, pad + ch), 40, outline=(120, 140, 185, 255), width=2)
+    b = _pl_book(190); bx, by = pad + 44, pad + 26
+    bs = Image.new("RGBA", lay.size, (0, 0, 0, 0)); ImageDraw.Draw(bs).rounded_rectangle((bx, by + 12, bx + b.width, by + 202), 8, fill=(0, 0, 0, 150))
+    lay.alpha_composite(bs.filter(ImageFilter.GaussianBlur(14))); lay.alpha_composite(b, (bx, by))
+    tx = bx + b.width + 36; d = ImageDraw.Draw(lay)
+    d.ellipse((tx, pad + 43, tx + 16, pad + 59), fill=(90, 220, 130))
+    d.text((tx + 28, pad + 51), "MAMÁ, ESTAS HOJAS SON PARA TI", font=font(F_BAL, 28), fill=ORG2, anchor="lm")
+    d.text((tx, pad + 104), "Que tu hijo escriba sus letras", font=font(F_BAL, 44), fill=WHITE, anchor="lm")
+    d.text((tx, pad + 150), "Paso a paso · 109 hojas para imprimir", font=font(F_BAL, 30), fill=(180, 195, 225), anchor="lm")
+    bw, bh, by2 = 600, 58, pad + 176
+    lay.paste(_pl_grad((bw, bh), ORG2, ORG).convert("RGBA"), (tx, by2), _pl_rmask((bw, bh), bh // 2))
+    d = ImageDraw.Draw(lay); d.text((tx + 34, by2 + bh // 2 + 1), "Descárgalas · link en mi bio", font=font(F_BAL, 32), fill=WHITE, anchor="lm")
+    cx, cy = tx + bw - bh // 2 - 8, by2 + bh // 2
+    d.ellipse((cx - bh * .3, cy - bh * .3, cx + bh * .3, cy + bh * .3), fill=(255, 255, 255, 255)); s_ = bh * .11
+    d.line((cx - s_, cy - s_ * 1.3, cx + s_, cy, cx - s_, cy + s_ * 1.3), fill=ORG, width=5, joint="curve")
+    _PL["b"] = (lay, pad, tx, ch)
+    return _PL["b"]
+
+def pill_libro(c, T, t0, dur=3.2, y=380):
+    """Tarjeta de producto para madres (azul marino): entra deslizando, se queda con barra de progreso y sale suave."""
+    if not (t0 <= T < t0 + dur): return
+    kin = ease((T - t0) / .45); kout = 1 - ease((T - t0 - dur + .35) / .35); k = kin * kout
+    if k <= .02: return
+    lay, pad, tx, ch = _pl_base(); lay = lay.copy(); d = ImageDraw.Draw(lay)
+    px, py, pw = tx, pad + ch - 24, pad + 980 - 40 - tx
+    d.rounded_rectangle((px, py, px + pw, py + 6), 3, fill=(58, 76, 118)); d.rounded_rectangle((px, py, px + max(6, int(pw * (T - t0) / dur)), py + 6), 3, fill=(255, 160, 70))
+    if k < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * k)))
+    c.alpha_composite(lay, (50 - pad, int(y - pad + 70 * (1 - kin) - 30 * (1 - kout))))
+
+def impresora(c, T, t0, n=15):
+    """La impresora sacando una hoja real del libro."""
+    d = ImageDraw.Draw(c)
+    u = clamp((T - t0) / 1.4)
+    pg = pagina_img(n, .4)
+    yb = 960 - pg.height * u   # la hoja sale por la ranura de arriba
+    vis = int(960 - yb)
+    if vis > 2: c.alpha_composite(pg.crop((0, 0, pg.width, vis)), (int(540 - pg.width / 2), int(yb)))
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((170, 960, 910, 1330), 46, fill=(236, 236, 242), outline=OL, width=8)
+    d.rounded_rectangle((250, 940, 830, 1000), 20, fill=(70, 70, 86), outline=OL, width=6)
+    d.rounded_rectangle((250, 1160, 830, 1230), 20, fill=(210, 210, 220), outline=OL, width=5)
+    d.ellipse((780, 1040, 830, 1090), fill=(90, 210, 120) if int(T * 4) % 2 else (60, 160, 90), outline=OL, width=4)
+
+def pagina_trazos_E(mp):
+    """Los 4 trazos de una E punteada de la página 15 (en coordenadas de la página), en el orden del libro."""
+    out = []
+    for x0, x1, xm in ((255, 290, 285), (329, 364, 359)):
+        p = [[(x0, 589), (x0, 660)], [(x0, 589), (x1, 589)], [(x0, 625), (xm, 625)], [(x0, 660), (x1, 660)]]
+        out.append([[mp(*q) for q in s] for s in p])
+    return out
+
+def sc_truco(T):
+    """F05: imprimes la hoja de la E del libro; el truco de Rex: la E mira hacia adelante. Mateo repasa las E punteadas de la página real."""
+    s0, e0 = TL["F05"]; tr = WT("F05", "Rex") - .1
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (50,)))
+    if T < tr:
+        impresora(c, T, s0 - .1)
+        return c
+    mp = pagina(c, 15, 230, 560, 400, 900, 1.5)
+    Es = pagina_trazos_E(mp)
+    t0, t1 = WT("F05", "adelante,") - .2, e0 + .45
+    tip, u = escribir(c, Es, T, t0, t1, 15, .5, entra=.6)
+    # Rex camina hacia adelante por la línea de abajo
+    if T >= WT("F05", "adelante,") - .2:
+        uu = clamp((T - WT("F05", "adelante,") + .2) / 2.5); bx, by = mp(250 + 260 * uu, 700)
+        put(c, "dino", bx, by - 40 + 8 * abs(math.sin(T * 9)), .12)
+        d = ImageDraw.Draw(c); ax = bx + 80
+        d.line((ax, by - 50, ax + 60, by - 50), fill=ROSA, width=10); d.polygon([(ax + 60, by - 68), (ax + 88, by - 50), (ax + 60, by - 32)], fill=ROSA)
+    for i, tf in enumerate(fines(Es, t0, t1)):
+        if T >= tf:
+            x, y = mp((255, 329)[i] + 18, 560); k = popscale(T, tf, .3); d = ImageDraw.Draw(c); r = 26 * k
+            d.ellipse((x - r, y - r, x + r, y + r), fill=VERDE, outline=WHITE, width=4)
+            if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
+    c = seguir(c, tip[0] if tip else 480, tip[1] if tip else 900, 1.3, f=.5)
+    if T < WT("F05", "adelante,"): etiqueta(c, T, tr, "EL TRUCO DE REX", 540, 1220, CREMA, OL, 40)
+    else: etiqueta(c, T, WT("F05", "adelante,"), "LA E MIRA HACIA ADELANTE", 540, 1220, VERDE, WHITE, 38)
+    pill_libro(c, T, tr + .2, 3.4)
+    return c
+
+def sc_mama(T):
+    """F07: antes de dormir escribe algo más, para ti: MAMÁ, en la hoja de práctica del libro, con su mano."""
+    s0, e0 = TL["F07"]
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (60,)))
+    mp = pagina(c, 85, 540, 320, 540, 900, 1.5)
+    (xa, yt), (_, yb) = mp(0, 265), mp(0, 374); h = yb - yt
+    L = mama_trazos(540 - ancho_nino("MAMA", h) / 2, yt, h)
+    t0, t1 = WT("F07", "escribe") - .1, e0 + 1.1
+    tip, u = escribir(c, L, T, t0, t1, h * .1, .55, entra=.5)
+    c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (yt + yb) / 2, 1.3, f=.55)
+    if T >= WT("F07", "ti."): etiqueta(c, T, WT("F07", "ti."), "PARA TI", 540, 1220, ROSA, WHITE, 44)
+    pill_libro(c, T, t0 + .3, 3.0)
+    return c
+
+def sc_hojas(T):
+    """F08B: las hojas que usa Mateo son del libro de Pinti; está en el link de la bio. Hojas reales en abanico."""
+    s0, e0 = TL["F08B"]
+    c = bg("bg_mesa", T, s0, 1.15, 1.2, 4, .5, .5)
+    c.alpha_composite(Image.new("RGBA", (W, H), (255, 220, 170, 40)))
+    for i, (n, x, y, rot) in enumerate(((20, 330, 880, -12), (85, 750, 900, 11), (15, 540, 860, -2))):
+        k = popscale(T, s0 - .1 + i * .25, .35)
+        if k <= 0: continue
+        pg = pagina_img(n, .42 * k).rotate(rot, expand=True, resample=Image.BICUBIC)
+        sh = Image.new("RGBA", pg.size, (40, 30, 20, 0)); sh.putalpha(pg.getchannel("A").point(lambda v: int(v * .35)))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(14)), (int(x - pg.width / 2 + 12), int(y - pg.height / 2 + 16)))
+        c.alpha_composite(pg, (int(x - pg.width / 2), int(y - pg.height / 2)))
+    tl_ = WT("F08B", "link")
+    if T >= s0 + .8:   # la portada del libro
+        k = popscale(T, s0 + .8, .4); cov = pagina_img(0, .2 * k).rotate(6, expand=True, resample=Image.BICUBIC)
+        c.alpha_composite(cov, (int(830 - cov.width / 2), int(1270 - cov.height / 2)))
+    if T >= tl_ - .2:
+        k = popscale(T, tl_ - .2, .35); d = ImageDraw.Draw(c)
+        d.rounded_rectangle((540 - 300 * k, 440 - 55 * k, 540 + 300 * k, 440 + 55 * k), 55, fill=(240, 140, 60), outline=WHITE, width=6)
+        if k > .7:
+            d.text((540, 442), "LINK EN MI BIO", font=font(F_BAL, 56), fill=WHITE, anchor="mm")
+            d.polygon([(540, 330 - 10 * math.sin(T * 6)), (505, 370 - 10 * math.sin(T * 6)), (575, 370 - 10 * math.sin(T * 6))], fill=(240, 140, 60))
+    return c
+
+# ---------------------------------------------------------------- escenas de la Parte 5 (ganó la B: premio sin pantallas -> el buzón de Rex)
+_letra_base = letra_trazos
+def letra_trazos(L, x, yt, yb):
+    h = yb - yt
+    if L == "L": return [[(x, yt), (x, yb), (x + h * .5, yb)]], h * .5
+    if L == "U":
+        r = h * .3
+        return [[(x, yt), (x, yb - r)] + _arco(x + r, yb - r, r, 180, 0, 16)[1:] + [(x + 2 * r, yt)]], h * .6
+    if L == "N": return [[(x, yb), (x, yt), (x + h * .6, yb), (x + h * .6, yt)]], h * .6
+    return _letra_base(L, x, yt, yb)
+
+CARTA = ["Gracias, Mateo.", "Ya sé escribir", "mi nombre: REX.", "¿Me enseñas la X?"]
+LISTA = ["Leche", "Pan", "Huevos", "Plátanos"]
+AZ_TINTA = (40, 60, 150)
+ULT = {}
+def dur_lectura(): return 1
+
+def luna_img(s):
+    k = ("luna", s)
+    if k not in _PG:
+        im = pagina_img(25, 1.0).crop((290, 1225, 520, 1460)).convert("RGBA")
+        a = np.array(im); m = (a[..., :3].min(2) > 235); a[m, 3] = 0
+        im = Image.fromarray(a); _PG[k] = im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)
+    return _PG[k]
+
+def buzon(c, cx, cy, s, T, rotulo=True):
+    """La caja de zapatos convertida en el buzón de Rex."""
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    w, h, tp = 300 * s, 190 * s, 90 * s
+    d.polygon([(cx - w, cy - h + tp), (cx - w + tp, cy - h), (cx + w + tp, cy - h), (cx + w, cy - h + tp)], fill=(206, 150, 96), outline=OL)
+    d.polygon([(cx + w, cy - h + tp), (cx + w + tp, cy - h), (cx + w + tp, cy + h - tp), (cx + w, cy + h)], fill=(150, 100, 60), outline=OL)
+    d.rectangle((cx - w, cy - h + tp, cx + w, cy + h), fill=(186, 128, 78), outline=OL, width=6)
+    d.rounded_rectangle((cx - 130 * s + tp / 2, cy - h + tp * .3, cx + 130 * s + tp / 2, cy - h + tp * .7), 10, fill=(60, 36, 20))
+    if rotulo:
+        nino_full(lay, "REX", cx - ancho_nino("REX", 110 * s) / 2 - 60 * s, cy - 40 * s, 110 * s, seed=4)
+        put(lay, "dino", cx + 210 * s, cy + 60 * s, .2 * s / 1.0)
+    c.alpha_composite(lay)
+
+def sobre(c, cx, cy, s, rot=0):
+    lay = Image.new("RGBA", (int(320 * s) + 20, int(210 * s) + 20), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    w, h = 320 * s, 210 * s
+    d.rectangle((10, 10, 10 + w, 10 + h), fill=(255, 248, 230), outline=OL, width=5)
+    d.line([(10, 10), (10 + w / 2, 10 + h * .55), (10 + w, 10)], fill=OL, width=5)
+    corazon(d, 10 + w / 2, 10 + h * .55, 22 * s, (255, 92, 130))
+    lay = lay.rotate(rot, expand=True, resample=Image.BICUBIC); c.alpha_composite(lay, (int(cx - lay.width / 2), int(cy - lay.height / 2)))
+
+def carta(c, T, t0, t1, cx=540, cy=900, s=1.0, rot=-3):
+    """La carta de 'Rex' escrita a mano (tu letra)."""
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    w, h = 380 * s, 460 * s
+    d.rounded_rectangle((cx - w, cy - h, cx + w, cy + h), 20, fill=(255, 250, 236), outline=(220, 206, 180), width=4)
+    for y in range(int(cy - h + 120 * s), int(cy + h - 40), int(84 * s)): d.line((cx - w + 30, y, cx + w - 30, y), fill=(200, 215, 240), width=2)
+    manuscrito(lay, CARTA, T, t0, t1, cx - w + 50 * s, cy - h + 140 * s, int(78 * s), AZ_TINTA, int(84 * s))
+    if T >= t1 - .2:
+        put(lay, "dino", cx + w - 110 * s, cy + h - 120 * s, .2 * s)
+        lu = luna_img(.55 * s); lay.alpha_composite(lu, (int(cx - w + 30 * s), int(cy + h - lu.height - 20 * s)))
+    c.alpha_composite(lay.rotate(rot, center=(cx, cy), resample=Image.BICUBIC))
+
+def sc_premio_no(T):
+    """F01-F02: eligieron premio sin pantallas: le dices que no a la tablet y Mateo se enfada."""
+    s0 = S("F01"); tn, tb = WT("F01", "no"), WT("F01", "brazos.")
+    c = bg("bg_cuarto", T, s0, 1.15, 1.22, 8, .5, .55)
+    enojado = T >= tb - .3
+    mateo(c, "enojado" if enojado else "neutral", 400, 1270, 1.0, T, "F02" if T >= S("F02") else None)
+    put(c, "tablet", 820, 980, .3, rot=-8)
+    d = ImageDraw.Draw(c)
+    if T >= tn:   # la tablet queda bloqueada
+        k = clamp((T - tn) / .3)
+        d.line((720, 880, 720 + 200 * k, 880 + 200 * k), fill=ROJO, width=22); d.line((920, 880, 920 - 200 * k, 880 + 200 * k), fill=ROJO, width=22)
+    if T < WT("F01", "Le") - .1:
+        k = max(.02, popscale(T, 0, .3)); y = 470
+        d.rounded_rectangle((540 - 400 * k, y - 75, 540 + 400 * k, y + 75), 36, fill=WHITE, outline=NAVY, width=6)
+        if k > .8:
+            d.ellipse((170, y - 50, 270, y + 50), fill=VERDE, outline=WHITE, width=5); d.text((220, y + 2), "B", font=font(F_ANTON, 60), fill=WHITE, anchor="mm")
+            d.text((300, y - 24), "ELIGIERON:", font=font(F_BAL, 34), fill=(150, 130, 160), anchor="lm")
+            d.text((300, y + 22), "Premio sin pantallas", font=font(F_BAL, 46), fill=NAVY, anchor="lm")
+            if T > .4: confeti(c, T, .4, 40)
+    if T >= WT("F02", "justo!"): stamp(c, T, WT("F02", "justo!"), "¡NO ES JUSTO!", 560, 500, ROJO, -6, 90)
+    return c
+
+def sc_caja(T):
+    """F03-F04: sacas una caja de zapatos con un agujero: el buzón de Rex. Si escribe una palabra, Rex contesta."""
+    s0 = S("F03"); tc, tbz, tca = WT("F03", "caja"), WT("F04", "buzón"), WT("F04", "carta.")
+    c = bg("bg_mesa", T, s0, 1.15, 1.22, 6, .5, .5)
+    if T >= tc - .2:
+        k = ease((T - tc + .2) / .5); buzon(c, 540, 1000 + 700 * (1 - k), 1.15, T, rotulo=T >= tbz)
+    if WT("F03", "agujero") <= T < tbz:
+        g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((380, 700, 760, 860), outline=(255, 230, 120, 230), width=12)
+        c.alpha_composite(g.filter(ImageFilter.GaussianBlur(3)))
+    if T >= tbz: etiqueta(c, T, tbz, "EL BUZÓN DE REX", 540, 470, CREMA, OL, 44)
+    if T >= tca - .3:   # sale una carta del buzón
+        k = ease((T - tca + .3) / .6); sobre(c, 600, 760 - 260 * k, .9 * max(k, .05), rot=8 * k)
+    return c
+
+def sc_sabe(T):
+    """F05: '¿Rex sabe escribir?'"""
+    s0, e0 = TL["F05"]
+    c = bg("bg_cocina", T, s0 - .2, 1.2, 1.28, 6, .5, .6)
+    mateo(c, "neutral", 420, 1260, 1.05, T, "F05")
+    put(c, "dino", 830, 1300, .5, rot=6 * math.sin(T * 3))
+    d = ImageDraw.Draw(c)
+    for i in range(3):
+        k = popscale(T, s0 + i * .25, .3)
+        if k > 0: text(d, (700 + i * 90, 640 - i * 70), "?", int(110 * k), YEL, stroke=8)
+    return c
+
+def trazos_R_p39(mp):
+    out = []
+    for x0 in (252, 325):
+        r = 17
+        st = [[(x0, 583), (x0, 649)], [(x0, 583), (x0 + 18, 583)] + _arco(x0 + 18, 600, r, -90, 90, 14)[1:] + [(x0, 617)], [(x0 + 14, 617), (x0 + 36, 649)]]
+        out.append([[mp(*q) for q in s] for s in st])
+    return out
+
+def trazos_L_p25(mp):
+    return [[[mp(x0, 589), mp(x0, 660), mp(x1, 660)]] for x0, x1 in ((249, 284), (320, 356))]
+
+def sc_r(T):
+    """F06: imprimes la hoja de la R (La R de regalo) y Mateo repasa las R punteadas con su mano."""
+    s0, e0 = TL["F06"]; tr = WT("F06", "R.") + .1
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    if T < tr:
+        impresora(c, T, s0 - .1, 39); return c
+    mp = pagina(c, 39, 230, 560, 400, 900, 1.5)
+    Rs = trazos_R_p39(mp)
+    t0, t1 = WT("F06", "Rex.") + .1, e0 + 1.1   # repasa más despacio: empieza antes y ocupa todo el final de la escena
+    tip, u = escribir(c, Rs, T, t0, t1, 15, .5, entra=.8)
+    for i, tf in enumerate(fines(Rs, t0, t1)):
+        if T >= tf:
+            x, y = mp((252, 325)[i] + 18, 560); k = popscale(T, tf, .3); d = ImageDraw.Draw(c); r = 26 * k
+            d.ellipse((x - r, y - r, x + r, y + r), fill=VERDE, outline=WHITE, width=4)
+            if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
+    c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
+    if T < WT("F06", "Rex."): etiqueta(c, T, tr, "LA R DE REGALO", 540, 1220, CREMA, OL, 40)
+    else: etiqueta(c, T, WT("F06", "Rex."), "...Y DE REX", 540, 1220, VERDE, WHITE, 42)
+    pill_libro(c, T, t0 + .2, 3.3)   # una sola vez por vídeo: mientras repasa las letras
+    return c
+
+def sc_noche_carta(T):
+    """F07-F08: la hoja entra en el buzón; de noche, mientras duerme, escribes la carta de Rex."""
+    s0 = S("F07"); tb, tn = WT("F07", "buzón."), WT("F07", "noche,")
+    if T < tn - .1:
+        c = bg("bg_mesa", T, s0, 1.15, 1.2, 6, .5, .5)
+        buzon(c, 540, 1050, 1.1, T)
+        k = clamp((T - s0 - .2) / (tb - s0 + .2))
+        pg = pagina_img(39, .3).rotate(4, expand=True)
+        y = 380 + 380 * k
+        vis = int(max(0, min(pg.height, 790 - y)))
+        if vis > 2: c.alpha_composite(pg.crop((0, 0, pg.width, vis)), (int(560 - pg.width / 2), int(y)))
+        return c
+    c = bg("bg_noche", T, tn, 1.0, 1.06, 10)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (90,)))
+    g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((140, 420, 940, 1400), fill=(255, 220, 150, 90))
+    c.alpha_composite(g.filter(ImageFilter.GaussianBlur(80)))   # luz de lámpara
+    t0 = max(WT("F07", "respuesta.") - .3, tn + .5); t1 = E("F08") - .2
+    carta(c, T, t0 if T < S("F08") else S("F08"), t1)
+    if T < S("F08"): etiqueta(c, T, tn + .2, "MIENTRAS DUERME", 540, 470, CREMA, OL, 40)
+    return c
+
+def sc_corre(T):
+    """F09-F10: a la mañana siguiente corre al buzón: '¡Rex me contestó!'"""
+    s0 = S("F09")
+    c = bg("bg_cocina", T, s0, 1.12, 1.2, 8, .5, .6)
+    c.alpha_composite(Image.new("RGBA", (W, H), (255, 220, 160, 40)))
+    if T < S("F10") - .1:
+        buzon(c, 230, 1560, .6, T)
+        u = ease((T - s0) / 1.6); mateo(c, "feliz", 1250 - 620 * u, 1270, 1.0, T)
+    else:
+        mateo(c, "feliz", 420, 1270, 1.05, T, "F10")
+        sobre(c, 800, 1180 + 20 * math.sin(T * 8), 1.0, rot=10 * math.sin(T * 5))
+        brillos(c, T, S("F10"), 800, 1180, 170)
+    etiqueta(c, T, s0 + .2, "A LA MAÑANA SIGUIENTE", 540, 470, CREMA, OL, 38) if T < S("F10") else None
+    return c
+
+def sc_l(T):
+    """F11: le lees la carta y él solo agarra la crayola: repasa las L punteadas de la hoja 'La L de luna'."""
+    s0, e0 = TL["F11"]; tp = WT("F11", "pedir")
+    if T < tp - .1:
+        c = bg("bg_cocina", T, s0, 1.12, 1.18, 6, .5, .6); c.alpha_composite(Image.new("RGBA", (W, H), (255, 220, 160, 40)))
+        carta(c, 99, 0, 1, 540, 960, .95, rot=2)
+        return c
+    c = bg("bg_mesa", T, tp, 1.2, 1.3, 6, .5, .5)
+    mp = pagina(c, 25, 230, 560, 400, 900, 1.5)
+    Ls = trazos_L_p25(mp)
+    t0, t1 = WT("F11", "agarra") - .3, e0 + .5
+    tip, u = escribir(c, Ls, T, t0, t1, 15, .5, entra=1.0)
+    c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
+    etiqueta(c, T, WT("F11", "solo"), "ÉL SOLO", 540, 1220, VERDE, WHITE, 46) if T >= WT("F11", "solo") else None
+    return c
+
+def sc_luna(T):
+    """F12: escribe LUNA en la hoja de práctica: L palo con zapato, U sonrisa, N montaña con rayo, A tienda de Rex."""
+    s0, e0 = TL["F12"]
+    c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
+    mp = pagina(c, 85, 540, 320, 540, 900, 1.5)
+    (_, yt), (_, yb) = mp(0, 265), mp(0, 374); h = yb - yt
+    L = nino_trazos("LUNA", 540 - ancho_nino("LUNA", h) / 2, yt, h, seed=5)
+    ws = [WT("F12", "L"), WT("F12", "U,"), WT("F12", "N,"), WT("F12", "A,")]
+    tip = None
+    for i, (ls, t) in enumerate(zip(L, ws)):
+        t1 = min(t + 1.0, ws[i + 1] - .35) if i < 3 else e0 + .4
+        if T >= t1: dibuja_trazos(c, ls, h * .1)
+        elif T >= t - .25: tip, u = escribir(c, [ls], T, t, t1, h * .1, .55, entra=.25)
+    if tip is None and ws[0] - .5 <= T < e0 + .4:
+        hechas = [i for i, t in enumerate(ws) if T >= (min(t + 1.0, ws[i + 1] - .35) if i < 3 else e0 + .4)]
+        nxt_ok = all(not (t - .25 <= T) for t in ws[len(hechas):len(hechas) + 1])
+        if hechas and nxt_ok: tip = L[hechas[-1]][-1][-1]; mano_crayola(c, tip, T, .55, True)
+    if T >= e0 + .4:
+        lu = luna_img(.9); k = popscale(T, e0 + .4, .4)
+        if k > 0: c.alpha_composite(lu.resize((max(2, int(lu.width * k)), max(2, int(lu.height * k)))), (760, 520))
+    c = seguir(c, tip[0] if tip else 540, tip[1] if tip else (yt + yb) / 2, 1.3, f=.55)
+    labs = ["PALO CON ZAPATO", "UNA SONRISA", "MONTAÑA CON RAYO", "LA TIENDA DE REX"]
+    for i, t in enumerate(ws):
+        nxt = ws[i + 1] if i < 3 else e0 + 1.5
+        if t <= T < nxt: etiqueta(c, T, t, f"{'LUNA'[i]} = {labs[i]}", 540, 1220, CREMA, OL, 38)
+    return c
+
+def sc_listo(T):
+    """F13: '¡Listo! ¡Rex va a estar feliz!'"""
+    s0, e0 = TL["F13"]
+    c = bg("bg_cocina", T, s0 - .2, 1.2, 1.28, 6, .5, .6)
+    mateo(c, "feliz", 420, 1260, 1.05, T, "F13")
+    buzon(c, 800, 1450, .62, T)
+    sobre(c, 800, 1150 + 120 * ease((T - s0) / .8), .7, rot=6)
+    brillos(c, T, s0, 800, 1300, 200)
+    return c
+
+def sc_tres(T):
+    """F14: tres días, tres cartas, tres palabras nuevas (LUNA, MANO, TOMATE) y ni una sola pantalla."""
+    s0, e0 = TL["F14"]; tp = WT("F14", "pantalla.")
+    c = bg("bg_mesa", T, s0, 1.15, 1.2, 4, .5, .5)
+    for i, (w_, t) in enumerate((("LUNA", WT("F14", "días.")), ("MANO", WT("F14", "cartas.")), ("TOMATE", WT("F14", "palabras")))):
+        k = popscale(T, t - .2, .35)
+        if k <= 0: continue
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+        cx, cy, rot = (270, 820, -8), (810, 820, 7), (540, 1120, -2)
+        x, y, r = [(270, 760, -8), (810, 760, 7), (540, 1060, -3)][i]
+        d.rounded_rectangle((x - 230, y - 140, x + 230, y + 140), 18, fill=(255, 250, 236), outline=(210, 196, 170), width=4)
+        sz = 90 if len(w_) < 6 else 66
+        nino_full(lay, w_, x - ancho_nino(w_, sz) / 2, y - sz / 2, sz, seed=i + 2)
+        lay = lay.rotate(r, center=(x, y), resample=Image.BICUBIC)
+        if k < 1: lay = lay.resize((W, H))
+        c.alpha_composite(lay)
+    if T >= tp - .2:
+        k = popscale(T, tp - .2, .4)
+        put(c, "tablet", 540, 1450, .26 * max(k, .01), rot=4)
+        d = ImageDraw.Draw(c)
+        if k > .8:
+            d.line((420, 1340, 660, 1560), fill=ROJO, width=20); d.line((660, 1340, 420, 1560), fill=ROJO, width=20)
+    etiqueta(c, T, s0 + .1, "3 DÍAS · 3 CARTAS", 540, 520, CREMA, OL, 42)
+    return c
+
+def pizarra(c, T, t0):
+    d = ImageDraw.Draw(c)
+    d.rounded_rectangle((110, 520, 970, 1180), 20, fill=(46, 84, 66), outline=(150, 100, 60), width=26)
+    k = clamp((T - t0) / 1.2)
+    M = [(360, 1020), (360, 680), (540, 880), (720, 680), (720, 1020)]
+    hechos, tip, _ = _recorrido([M], k)
+    for p in hechos: d.line(p, fill=(245, 245, 235), width=22, joint="curve")
+    put(c, "dino", 880, 1080, .18)
+    return tip
+
+def maestra(c, cx, cy, s, T, lid=None):
+    hab = lid is not None and talk(lid, T)
+    put(c, "maestra_hab" if hab else "maestra", cx, cy + 200 * s, s)
+    if hab: mouth(c, cx, cy - 104 * s, T, True, int(24 * s))
+
+def sc_maestra5(T):
+    """F15-F16: el jueves, en la puerta del preescolar, la maestra te cuenta que Mateo le enseñó la M a un compañero."""
+    s0 = S("F15")
+    c = bg("bg_escuela", T, s0, 1.08, 1.14, 6, .5, .45)
+    maestra(c, 540, 1180, .95, T, "F16" if T >= S("F16") else None)
+    if T < S("F16") - .1:
+        etiqueta(c, T, s0 + .1, "JUEVES · A LA SALIDA", 540, 1330, CREMA, OL, 40)
+        return c
+    # recuerdo: la M en la pizarra, en un globo junto a la maestra
+    tm = WT("F16", "escribir")
+    if T >= tm - .3:
+        k = popscale(T, tm - .3, .35)
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+        bx, by, bw, bh = 840, 860, 200 * k, 160 * k
+        d.rounded_rectangle((bx - bw, by - bh, bx + bw, by + bh), 22, fill=(46, 84, 66), outline=(150, 100, 60), width=12)
+        if k > .9:
+            u = clamp((T - tm) / 1.0); M = [(bx - 90, by + 90), (bx - 90, by - 90), (bx, by + 20), (bx + 90, by - 90), (bx + 90, by + 90)]
+            hechos, tip, _ = _recorrido([M], u)
+            for p in hechos: d.line(p, fill=(245, 245, 235), width=16, joint="curve")
+        c.alpha_composite(lay)
+    if T >= WT("F16", "dinosaurio."): stamp(c, T, WT("F16", "dinosaurio."), "¡UN DINOSAURIO!", 540, 1330, VERDE, -5, 80)
+    return c
+
+def sc_lista(T):
+    """F17: esa noche encuentra la lista del súper en la cocina... con la misma letra que la carta de Rex."""
+    s0, e0 = TL["F17"]; tl, tm = WT("F17", "lista"), WT("F17", "misma")
+    c = bg("bg_cocina", T, s0, 1.12, 1.18, 6, .5, .6)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (120,)))
+    d = ImageDraw.Draw(c)
+    u = ease((T - tm + .2) / .6) if T >= tm - .2 else 0
+    # la lista del súper, en tu letra
+    lx = 540 - 240 * u
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
+    ld.rounded_rectangle((lx - 210, 640, lx + 210, 1160), 14, fill=(255, 252, 240), outline=(210, 196, 170), width=4)
+    ld.text((lx, 690), "Súper", font=font(F_HAND, 64), fill=AZ_TINTA, anchor="mm")
+    manuscrito(lay, LISTA, 99, 0, 1, lx - 160, 800, 72, AZ_TINTA, 86)
+    c.alpha_composite(lay.rotate(3, center=(lx, 900), resample=Image.BICUBIC))
+    if u > 0:   # al lado, la carta de Rex: la misma letra
+        carta(c, 99, 0, 1, 540 + 300 * u + 300 * (1 - u), 900, .6, rot=-4)
+    if T >= tm + .5:
+        d = ImageDraw.Draw(c); k = clamp((T - tm - .5) / .5)
+        for (x, y) in ((lx - 110, 790), (640, 760)):
+            d.arc((x - 70, y - 60, x + 70, y + 60), -90, -90 + 360 * k, fill=ROJO, width=9)
+        if T >= tm + 1.0: stamp(c, T, tm + 1.0, "LA MISMA LETRA", 540, 1300, ROJO, -5, 84)
+    if T < tm: etiqueta(c, T, tl, "LA LISTA DEL SÚPER", 540, 470, CREMA, OL, 40)
+    return c
+
+def sc_eres(T):
+    """F18: 'Mami... ¿tú eres Rex?'"""
+    s0, e0 = TL["F18"]
+    c = bg("bg_cocina", T, s0 - .2, 1.2, 1.26, 6, .5, .6)
+    c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (120,)))
+    mateo(c, "timido", 540, 1260, 1.05, T, "F18")
+    carta(c, 99, 0, 1, 830, 1450, .38, rot=12)
+    return c
+
+_FC = {}
+def _lado(name):
+    if name in _FC: return _FC[name]
+    if name == "A":
+        A = bg("bg_cocina", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
+        put(A, "mateo_timido", 280, 1480 + 400 * .72, .72); carta(A, 99, 0, 1, 330, 1650, .3, rot=10)
+        A.alpha_composite(Image.new("RGBA", (W, H), (30, 40, 110, 80)))
+    else:
+        A = bg("bg_mesa", 0, 0, 1.2, 1.2, 1, .5, .5).convert("RGBA")
+        buzon(A, 820, 1560, .8, 0); brillos(A, 1.0, 0, 820, 1480, 230)
+        A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 70)))
+    _FC[name] = A
+    return A
+
 def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
@@ -888,7 +1616,7 @@ def sc_maestro(T):
     """F03-F04: Rex necesita un maestro. '¿Yo le enseño a Rex?'"""
     s0 = S("F03")
     c = bg("bg_cocina", T, s0 - .1, 1.15, 1.25, 6, .5, .6)
-    mateo(c, "feliz" if T >= S("F04") else "neutral", 420, 1260, 1.05, T, "F04")
+    mateo(c, "feliz" if T >= S("F04") else "neutral", 420, 1260, 1.05, T, "F04B" if T >= S("F04B") else "F04")
     put(c, "dino", 830, 1300, .5, rot=5 * math.sin(T * 3))
     etiqueta(c, T, WT("F03", "maestro."), "REX NECESITA UN MAESTRO", 540, 470, CREMA, OL, 40) if T >= WT("F03", "maestro.") - .2 else None
     if T >= S("F04"): brillos(c, T, S("F04"), 420, 1000, 220)
@@ -896,7 +1624,7 @@ def sc_maestro(T):
 
 def sc_e(T):
     """F05-F06: imprimes la hoja de la E y Mateo la repasa despacito (aquí sale la tarjeta del libro, una sola vez)."""
-    s0 = S("F05"); e0 = E("F06"); tr = WT("F05", "E.") + .1
+    s0 = S("F05"); e0 = E("F06B"); tr = WT("F05", "E.") + .1
     c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
     if T < tr:
         impresora(c, T, s0 - .1, 15); return c
@@ -966,7 +1694,8 @@ def sc_feliz6(T):
     else:
         mateo(c, "feliz", 540, 1250, 1.25, T)
         brillos(c, T, S("F11"), 540, 900, 260)
-        etiqueta(c, T, WT("F11", "pidas."), "SIN QUE SE LO PIDAS", 540, 470, CREMA, OL, 42) if T >= WT("F11", "pidas.") - .6 else None
+        etiqueta(c, T, WT("F11", "pidas."), "SIN QUE SE LO PIDAS", 540, 470, CREMA, OL, 42) if WT("F11", "pidas.") - .6 <= T < S("F11B") else None
+        etiqueta(c, T, S("F11B"), "YA ENSEÑA LA E EN EL COLE", 540, 470, CREMA, OL, 40) if T >= S("F11B") else None
     return c
 
 def sc_carta_nueva(T):
@@ -986,9 +1715,12 @@ def sc_verdad6(T):
     s0, e0 = TL["F13"]
     c = bg("bg_cocina", T, s0 - .2, 1.2, 1.26, 6, .5, .6)
     c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (120,)))
-    mateo(c, "timido", 540, 1260, 1.05, T, "F13")
-    sobre(c, 830, 1450, .55, rot=12)
-    put(c, "dino", 230, 1400, .35, rot=-6)
+    mateo(c, "timido", 540, 1260, 1.05, T, "F13") if T < S("F13B") else None
+    if T < S("F13B"): sobre(c, 830, 1450, .55, rot=12); put(c, "dino", 230, 1400, .35, rot=-6)
+    else:
+        k = ease((T - S("F13B")) / .6); sobre(c, 540, 1500 - 520 * k, .55 + .5 * k, rot=-4)
+        brillos(c, T, S("F13B"), 540, 980, 240)
+        etiqueta(c, T, WT("F13B", "Rex."), "PARA MATEO, DE REX", 540, 470, CREMA, OL, 44) if T >= WT("F13B", "Rex.") - .5 else None
     return c
 
 SCENES = [
