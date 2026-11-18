@@ -1649,11 +1649,25 @@ def sc_maestro(T):
     return c
 
 def sc_e(T):
-    """F05-F06: imprimes la hoja de la E y Mateo la repasa despacito (aquí sale la tarjeta del libro, una sola vez)."""
-    s0 = S("F05"); e0 = E("F06B"); tr = WT("F05", "E.") + .1
+    """F05-F06: imprimes la hoja de la E y Mateo la repasa despacito (aquí sale la tarjeta del libro, una sola vez).
+    F06B: 'la R tiene una barriguita' -> pasa a la hoja de la R y repasa la R."""
+    s0 = S("F05"); e0 = E("F06"); tr = WT("F05", "E.") + .1
     c = bg("bg_mesa", T, s0, 1.2, 1.3, 6, .5, .5)
     if T < tr:
         impresora(c, T, s0 - .1, 15); return c
+    if T >= S("F06B") - .05:   # hoja de la R
+        mp = pagina(c, 39, 230, 560, 400, 900, 1.5)
+        Rs = trazos_R_p39(mp)
+        t0, t1 = S("F06B") + .3, E("F06B") - .1
+        tip, u = escribir(c, Rs, T, t0, t1, 15, .5, entra=.5)
+        for i, tf in enumerate(fines(Rs, t0, t1)):
+            if T >= tf:
+                x, y = mp((252, 325)[i] + 18, 560); k = popscale(T, tf, .3); d = ImageDraw.Draw(c); r = 26 * k
+                d.ellipse((x - r, y - r, x + r, y + r), fill=VERDE, outline=WHITE, width=4)
+                if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
+        c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
+        etiqueta(c, T, S("F06B"), "LA R TIENE UNA BARRIGUITA", 540, 1220, VERDE, WHITE, 38)
+        return c
     mp = pagina(c, 15, 230, 560, 400, 900, 1.5)
     Es = pagina_trazos_E(mp)
     t0, t1 = WT("F05", "repasa") + .1, e0 - .1
@@ -1665,7 +1679,7 @@ def sc_e(T):
             if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
     c = seguir(c, tip[0] if tip else 480, tip[1] if tip else 900, 1.3, f=.5)
     if T < t0: etiqueta(c, T, tr, "LA E DE ENSEÑAR", 540, 1220, CREMA, OL, 40)
-    else: etiqueta(c, T, S("F06"), "UNA PARED Y TRES RAYITAS", 540, 1220, VERDE, WHITE, 38) if T >= S("F06") else None
+    elif T >= S("F06"): etiqueta(c, T, S("F06"), "UNA PARED Y TRES RAYITAS", 540, 1220, VERDE, WHITE, 38)
     pill_libro(c, T, t0 + .2, 3.3)   # una sola vez por vídeo, mientras repasa
     return c
 
