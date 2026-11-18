@@ -6,11 +6,11 @@ import render5 as V
 from render5 import *
 from PIL import Image, ImageDraw, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__)); FPS = 30
-VOZ = os.path.join(HERE, "..", "descargas", "mateo_story", "S01.mp3")
-TEXTO = ("Hola, mamás. Quiero preguntarte algo de corazón: ¿te está gustando la historia de Mateo? "
-         "Cada parte la hago pensando en ti y en tu peque. Cuéntame votando aquí. Y sígueme, para no perderte la próxima parte.")
-FRASES = [("Hola, mamás", .00, .12), ("¿Te está gustando\nla historia de Mateo?", .12, .42), ("Cada parte la hago pensando\nen ti y en tu peque", .42, .72),
-          ("Cuéntame votando aquí", .72, .86), ("Sígueme para no perderte\nla próxima parte", .86, 1.0)]
+VOZ = os.path.join(HERE, "..", "descargas", "mateo_story", "S02.mp3")
+TEXTO = ("Hola a todos. Quiero preguntarles algo de corazón: ¿les está gustando la historia de Mateo? "
+         "Cada parte la hago con mucho cariño. Cuéntenme votando aquí. Y síganme, para no perderse la próxima parte.")
+FRASES = [("Hola a todos", .00, .12), ("¿Les está gustando\nla historia de Mateo?", .12, .42), ("Cada parte la hago\ncon mucho cariño", .42, .72),
+          ("Cuéntenme votando aquí", .72, .86), ("Síganme para no perderse\nla próxima parte", .86, 1.0)]
 HUECO = (150, 800, 930, 1130)
 ORG, ORG2, NV = (244, 124, 42), (255, 160, 70), (22, 36, 66)
 
@@ -89,7 +89,7 @@ def frame(t, D):
         a = max(0, 150 - y * .35) if y < 430 else (max(0, (y - 1350) * .32) if y > 1350 else 0)
         gd.line((0, y, W, y), fill=(14, 8, 30, int(min(190, a))))
     c.alpha_composite(g)
-    txt(c, (540, 300), "UNA PREGUNTA DE CORAZÓN", 50, (255, 214, 160), 8)
+    txt(c, (540, 300), "UNA PREGUNTA PARA USTEDES", 50, (255, 214, 160), 8)
     x0, y0, x1, y1 = HUECO
     box = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(box).rounded_rectangle(HUECO, 54, fill=(10, 8, 30, 70), outline=(255, 255, 255, 120), width=4)
     c.alpha_composite(box)
