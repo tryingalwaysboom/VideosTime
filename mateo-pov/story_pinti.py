@@ -162,18 +162,25 @@ def esc_mateo(t, D):
     c = fondo(t, D, "bg_cuarto", (255, 190, 120, 50)); retrato(c, "feliz", t, 360, 800, .55)
     k = ease((t - T_MISMO + .5) / .5); portada(c, 780, 780 + 40 * (1 - k), 560, 5)
     txt(c, (540, 330), "EL LIBRO DE MATEO", 82, (255, 226, 170), 10)
-    if t >= T_SI:
-        kk = ease((t - T_SI) / .5); pw, ph = 800, 140; y = 1190 + 40 * (1 - kk)
-        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
-        ld.rounded_rectangle((540 - pw / 2, y + 10, 540 + pw / 2, y + ph + 10), 70, fill=(0, 0, 0, 130))
-        ld.rounded_rectangle((540 - pw / 2, y, 540 + pw / 2, y + ph), 70, fill=ORG, outline=WHITE, width=5)
-        ld.text((540, y + ph / 2 - 8), "LINK EN MI BIO", font=font(F_ANTON, 78), fill=WHITE, anchor="mm")
-        off = 8 * math.sin(t * 5); ld.polygon([(540 - 30, y - 22 + off), (540 + 30, y - 22 + off), (540, y - 62 + off)], fill=WHITE, outline=(20, 14, 30))
-        if kk < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * kk)))
-        c.alpha_composite(lay)
     return c
 
-ESC = [(0, esc_hook), (T_MIRA, esc_libro), (T_109, esc_abanico), (T_LET, esc_trazos), (T_SIL, esc_silabas), (T_LO, esc_imprime), (T_SOLO, esc_solo), (T_MISMO, esc_mateo)]
+def esc_perfil(t, D):
+    c = fondo(t, D, "bg_cuarto", (14, 20, 44, 190)); u = ease((t - T_SI) / .45)
+    im = Image.open(os.path.join(HERE, "layers", "perfil_pinti.jpg")).convert("RGBA").crop((0, 0, 1080, 800)); k = .88
+    im = im.resize((int(im.width * k), int(im.height * k)), Image.LANCZOS); w_, h_ = im.size
+    m = Image.new("L", im.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, w_ - 1, h_ - 1), 46, fill=255); im.putalpha(m)
+    cx, cy = 540, 760 + 50 * (1 - u); x0, y0 = int(cx - w_ / 2), int(cy - h_ / 2)
+    sh = Image.new("RGBA", (w_ + 80, h_ + 80), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((40, 54, w_ + 40, h_ + 54), 46, fill=(0, 0, 0, 160))
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(22)), (x0 - 40, y0 - 40)); lay.alpha_composite(im, (x0, y0)); ld = ImageDraw.Draw(lay)
+    al = .5 + .5 * math.sin(t * 6); ex, ey = x0 + 35 * k, y0 + 722 * k; fx, fy = x0 + 750 * k, y0 + 775 * k   # recuadro del link
+    ld.rounded_rectangle((ex - 10, ey - 6, fx + 10, fy + 6), 22, outline=(255, int(150 + 70 * al), 60), width=8)
+    off = 12 * math.sin(t * 6); ax = (ex + fx) / 2; ay = fy + 40 + off
+    ld.polygon([(ax - 46, ay + 62), (ax + 46, ay + 62), (ax + 46, ay + 100), (ax + 70, ay + 100), (ax, ay + 20), (ax - 70, ay + 100), (ax - 46, ay + 100)][:0] or [(ax, ay), (ax + 62, ay + 74), (ax + 26, ay + 74), (ax + 26, ay + 150), (ax - 26, ay + 150), (ax - 26, ay + 74), (ax - 62, ay + 74)], fill=(255, 160, 70), outline=WHITE)
+    if u < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * u)))
+    c.alpha_composite(lay); txt(c, (540, 300), "AQUÍ ESTÁ EL LINK", 84, (255, 226, 170), 10); txt(c, (540, 1290), "EN MI PERFIL", 70, WHITE, 9)
+    return c
+
+ESC = [(0, esc_hook), (T_MIRA, esc_libro), (T_109, esc_abanico), (T_LET, esc_trazos), (T_SIL, esc_silabas), (T_LO, esc_imprime), (T_SOLO, esc_solo), (T_MISMO, esc_mateo), (T_SI, esc_perfil)]
 ease = V.ease
 
 def frame(t, D):
@@ -192,7 +199,7 @@ def dur():
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", VOZ], capture_output=True, text=True); return float(r.stdout.strip())
 
 if __name__ == "__main__":
-    D = dur() + .9
+    D = dur() + 2.0
     if _a and _a[0] == "still":
         for t in _a[1:]: frame(float(t), D).save(f"/tmp/sp_{float(t):05.1f}.jpg", quality=88)
         sys.exit()
