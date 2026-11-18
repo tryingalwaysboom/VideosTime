@@ -179,22 +179,24 @@ def escena_p6():
     d.rectangle((90, 1315, 130, 1760), fill=(170, 120, 72), outline=OL, width=6); d.rectangle((950, 1315, 990, 1760), fill=(170, 120, 72), outline=OL, width=6)
     d.rectangle((90, 1315, 990, 1400), fill=(190, 138, 84), outline=OL, width=6)
     d.rounded_rectangle((30, 1250, 1050, 1320), 18, fill=(214, 160, 100), outline=OL, width=7)
-    return s.crop((0, 700, 1080, 1420))
+    return s.crop((0, 470, 1080, 1440))
 
 def p6():
     c = cuaderno()
-    garabatos(c, 6)
-    d = ImageDraw.Draw(c)
-    d.text((540, OY + 150), "¿y si Rex", font=font(F_HAND, 150), fill=NAVY, anchor="mm")
-    d.text((540, OY + 300), "es de verdad?", font=font(F_HAND, 150), fill=(226, 88, 130), anchor="mm")
-    cx, cy = 540, OY + 800
-    foto(c, escena_p6(), cx, cy, 900, 600, 3)
-    cinta(c, cx - 400, cy - 330, 200, -32, (120, 200, 230)); cinta(c, cx + 400, cy - 335, 200, 30, (244, 196, 48))
+    garabatos(c, 11)
+    cx, cy = 540, OY + 480
+    sc = escena_p6().crop((60, 0, 1020, 970))   # mesa con Mateo y Rex, casi cuadrada
+    foto(c, sc, cx, cy, 680, 680, -2)
+    cinta(c, cx - 290, cy - 385, 210, -26, (240, 150, 190)); cinta(c, cx + 285, cy - 392, 210, 24, (150, 210, 130))
     import render5 as R5
-    R5.sobre(c, 800, OY + 1190, 1.35, rot=-10)
+    R5.sobre(c, cx + 250, cy + 270, .55, rot=12)   # la carta de Rex pegada en la foto
     d = ImageDraw.Draw(c)
-    d.text((800, OY + 1275), "para Mateo, de Rex", font=font(F_HAND, 46), fill=NAVY, anchor="mm")
-    etiqueta_parte(c, 6, 300, OY + 1260, 4)
+    d.text((540, OY + 945), "mi alumno se llama...", font=font(F_HAND, 100), fill=NAVY, anchor="mm")
+    sz = 170; tr = nino_trazos("REX", 540 - ancho_nino("REX", sz) / 2, OY + 1010, sz, seed=9)
+    sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
+    c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
+    dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
+    etiqueta_parte(c, 6, 540, OY + 1340, 3)
     return c
 
 if __name__ == "__main__":
