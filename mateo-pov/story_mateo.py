@@ -7,10 +7,10 @@ from render5 import *
 from PIL import Image, ImageDraw, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__)); FPS = 30
 VOZ = os.path.join(HERE, "..", "descargas", "mateo_story", "S01.mp3")
-TEXTO = ("Mateo todavía cree que Rex le escribe. Cada noche espera su cartita… y yo no sé si decirle la verdad. "
-         "¿Le cuento que era yo, o lo dejo creer un poquito más? Tú decides. Vota aquí. Y sígueme, para no perderte la próxima parte.")
-FRASES = [("Mateo todavía cree\nque Rex le escribe", .00, .17), ("Cada noche espera su cartita…\ny yo no sé si decirle la verdad", .17, .46),
-          ("¿Le cuento que era yo,\no lo dejo creer un poquito más?", .46, .76), ("Tú decides", .76, .86), ("Sígueme para no perderte\nla próxima parte", .86, 1.0)]
+TEXTO = ("Hola, mamás. Quiero preguntarte algo de corazón: ¿te está gustando la historia de Mateo? "
+         "Cada parte la hago pensando en ti y en tu peque. Cuéntame votando aquí. Y sígueme, para no perderte la próxima parte.")
+FRASES = [("Hola, mamás", .00, .12), ("¿Te está gustando\nla historia de Mateo?", .12, .42), ("Cada parte la hago pensando\nen ti y en tu peque", .42, .72),
+          ("Cuéntame votando aquí", .72, .86), ("Sígueme para no perderte\nla próxima parte", .86, 1.0)]
 HUECO = (150, 800, 930, 1130)
 ORG, ORG2, NV = (244, 124, 42), (255, 160, 70), (22, 36, 66)
 
@@ -65,14 +65,14 @@ def esc_duda(t, D):
 
 def esc_final(t, D):
     c = V.bg("bg_cuarto", t, 0, 1.2, 1.28, D * .3, .5, .55).convert("RGBA"); _noche(c, 150)
-    _retrato(c, "timido" if t < D * .1 else "triste", t)
+    _retrato(c, "feliz", t)
     return c
 
 def put(c, name, x, y, s, rot=0): V.put(c, name, x, y, s, rot=rot)
 mateo = V.mateo; sobre = V.sobre; carta = V.carta; corazon = V.corazon; ease = V.ease
 
 def frame(t, D):
-    P = [(0, .2, esc_dormido), (.2, .46, esc_carta), (.46, .76, esc_duda), (.76, 1.0, esc_final)]
+    P = [(0, .12, esc_carta), (.12, .42, esc_carta), (.42, .72, esc_dormido), (.72, 1.0, esc_final)]
     c = None
     for i, (a_, b_, fn) in enumerate(P):
         ta, tb = a_ * D, b_ * D
@@ -89,7 +89,7 @@ def frame(t, D):
         a = max(0, 150 - y * .35) if y < 430 else (max(0, (y - 1350) * .32) if y > 1350 else 0)
         gd.line((0, y, W, y), fill=(14, 8, 30, int(min(190, a))))
     c.alpha_composite(g)
-    txt(c, (540, 300), "ANTES DE DORMIR…", 58, (255, 214, 160), 8)
+    txt(c, (540, 300), "UNA PREGUNTA DE CORAZÓN", 50, (255, 214, 160), 8)
     x0, y0, x1, y1 = HUECO
     box = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(box).rounded_rectangle(HUECO, 54, fill=(10, 8, 30, 70), outline=(255, 255, 255, 120), width=4)
     c.alpha_composite(box)
