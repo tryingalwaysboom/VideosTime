@@ -138,9 +138,34 @@ def p4():
     etiqueta_parte(c, 4, 540, OY + 1340, -3)
     return c
 
+def escena_p5():
+    """Ganó el premio sin pantallas: el buzón de Rex con la carta saliendo y Mateo feliz."""
+    import render5 as R5
+    s = bg("bg_cocina", 0, 0, 1.15, 1.15, 1, .5, .55).convert("RGBA")
+    s.alpha_composite(Image.new("RGBA", s.size, (255, 220, 160, 40)))
+    put(s, "mateo_feliz", 330, 1000 + 400 * .95, .95)
+    R5.buzon(s, 780, 1330, .8, 0)
+    R5.sobre(s, 800, 1050, .9, rot=10)
+    return s.crop((0, 380, 1080, 1460))
+
+def p5():
+    c = cuaderno()
+    garabatos(c, 5)
+    cx, cy = 540, OY + 480
+    foto(c, escena_p5(), cx, cy, 680, 680, 2)
+    cinta(c, cx - 285, cy - 382, 210, 28, (244, 196, 48)); cinta(c, cx + 275, cy - 395, 210, -30, (120, 200, 230))
+    d = ImageDraw.Draw(c)
+    d.text((540, OY + 945), "el buzón de...", font=font(F_HAND, 110), fill=NAVY, anchor="mm")
+    sz = 170; tr = nino_trazos("REX", 540 - ancho_nino("REX", sz) / 2, OY + 1010, sz, seed=4)
+    sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
+    c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
+    dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
+    etiqueta_parte(c, 5, 540, OY + 1340, 3)
+    return c
+
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    c = {2: p2, 3: p3, 4: p4}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
+    c = {2: p2, 3: p3, 4: p4, 5: p5}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
     c.save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}_9x16.jpg"), quality=100, subsampling=0)
     c.crop((0, OY, CW, OY + 1440)).save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}.jpg"), quality=95)
     print("ok")

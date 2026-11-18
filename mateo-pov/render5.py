@@ -30,7 +30,7 @@ R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}; R.TOTAL -= .1   # la voz arranca en el frame 0
 R.CH = R.chunks(); TL = R.TL; TOTAL = R.TOTAL
 S, E, WT = R.S, R.E, R.WT
-R.NOMBRE = {"K": "MATEO", "A": "ABUELA PILAR", "P": "NOTA DE LA MAESTRA"}
+R.NOMBRE = {"K": "MATEO", "A": "ABUELA PILAR", "P": "MAESTRA MARTA"}
 R.HIDE_LAST_CAPTION = False
 
 def talk(lid, T): return S(lid) <= T < E(lid)
@@ -1326,8 +1326,8 @@ def sc_corre(T):
     c = bg("bg_cocina", T, s0, 1.12, 1.2, 8, .5, .6)
     c.alpha_composite(Image.new("RGBA", (W, H), (255, 220, 160, 40)))
     if T < S("F10") - .1:
-        u = ease((T - s0) / 1.6); mateo(c, "feliz", 1200 - 760 * u, 1270, 1.0, T)
-        buzon(c, 300, 1500, .7, T)
+        buzon(c, 230, 1560, .6, T)
+        u = ease((T - s0) / 1.6); mateo(c, "feliz", 1250 - 620 * u, 1270, 1.0, T)
     else:
         mateo(c, "feliz", 420, 1270, 1.05, T, "F10")
         sobre(c, 800, 1180 + 20 * math.sin(T * 8), 1.0, rot=10 * math.sin(T * 5))
@@ -1362,12 +1362,13 @@ def sc_luna(T):
     ws = [WT("F12", "L"), WT("F12", "U,"), WT("F12", "N,"), WT("F12", "A,")]
     tip = None
     for i, (ls, t) in enumerate(zip(L, ws)):
-        t1 = t + 1.0 if i < 3 else e0 + .4
+        t1 = min(t + 1.0, ws[i + 1] - .35) if i < 3 else e0 + .4
         if T >= t1: dibuja_trazos(c, ls, h * .1)
         elif T >= t - .25: tip, u = escribir(c, [ls], T, t, t1, h * .1, .55, entra=.25)
     if tip is None and ws[0] - .5 <= T < e0 + .4:
-        hechas = [i for i, t in enumerate(ws) if T >= (t + 1.0 if i < 3 else e0 + .4)]
-        if hechas: tip = L[hechas[-1]][-1][-1]; mano_crayola(c, tip, T, .55, True)
+        hechas = [i for i, t in enumerate(ws) if T >= (min(t + 1.0, ws[i + 1] - .35) if i < 3 else e0 + .4)]
+        nxt_ok = all(not (t - .25 <= T) for t in ws[len(hechas):len(hechas) + 1])
+        if hechas and nxt_ok: tip = L[hechas[-1]][-1][-1]; mano_crayola(c, tip, T, .55, True)
     if T >= e0 + .4:
         lu = luna_img(.9); k = popscale(T, e0 + .4, .4)
         if k > 0: c.alpha_composite(lu.resize((max(2, int(lu.width * k)), max(2, int(lu.height * k)))), (760, 520))
@@ -1410,7 +1411,7 @@ def sc_tres(T):
         d = ImageDraw.Draw(c)
         if k > .8:
             d.line((420, 1340, 660, 1560), fill=ROJO, width=20); d.line((660, 1340, 420, 1560), fill=ROJO, width=20)
-    etiqueta(c, T, s0 + .1, "3 DÍAS · 3 CARTAS", 540, 470, CREMA, OL, 42)
+    etiqueta(c, T, s0 + .1, "3 DÍAS · 3 CARTAS", 540, 520, CREMA, OL, 42)
     return c
 
 def pizarra(c, T, t0):
