@@ -7,7 +7,7 @@ import salon as SL
 from ep1 import cam
 from story import F, texto, flecha, YEL, RED, WHITE, INK
 HERE = os.path.dirname(os.path.abspath(__file__)); W, H, FPS = 1080, 1920, 30
-VOZ = os.path.join(HERE, "..", "descargas", "casa_story", "S01.mp3")
+VOZ = os.path.join(HERE, "..", "descargas", "casa_story", "S02.mp3")
 HUECO = (240, 860, 840, 1110)
 GREEN = (90, 200, 110)
 
