@@ -1056,18 +1056,18 @@ def pagina(c, n, px, py, cx, cy, s, sombra=True):
     c.alpha_composite(im, (int(x0), int(y0)))
     return lambda x, y: (x0 + x * s, y0 + y * s)
 
-def pill_libro(c, T, t0, dur=3.2, y=440):
-    """Píldora discreta: miniatura de la portada + 'Hojas del libro de Pinti · link en mi bio'."""
+def pill_libro(c, T, t0, dur=3.2, y=450):
+    """Píldora discreta: miniatura de la portada + 'Hojas del libro de Pinti · aprendeconpinti.com · link en mi bio'."""
     if not (t0 <= T < t0 + dur): return
     k = ease((T - t0) / .3) * (1 - ease((T - t0 - dur + .3) / .3))
     if k <= .02: return
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    w = 640
-    d.rounded_rectangle((540 - w / 2, y - 50, 540 + w / 2, y + 50), 50, fill=(255, 252, 244, 245), outline=(240, 140, 60), width=5)
-    cov = pagina_img(0, 64 / 1588 * 1.0)
-    lay.alpha_composite(cov, (int(540 - w / 2 + 34), int(y - cov.height / 2)))
-    d.text((540 - w / 2 + 120, y - 18), "Hojas del libro de Pinti", font=font(F_BAL, 34), fill=NAVY, anchor="lm")
-    d.text((540 - w / 2 + 120, y + 20), "aprendeconpinti.com · link en mi bio", font=font(F_BAL, 28), fill=(220, 110, 40), anchor="lm")
+    w = 860
+    d.rounded_rectangle((540 - w / 2, y - 66, 540 + w / 2, y + 66), 66, fill=(255, 252, 244, 248), outline=(240, 140, 60), width=6)
+    cov = pagina_img(0, 96 / 1588)
+    lay.alpha_composite(cov, (int(540 - w / 2 + 40), int(y - cov.height / 2)))
+    d.text((540 - w / 2 + 150, y - 24), "Hojas del libro de Pinti", font=font(F_BAL, 46), fill=NAVY, anchor="lm")
+    d.text((540 - w / 2 + 150, y + 28), "aprendeconpinti.com · link en mi bio", font=font(F_BAL, 36), fill=(220, 110, 40), anchor="lm")
     if k < 1: lay = Image.blend(Image.new("RGBA", (W, H), (0, 0, 0, 0)), lay, k)
     c.alpha_composite(lay, (0, int(-30 * (1 - k))))
 
@@ -1424,19 +1424,32 @@ def pizarra(c, T, t0):
     put(c, "dino", 880, 1080, .18)
     return tip
 
+def maestra(c, cx, cy, s, T, lid=None):
+    hab = lid is not None and talk(lid, T)
+    put(c, "maestra_hab" if hab else "maestra", cx, cy + 200 * s, s)
+    if hab: mouth(c, cx, cy - 104 * s, T, True, int(24 * s))
+
 def sc_maestra5(T):
-    """F15-F16: el jueves la maestra te detiene: ayer Mateo le enseñó a un compañero a escribir la M; dice que se lo enseñó un dinosaurio."""
+    """F15-F16: el jueves, en la puerta del preescolar, la maestra te cuenta que Mateo le enseñó la M a un compañero."""
     s0 = S("F15")
-    c = bg("bg_puerta", T, s0, 1.15, 1.2, 6, .5, .5)
-    c.alpha_composite(Image.new("RGBA", (W, H), (240, 230, 210, 140)))
+    c = bg("bg_escuela", T, s0, 1.08, 1.14, 6, .5, .45)
+    maestra(c, 540, 1180, .95, T, "F16" if T >= S("F16") else None)
     if T < S("F16") - .1:
-        etiqueta(c, T, s0 + .1, "JUEVES · A LA SALIDA", 540, 470, CREMA, OL, 40)
-        d = ImageDraw.Draw(c); d.rounded_rectangle((300, 760, 780, 1100), 40, fill=WHITE, outline=OL, width=6)
-        d.text((540, 930), "MAESTRA MARTA", font=font(F_BAL, 50), fill=NAVY, anchor="mm")
+        etiqueta(c, T, s0 + .1, "JUEVES · A LA SALIDA", 540, 1330, CREMA, OL, 40)
         return c
-    pizarra(c, T, WT("F16", "escribir"))
+    # recuerdo: la M en la pizarra, en un globo junto a la maestra
+    tm = WT("F16", "escribir")
+    if T >= tm - .3:
+        k = popscale(T, tm - .3, .35)
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+        bx, by, bw, bh = 840, 860, 200 * k, 160 * k
+        d.rounded_rectangle((bx - bw, by - bh, bx + bw, by + bh), 22, fill=(46, 84, 66), outline=(150, 100, 60), width=12)
+        if k > .9:
+            u = clamp((T - tm) / 1.0); M = [(bx - 90, by + 90), (bx - 90, by - 90), (bx, by + 20), (bx + 90, by - 90), (bx + 90, by + 90)]
+            hechos, tip, _ = _recorrido([M], u)
+            for p in hechos: d.line(p, fill=(245, 245, 235), width=16, joint="curve")
+        c.alpha_composite(lay)
     if T >= WT("F16", "dinosaurio."): stamp(c, T, WT("F16", "dinosaurio."), "¡UN DINOSAURIO!", 540, 1330, VERDE, -5, 80)
-    else: etiqueta(c, T, S("F16"), "LE ENSEÑÓ LA M A UN AMIGO", 540, 470, CREMA, OL, 36)
     return c
 
 def sc_lista(T):
@@ -1513,6 +1526,26 @@ def sc_final(T):
             text(d, (540, 1286), "VOTA EN LA ENCUESTA", 54, OL)
             text(d, (540, 1328), "y dime en comentarios por qué", 28, (200, 50, 80), "mm", F_UI)
     return c
+
+# ---- registro de trazos con la crayola apoyada (para que el sonido de escribir vaya exacto con la mano)
+TRAZOS_ON = {}
+def _intervalos(letras, t0, t1):
+    todos = [p for L in letras for p in L]; segs = []
+    for i, p in enumerate(todos):
+        if i: segs.append((math.dist(todos[i - 1][-1], p[0]) * .55 + 1, False))
+        segs.append((_largo(p), True))
+    tot = sum(w for w, _ in segs); acc = 0; out = []
+    for w, dib in segs:
+        a = t0 + (t1 - t0) * acc / tot; acc += w; b = t0 + (t1 - t0) * acc / tot
+        if dib and b - a > .04: out.append((a, b))
+    return out
+_escribir_base = escribir
+def escribir(c, letras, T, t0, t1, w, sm=.6, mano=True, entra=.5):
+    TRAZOS_ON[(round(t0, 3), round(t1, 3))] = _intervalos(letras, t0, t1)
+    return _escribir_base(c, letras, T, t0, t1, w, sm, mano, entra)
+ESCENAS_ESCRITURA = ("sc_r", "sc_l", "sc_luna")
+def tiza_intervalos():
+    tm = WT("F16", "escribir"); return [(tm, tm + 1.0)]
 
 SCENES = [
     (0, sc_premio_no), (S("F03") - .15, sc_caja), (S("F05") - .15, sc_sabe), (S("F06") - .15, sc_r),

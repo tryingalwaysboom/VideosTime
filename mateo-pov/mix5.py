@@ -7,24 +7,39 @@ from render5 import TL, TOTAL, S, E, WT, SCENES, SUAVES, TMP, HERE
 SFX = os.path.join(HERE, "..", "descargas", "mateo_sfx")
 def sx(n): return os.path.join(SFX, n + ".mp3")
 
+def pista_crayola():
+    """Sonido de crayola solo mientras la mano escribe: se registran los tramos con la punta apoyada y se abre la pista justo ahí."""
+    for i, (t, fn) in enumerate(SCENES):
+        if fn.__name__ not in V.ESCENAS_ESCRITURA: continue
+        t_fin = SCENES[i + 1][0] if i + 1 < len(SCENES) else TOTAL
+        T = t
+        while T < t_fin: fn(T); T += .2
+    iv = sorted(x for v in V.TRAZOS_ON.values() for x in v) + V.tiza_intervalos()
+    iv = sorted(iv); merged = []
+    for a, b in iv:
+        if merged and a - merged[-1][1] < .06: merged[-1] = (merged[-1][0], max(merged[-1][1], b))
+        else: merged.append((a, b))
+    expr = "+".join(f"between(t,{a:.3f},{b:.3f})" for a, b in merged)
+    out = os.path.join(TMP, "crayola_gate.wav")
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-stream_loop", "-1", "-i", sx("crayola"), "-t", f"{TOTAL:.2f}", "-af",
+                    f"aresample=48000,loudnorm=I=-25:TP=-6,aresample=48000,asetpts=N/SR/TB,volume='min(1,{expr})':eval=frame,lowpass=f=9000", "-ac", "1", out], check=True)
+    print("tramos de escritura:", len(merged))
+    return out
+
 def efectos():
     e = [(sx("resultado"), .15, -4),
          (sx("whoosh"), WT("F01", "no") - .05, -6),
          (sx("brillo"), WT("F03", "caja") - .2, -5),
          (sx("brillo"), WT("F04", "buzón") - .1, -4), (sx("movil"), WT("F04", "carta.") - .3, -7),
-         (sx("crayola"), WT("F06", "repasa") - .2, -3), (sx("crayola"), WT("F06", "repasa") + 3.0, -4),
-         (sx("crayola"), WT("F07", "respuesta.") - .3, -7),
          (sx("corre"), S("F09"), -4),
          (sx("brillo"), WT("F10", "contestó!") - .1, -3),
-         (sx("crayola"), WT("F11", "agarra") - .3, -3),
-         (sx("crayola"), WT("F12", "L") - .1, -3), (sx("crayola"), WT("F12", "N,") - .1, -3),
          (sx("brillo"), E("F12") + .4, -4),
          (sx("brillo"), S("F13") - .1, -5),
-         (sx("crayola"), WT("F16", "escribir") - .1, -5),
          (sx("piano"), WT("F17", "misma") - .1, -6),
          (sx("brillo"), WT("F19", "A:") - .1, -5), (sx("brillo"), WT("F19", "B:") - .1, -5)]
     for t, fn in SCENES[1:]:
         if t not in SUAVES: e.append((sx("whoosh"), t - .05, -7))
+    e.append((pista_crayola(), 0, -3))
     return e
 
 def main(out):
@@ -48,7 +63,8 @@ def main(out):
     parts = ["[voz]", "[mus]"]
     for j, (p, t, db) in enumerate(efectos()):
         ins += ["-i", p]; ms = max(0, int(t * 1000))
-        flt.append(f"[{k}:a]aresample=48000,loudnorm=I=-25:TP=-6,aresample=48000,volume={db}dB,adelay={ms}|{ms},apad[s{j}]")
+        norm = "" if p.endswith("_gate.wav") else "loudnorm=I=-25:TP=-6,aresample=48000,"
+        flt.append(f"[{k}:a]aresample=48000,{norm}volume={db}dB,adelay={ms}|{ms},apad[s{j}]")
         parts.append(f"[s{j}]"); k += 1
     flt.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,alimiter=limit=0.95,apad,atrim=0:{TOTAL:.2f}[mx]")
     wav = os.path.join(TMP, "mezcla.wav")

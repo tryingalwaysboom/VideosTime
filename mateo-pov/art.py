@@ -539,9 +539,77 @@ def dibujo():
     for k in range(4): b += f'<path d="M{300+k*36} 345 l14 -30 l14 30" stroke="#e6a92a" stroke-width="10" fill="none"/>'
     return svg(880, 660, b)
 
+def maestra(hablando=False):
+    """Maestra Marta: joven, melena castaña con flequillo, suéter turquesa, gafete de la escuela, sonrisa cálida."""
+    b = ''
+    torso = '<path d="M110 1700 L120 980 Q130 760 280 700 Q400 670 520 700 Q670 760 680 980 L690 1700Z"/>'
+    b += cel(torso, "#2fa6a0", "#22807b", "#4cc4bd", -50, -10, 8)
+    b += cel('<path d="M330 690 L400 800 L470 690 L460 676 L400 750 L340 676Z"/>', "#f6efe2", "#d9cfbd", None, -8, 0, 5)
+    # cordón y gafete
+    b += f'<path d="M330 700 L380 1000 M470 700 L420 1000" stroke="#e2483b" stroke-width="10" fill="none"/>'
+    b += f'<rect x="340" y="1000" width="120" height="150" rx="12" fill="#fffdf4" stroke="{OL}" stroke-width="6"/>'
+    b += f'<rect x="362" y="1024" width="76" height="56" rx="8" fill="#9cc4e8"/><rect x="360" y="1100" width="80" height="12" rx="6" fill="#e2483b"/><rect x="370" y="1122" width="60" height="10" rx="5" fill="#9a9aa6"/>'
+    # brazos: uno con carpeta
+    b += cel('<path d="M560 960 Q680 1000 690 1240 L610 1250 Q600 1080 540 1040Z"/>', "#28968f", "#1d7570", None, -10, -8, 7)
+    b += cel('<rect x="560" y="1120" width="220" height="280" rx="14" transform="rotate(-8 670 1260)"/>', "#f2c14e", "#c99a2a", None, -8, -6, 7)
+    b += cel('<ellipse cx="640" cy="1250" rx="44" ry="36"/>', SK, SKS, None, -10, -6, 6)
+    b += cel('<path d="M240 960 Q120 1000 110 1240 L190 1250 Q200 1080 260 1040Z"/>', "#28968f", "#1d7570", None, 10, -8, 7)
+    b += cel('<ellipse cx="150" cy="1250" rx="44" ry="36"/>', SK, SKS, None, 10, -6, 6)
+    b += '<g transform="translate(0,90)">'
+    b += neck(358, 460, 84, 120)
+    # melena detrás
+    b += cel('<path d="M250 380 Q230 180 400 160 Q570 180 550 380 L572 600 Q500 640 470 560 L330 560 Q300 640 228 600Z"/>', "#7a4a2a", "#5a341c", "#9a6440", -20, -10, 7)
+    b += face(400, 360, 132)
+    # flequillo
+    b += cel('<path d="M268 330 Q262 200 400 196 Q538 200 532 330 Q500 260 440 250 Q410 290 360 262 Q300 270 268 330Z"/>', "#7a4a2a", "#5a341c", "#9a6440", -20, -10, 7)
+    b += '<path d="M318 300 Q350 290 382 302" stroke="#5a341c" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M418 302 Q450 290 482 300" stroke="#5a341c" stroke-width="11" fill="none" stroke-linecap="round"/>'
+    b += eye(352, 352, 15) + eye(450, 352, 15)
+    b += cel('<path d="M392 370 Q424 402 408 420 Q392 426 380 414 Q380 392 392 370Z"/>', SK, SKS, None, -8, -4, 5)
+    b += '<ellipse cx="326" cy="418" rx="26" ry="15" fill="#e7887a" opacity="0.5"/><ellipse cx="474" cy="418" rx="26" ry="15" fill="#e7887a" opacity="0.5"/>'
+    b += '<circle cx="268" cy="410" r="10" fill="#e2b84a" stroke="#1d1630" stroke-width="3"/><circle cx="532" cy="410" r="10" fill="#e2b84a" stroke="#1d1630" stroke-width="3"/>'
+    if not hablando:
+        b += '<path d="M360 456 Q400 486 440 456" stroke="#9a2a3a" stroke-width="9" fill="none" stroke-linecap="round"/>'
+    b += '</g>'
+    return svg(800, 1700, b)
+
+def bg_escuela():
+    """Puerta del preescolar a la salida: fachada amarilla, doble puerta, letrero, ventanas con dibujos, banqueta."""
+    d = sky("cielo", [(0, "#9fd3f2"), (1, "#d9eefa")])
+    b = '<rect width="1080" height="1920" fill="url(#cielo)"/>'
+    b += '<circle cx="900" cy="200" r="80" fill="#ffe08a"/>'
+    b += f'<rect x="-20" y="300" width="1120" height="1120" fill="#f6c95a" stroke="{OL}" stroke-width="10"/>'
+    for y in range(340, 1420, 60): b += f'<path d="M-20 {y} L1100 {y}" stroke="#e8b748" stroke-width="3"/>'
+    b += f'<path d="M-40 300 L540 120 L1120 300Z" fill="#e2483b" stroke="{OL}" stroke-width="10"/>'
+    # letrero
+    b += f'<rect x="200" y="360" width="680" height="150" rx="24" fill="#fffdf4" stroke="{OL}" stroke-width="9"/>'
+    b += '<text x="540" y="460" font-family="Anton" font-size="84" text-anchor="middle" fill="#2f6fb7">PREESCOLAR</text>'
+    for i, col in enumerate(("#e2483b", "#f2a23a", "#f6d04a", "#5fbf6a", "#4a9fe0", "#9a6cc8")):
+        b += f'<circle cx="{250 + i * 116}" cy="535" r="16" fill="{col}" stroke="{OL}" stroke-width="4"/>'
+    # ventanas con dibujos de los niños
+    for x in (40, 800):
+        b += f'<rect x="{x}" y="620" width="240" height="300" rx="14" fill="#cfe9f7" stroke="{OL}" stroke-width="8"/>'
+        b += f'<path d="M{x+120} 620 L{x+120} 920 M{x} 770 L{x+240} 770" stroke="{OL}" stroke-width="6"/>'
+        b += f'<rect x="{x+20}" y="640" width="80" height="100" fill="#fffdf4" stroke="#9a9aa6" stroke-width="3" transform="rotate(-6 {x+60} 690)"/><circle cx="{x+60}" cy="680" r="20" fill="#f6d04a"/>'
+        b += f'<rect x="{x+140}" y="790" width="80" height="100" fill="#fffdf4" stroke="#9a9aa6" stroke-width="3" transform="rotate(5 {x+180} 840)"/><path d="M{x+150} 870 L{x+180} 810 L{x+210} 870Z" fill="#5fbf6a"/>'
+    # puerta doble
+    b += f'<rect x="330" y="600" width="420" height="820" rx="16" fill="#3a7fc2" stroke="{OL}" stroke-width="10"/>'
+    b += f'<rect x="360" y="640" width="170" height="460" rx="10" fill="#cfe9f7" stroke="{OL}" stroke-width="6"/><rect x="550" y="640" width="170" height="460" rx="10" fill="#cfe9f7" stroke="{OL}" stroke-width="6"/>'
+    b += f'<path d="M540 600 L540 1420" stroke="{OL}" stroke-width="8"/>'
+    b += f'<rect x="500" y="1150" width="24" height="90" rx="10" fill="#e2b84a" stroke="{OL}" stroke-width="4"/><rect x="556" y="1150" width="24" height="90" rx="10" fill="#e2b84a" stroke="{OL}" stroke-width="4"/>'
+    # macetas
+    for x in (230, 850):
+        b += cel(f'<path d="M{x-60} 1300 L{x+60} 1300 L{x+45} 1420 L{x-45} 1420Z"/>', "#d0703a", "#a85428", None, -6, 0, 6)
+        b += f'<circle cx="{x-30}" cy="1270" r="40" fill="#5fbf6a" stroke="{OL}" stroke-width="5"/><circle cx="{x+25}" cy="1260" r="46" fill="#4fae5c" stroke="{OL}" stroke-width="5"/>'
+        b += f'<circle cx="{x}" cy="1230" r="14" fill="#f26a8a"/>'
+    # banqueta
+    b += '<rect x="0" y="1420" width="1080" height="500" fill="#cfcac2"/>'
+    for x in range(-40, 1100, 180): b += f'<path d="M{x} 1420 L{x-60} 1920" stroke="#b5afa6" stroke-width="5"/>'
+    b += '<path d="M0 1520 L1080 1520" stroke="#b5afa6" stroke-width="5"/>'
+    return svg(1080, 1920, b, d)
+
 LAYERS = {"bg_cocina": bg_cocina, "bg_cuarto": bg_cuarto, "bg_mesa": bg_mesa, "bg_puerta": bg_puerta, "bg_noche": bg_noche,
           "mochila": mochila, "nota": nota, "hoja": hoja, "lapiz": lapiz, "vaso": vaso, "dino": dino, "crayola": crayola, "tablet": tablet, "mano_lapiz": lambda: mano_lapiz(False), "mano_lapiz_rota": lambda: mano_lapiz(True), "mano_crayola": mano_crayola, "lapiz_v": lapiz_v, "bg_sala": bg_sala, "cereal": cereal, "dibujo": dibujo, "mateo_feliz_crayola": lambda: mateo("feliz", False, False, True), "mateo_neutral_crayola": lambda: mateo("neutral", False, False, True), "mateo_duerme": mateo_duerme, "manos_atras": lambda: manos_movil("atras"), "manos_delante": lambda: manos_movil("delante"), "mateo_enojado_lapiz": lambda: mateo("enojado", False, True), "mateo_enojado_lapiz_hab": lambda: mateo("enojado", True, True),
-          "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True)}
+          "abuela": lambda: abuela(False), "abuela_hab": lambda: abuela(True), "maestra": lambda: maestra(False), "maestra_hab": lambda: maestra(True), "bg_escuela": bg_escuela}
 for k in ("neutral", "enojado", "llora", "triste", "timido", "feliz", "travieso"):
     LAYERS["mateo_" + k] = (lambda kk: (lambda: mateo(kk)))(k)
     LAYERS["mateo_" + k + "_hab"] = (lambda kk: (lambda: mateo(kk, True)))(k)
