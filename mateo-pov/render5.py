@@ -1056,20 +1056,61 @@ def pagina(c, n, px, py, cx, cy, s, sombra=True):
     c.alpha_composite(im, (int(x0), int(y0)))
     return lambda x, y: (x0 + x * s, y0 + y * s)
 
-def pill_libro(c, T, t0, dur=3.2, y=450):
-    """Píldora discreta: miniatura de la portada + 'Hojas del libro de Pinti · aprendeconpinti.com · link en mi bio'."""
+_PL = {}
+def _pl_rmask(size, r):
+    m = Image.new("L", (size[0] * 2, size[1] * 2), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, size[0] * 2 - 1, size[1] * 2 - 1), r * 2, fill=255)
+    return m.resize(size, Image.LANCZOS)
+
+def _pl_grad(size, a, b):
+    g = Image.linear_gradient("L").resize(size)
+    return Image.composite(Image.new("RGB", size, b), Image.new("RGB", size, a), g)
+
+def _pl_book(h):
+    im = pagina_img(0, 1.0).convert("RGBA"); sw, sh = im.size
+    d = ImageDraw.Draw(im)   # tapa la insignia '88 páginas' de la portada (el libro actual tiene 109)
+    d.ellipse((sw * .045, sh * .815, sw * .225, sh * .93), fill=im.getpixel((int(sw * .035), int(sh * .87))))
+    im = im.resize((int(sw * h / sh), h), Image.LANCZOS); w = im.width; d = ImageDraw.Draw(im)
+    for i in range(10): d.line((i, 0, i, h), fill=(0, 0, 0, int(70 - i * 7)))
+    d.line((12, 0, 12, h), fill=(255, 255, 255, 50), width=2)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0)); out.paste(im, (0, 0), _pl_rmask((w, h), 8)); return out
+
+def _pl_base():
+    """Tarjeta base (sin barra de progreso), con sombra. Se cachea."""
+    if "b" in _PL: return _PL["b"]
+    ORG, ORG2, NV, NV2 = (244, 124, 42), (255, 160, 70), (22, 36, 66), (34, 54, 96)
+    cw, ch, pad = 980, 285, 60
+    lay = Image.new("RGBA", (cw + 2 * pad, ch + 2 * pad), (0, 0, 0, 0))
+    sh = Image.new("RGBA", lay.size, (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((pad, pad + 18, pad + cw, pad + ch + 18), 40, fill=(0, 0, 0, 140))
+    lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26)))
+    lay.paste(_pl_grad((cw, ch), NV2, NV).convert("RGBA"), (pad, pad), _pl_rmask((cw, ch), 40))
+    d = ImageDraw.Draw(lay); d.rounded_rectangle((pad, pad, pad + cw, pad + ch), 40, outline=(120, 140, 185, 255), width=2)
+    b = _pl_book(190); bx, by = pad + 44, pad + 26
+    bs = Image.new("RGBA", lay.size, (0, 0, 0, 0)); ImageDraw.Draw(bs).rounded_rectangle((bx, by + 12, bx + b.width, by + 202), 8, fill=(0, 0, 0, 150))
+    lay.alpha_composite(bs.filter(ImageFilter.GaussianBlur(14))); lay.alpha_composite(b, (bx, by))
+    tx = bx + b.width + 36; d = ImageDraw.Draw(lay)
+    d.ellipse((tx, pad + 43, tx + 16, pad + 59), fill=(90, 220, 130))
+    d.text((tx + 28, pad + 51), "MAMÁ, ESTAS HOJAS SON PARA TI", font=font(F_BAL, 28), fill=ORG2, anchor="lm")
+    d.text((tx, pad + 104), "Que tu hijo escriba sus letras", font=font(F_BAL, 44), fill=WHITE, anchor="lm")
+    d.text((tx, pad + 150), "Paso a paso · 109 hojas para imprimir", font=font(F_BAL, 30), fill=(180, 195, 225), anchor="lm")
+    bw, bh, by2 = 600, 58, pad + 176
+    lay.paste(_pl_grad((bw, bh), ORG2, ORG).convert("RGBA"), (tx, by2), _pl_rmask((bw, bh), bh // 2))
+    d = ImageDraw.Draw(lay); d.text((tx + 34, by2 + bh // 2 + 1), "Descárgalas · link en mi bio", font=font(F_BAL, 32), fill=WHITE, anchor="lm")
+    cx, cy = tx + bw - bh // 2 - 8, by2 + bh // 2
+    d.ellipse((cx - bh * .3, cy - bh * .3, cx + bh * .3, cy + bh * .3), fill=(255, 255, 255, 255)); s_ = bh * .11
+    d.line((cx - s_, cy - s_ * 1.3, cx + s_, cy, cx - s_, cy + s_ * 1.3), fill=ORG, width=5, joint="curve")
+    _PL["b"] = (lay, pad, tx, ch)
+    return _PL["b"]
+
+def pill_libro(c, T, t0, dur=3.2, y=380):
+    """Tarjeta de producto para madres (azul marino): entra deslizando, se queda con barra de progreso y sale suave."""
     if not (t0 <= T < t0 + dur): return
-    k = ease((T - t0) / .3) * (1 - ease((T - t0 - dur + .3) / .3))
+    kin = ease((T - t0) / .45); kout = 1 - ease((T - t0 - dur + .35) / .35); k = kin * kout
     if k <= .02: return
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    w = 860
-    d.rounded_rectangle((540 - w / 2, y - 66, 540 + w / 2, y + 66), 66, fill=(255, 252, 244, 248), outline=(240, 140, 60), width=6)
-    cov = pagina_img(0, 96 / 1588)
-    lay.alpha_composite(cov, (int(540 - w / 2 + 40), int(y - cov.height / 2)))
-    d.text((540 - w / 2 + 150, y - 24), "Hojas del libro de Pinti", font=font(F_BAL, 46), fill=NAVY, anchor="lm")
-    d.text((540 - w / 2 + 150, y + 28), "aprendeconpinti.com · link en mi bio", font=font(F_BAL, 36), fill=(220, 110, 40), anchor="lm")
-    if k < 1: lay = Image.blend(Image.new("RGBA", (W, H), (0, 0, 0, 0)), lay, k)
-    c.alpha_composite(lay, (0, int(-30 * (1 - k))))
+    lay, pad, tx, ch = _pl_base(); lay = lay.copy(); d = ImageDraw.Draw(lay)
+    px, py, pw = tx, pad + ch - 24, pad + 980 - 40 - tx
+    d.rounded_rectangle((px, py, px + pw, py + 6), 3, fill=(58, 76, 118)); d.rounded_rectangle((px, py, px + max(6, int(pw * (T - t0) / dur)), py + 6), 3, fill=(255, 160, 70))
+    if k < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * k)))
+    c.alpha_composite(lay, (50 - pad, int(y - pad + 70 * (1 - kin) - 30 * (1 - kout))))
 
 def impresora(c, T, t0, n=15):
     """La impresora sacando una hoja real del libro."""
@@ -1296,7 +1337,7 @@ def sc_r(T):
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
     if T < WT("F06", "Rex."): etiqueta(c, T, tr, "LA R DE REGALO", 540, 1220, CREMA, OL, 40)
     else: etiqueta(c, T, WT("F06", "Rex."), "...Y DE REX", 540, 1220, VERDE, WHITE, 42)
-    pill_libro(c, T, WT("F06", "repasa"), 3.4)
+    pill_libro(c, T, t0 + .3, e0 + .5 - (t0 + .3))
     return c
 
 def sc_noche_carta(T):
@@ -1349,7 +1390,7 @@ def sc_l(T):
     tip, u = escribir(c, Ls, T, t0, t1, 15, .5, entra=1.0)
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
     etiqueta(c, T, WT("F11", "solo"), "ÉL SOLO", 540, 1220, VERDE, WHITE, 46) if T >= WT("F11", "solo") else None
-    pill_libro(c, T, WT("F11", "solo"), 3.2)
+    pill_libro(c, T, t0 + .3, e0 + .3 - (t0 + .3))
     return c
 
 def sc_luna(T):
@@ -1377,6 +1418,7 @@ def sc_luna(T):
     for i, t in enumerate(ws):
         nxt = ws[i + 1] if i < 3 else e0 + 1.5
         if t <= T < nxt: etiqueta(c, T, t, f"{'LUNA'[i]} = {labs[i]}", 540, 1220, CREMA, OL, 38)
+    pill_libro(c, T, ws[0] - .3, e0 + .4 - (ws[0] - .3))
     return c
 
 def sc_listo(T):
