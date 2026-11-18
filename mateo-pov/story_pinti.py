@@ -66,12 +66,13 @@ def pag(c, n, cx, cy, s, rot=0, sombra=True):
     c.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
     return lambda x, y: (cx + (x - w / 2) * s, cy + (y - h / 2) * s)
 
-def retrato(c, kind, t, cx=540, cy=700, sc=.6):
+def retrato(c, kind, t, cx=540, cy=700, sc=.6, ty=1020):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); V.mateo(lay, kind, cx, cy, sc, t)
     from PIL import ImageChops
-    m = Image.new("L", (W, H), 255); md = ImageDraw.Draw(m)
-    for y in range(cy + 40, cy + 150): md.line((0, y, W, y), fill=int(255 * max(0, 1 - (y - cy - 40) / 110)))
-    md.rectangle((0, cy + 150, W, H), fill=0); lay.putalpha(ImageChops.multiply(lay.split()[3], m)); c.alpha_composite(lay)
+    m = Image.new("L", (W, H), 255); ImageDraw.Draw(m).rectangle((0, ty, W, H), fill=0); lay.putalpha(ImageChops.multiply(lay.split()[3], m)); c.alpha_composite(lay)
+    d = ImageDraw.Draw(c)
+    d.rectangle((0, ty, W, H), fill=(196, 138, 80)); d.rectangle((0, ty, W, ty + 34), fill=(226, 168, 104)); d.line((0, ty, W, ty), fill=(70, 44, 30), width=8); d.line((0, ty + 34, W, ty + 34), fill=(150, 100, 56), width=4)
+    for x in range(-40, W, 260): d.line((x, ty + 60, x + 120, H), fill=(184, 128, 72), width=6)
 
 def sticker(c, cx, cy, t1, t2, rot, k=1.0, col=ORG):
     lay = Image.new("RGBA", (700, 300), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
@@ -81,6 +82,24 @@ def sticker(c, cx, cy, t1, t2, rot, k=1.0, col=ORG):
     lay = lay.rotate(rot, expand=True, resample=Image.BICUBIC); lay = lay.resize((int(lay.width * k), int(lay.height * k)), Image.LANCZOS)
     c.alpha_composite(lay, (int(cx - lay.width / 2), int(cy - lay.height / 2)))
 
+_CV = {}
+def portada109():
+    if "c" in _CV: return _CV["c"]
+    im = V.pagina_img(0, 1.0).convert("RGBA").copy(); d = ImageDraw.Draw(im)
+    cx, cy, r = 260, 1860, 143
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 139, 92))
+    lay = Image.new("RGBA", (400, 300), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
+    ld.text((200, 115), "109", font=font("fonts/Baloo2-ExtraBold.ttf", 150), fill=WHITE, anchor="mm"); ld.text((200, 210), "páginas", font=font("fonts/Baloo2-ExtraBold.ttf", 62), fill=WHITE, anchor="mm")
+    lay = lay.rotate(8, resample=Image.BICUBIC); im.alpha_composite(lay, (cx - 200, cy - 150))
+    _CV["c"] = im; return im
+
+def portada(c, cx, cy, h, rot=0):
+    im = portada109(); im = im.resize((int(im.width * h / im.height), int(h)), Image.LANCZOS)
+    if rot: im = im.rotate(rot, expand=True, resample=Image.BICUBIC)
+    sh = Image.new("RGBA", (im.width + 80, im.height + 80), (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle((40, 40, im.width + 40, im.height + 40), fill=(0, 0, 0, 150))
+    c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(20)), (int(cx - im.width / 2 - 40 + 14), int(cy - im.height / 2 - 40 + 20)))
+    c.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
+
 def esc_hook(t, D):
     c = fondo(t, D, "bg_cuarto"); retrato(c, "timido", t, 540, 780, .62)
     k = ease(min(1, t / .35)); txt(c, (540, 330), "¿TU HIJO NO SABE\nCÓMO EMPEZAR?", int(86 * (.9 + .1 * k)), WHITE, 10)
@@ -88,14 +107,7 @@ def esc_hook(t, D):
 
 def esc_libro(t, D):
     c = fondo(t, D, "bg_mesa", (22, 36, 66, 90)); u = ease((t - T_MIRA) / .5)
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    x0, y0, x1, y1 = 110, 430 + 60 * (1 - u), 970, 1130 + 60 * (1 - u)
-    d.rounded_rectangle((x0, y0 + 14, x1, y1 + 14), 70, fill=(0, 0, 0, 120)); d.rounded_rectangle((x0, y0, x1, y1), 70, fill=NV, outline=WHITE, width=7)
-    for i, (ln, f_, sz, yy, col) in enumerate((("MÉTODO PASO A PASO", F_BAL, 36, 490, ORG2), ("Aprende a leer", F_ANTON, 100, 600, WHITE), ("y escribir", F_ANTON, 100, 725, WHITE), ("con Pinti", F_BAL, 76, 840, (255, 214, 120)))):
-        d.text((540, yy + 60 * (1 - u)), ln, font=font(f_, sz), fill=col, anchor="mm")
-    if u < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * u)))
-    c.alpha_composite(lay)
-    V.pinti(c, 760, 1090 + 14 * math.sin(t * 3), 360, rot=6 * math.sin(t * 2))
+    portada(c, 540, 800 + 70 * (1 - u) + 8 * math.sin(t * 2), 1000, -3 * u)
     return c
 
 def esc_abanico(t, D):
@@ -148,7 +160,7 @@ def esc_solo(t, D):
 
 def esc_mateo(t, D):
     c = fondo(t, D, "bg_cuarto", (255, 190, 120, 50)); retrato(c, "feliz", t, 360, 800, .55)
-    k = ease((t - T_MISMO + .5) / .5); pag(c, 15, 760, 800 + 40 * (1 - k), .5, 6)
+    k = ease((t - T_MISMO + .5) / .5); portada(c, 780, 780 + 40 * (1 - k), 560, 5)
     txt(c, (540, 330), "EL LIBRO DE MATEO", 82, (255, 226, 170), 10)
     if t >= T_SI:
         kk = ease((t - T_SI) / .5); pw, ph = 800, 140; y = 1190 + 40 * (1 - kk)
