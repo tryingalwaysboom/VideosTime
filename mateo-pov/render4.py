@@ -1067,7 +1067,7 @@ def pill_libro(c, T, t0, dur=3.2, y=440):
     cov = pagina_img(0, 64 / 1588 * 1.0)
     lay.alpha_composite(cov, (int(540 - w / 2 + 34), int(y - cov.height / 2)))
     d.text((540 - w / 2 + 120, y - 18), "Hojas del libro de Pinti", font=font(F_BAL, 34), fill=NAVY, anchor="lm")
-    d.text((540 - w / 2 + 120, y + 20), "lo tienes en el link de mi bio", font=font(F_BAL, 28), fill=(220, 110, 40), anchor="lm")
+    d.text((540 - w / 2 + 120, y + 20), "aprendeconpinti.com · link en mi bio", font=font(F_BAL, 28), fill=(220, 110, 40), anchor="lm")
     if k < 1: lay = Image.blend(Image.new("RGBA", (W, H), (0, 0, 0, 0)), lay, k)
     c.alpha_composite(lay, (0, int(-30 * (1 - k))))
 
