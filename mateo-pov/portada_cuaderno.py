@@ -164,28 +164,37 @@ def p5():
     return c
 
 def escena_p6():
-    """Ganó seguir con la magia de Rex: Mateo de maestro con el dino y la carta misteriosa."""
+    """Ganó seguir con la magia de Rex: Mateo en la mesa junto a Rex (formato apaisado)."""
     import render5 as R5
     s = bg("bg_cocina", 0, 0, 1.15, 1.15, 1, .5, .55).convert("RGBA")
     s.alpha_composite(Image.new("RGBA", s.size, (255, 220, 160, 40)))
-    put(s, "mateo_feliz", 330, 1000 + 400 * .95, .95)
-    put(s, "dino", 800, 1330, .55, rot=6)
-    R5.sobre(s, 760, 980, .8, rot=-8)
-    return s.crop((0, 380, 1080, 1460))
+    d = ImageDraw.Draw(s)
+    for x in (330, 800):
+        d.rounded_rectangle((x - 110, 930, x + 110, 1290), 26, fill=(176, 120, 72), outline=OL, width=6)
+        d.rounded_rectangle((x - 80, 960, x + 80, 1260), 18, fill=(196, 140, 90))
+    put(s, "dino", 800, 1180, .5)
+    ml = Image.new("RGBA", s.size, (0, 0, 0, 0)); put(ml, "mateo_neutral_crayola", 330, 960 + 400 * .85, .85)
+    ml.paste((0, 0, 0, 0), (0, 1290, s.width, s.height)); s.alpha_composite(ml)
+    d = ImageDraw.Draw(s)
+    d.rectangle((90, 1315, 130, 1760), fill=(170, 120, 72), outline=OL, width=6); d.rectangle((950, 1315, 990, 1760), fill=(170, 120, 72), outline=OL, width=6)
+    d.rectangle((90, 1315, 990, 1400), fill=(190, 138, 84), outline=OL, width=6)
+    d.rounded_rectangle((30, 1250, 1050, 1320), 18, fill=(214, 160, 100), outline=OL, width=7)
+    return s.crop((0, 700, 1080, 1420))
 
 def p6():
     c = cuaderno()
     garabatos(c, 6)
-    cx, cy = 540, OY + 480
-    foto(c, escena_p6(), cx, cy, 680, 680, 2)
-    cinta(c, cx - 285, cy - 382, 210, 28, (244, 196, 48)); cinta(c, cx + 275, cy - 395, 210, -30, (120, 200, 230))
     d = ImageDraw.Draw(c)
-    d.text((540, OY + 945), "el maestro de...", font=font(F_HAND, 110), fill=NAVY, anchor="mm")
-    sz = 170; tr = nino_trazos("REX", 540 - ancho_nino("REX", sz) / 2, OY + 1010, sz, seed=4)
-    sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
-    c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
-    dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
-    etiqueta_parte(c, 6, 540, OY + 1340, 3)
+    d.text((540, OY + 150), "¿y si Rex", font=font(F_HAND, 150), fill=NAVY, anchor="mm")
+    d.text((540, OY + 300), "es de verdad?", font=font(F_HAND, 150), fill=(226, 88, 130), anchor="mm")
+    cx, cy = 540, OY + 800
+    foto(c, escena_p6(), cx, cy, 900, 600, 3)
+    cinta(c, cx - 400, cy - 330, 200, -32, (120, 200, 230)); cinta(c, cx + 400, cy - 335, 200, 30, (244, 196, 48))
+    import render5 as R5
+    R5.sobre(c, 800, OY + 1190, 1.35, rot=-10)
+    d = ImageDraw.Draw(c)
+    d.text((800, OY + 1275), "para Mateo, de Rex", font=font(F_HAND, 46), fill=NAVY, anchor="mm")
+    etiqueta_parte(c, 6, 300, OY + 1260, 4)
     return c
 
 if __name__ == "__main__":
