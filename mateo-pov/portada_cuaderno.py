@@ -196,7 +196,7 @@ def p6():
     sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
     c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
     dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
-    etiqueta_parte(c, 6, 540, OY + 1340, 3)
+    etiqueta_parte(c, 6, 540, OY + 1340, -3)
     return c
 
 if __name__ == "__main__":
