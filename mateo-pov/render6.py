@@ -1622,15 +1622,24 @@ def sc_no(T):
 def sc_maestro(T):
     """F03-F04: Rex necesita un maestro. '¿Yo le enseño a Rex?'. F04B: Mateo se sienta derechito con la crayola (narra Lily: sin mover su boca)."""
     s0 = S("F03")
-    if T >= S("F04B") - .1:
-        c = bg("bg_mesa", T, S("F04B"), 1.1, 1.2, 6, .5, .5)
-        u = ease((T - S("F04B")) / .7)
+    if T >= S("F04B") - .1:   # Mateo llega a la mesa y se sienta al lado de Rex (narra Lily: sin mover su boca)
+        c = bg("bg_cocina", T, S("F04B"), 1.1, 1.2, 6, .5, .6)
         d = ImageDraw.Draw(c)
-        d.rounded_rectangle((680, 1130, 1020, 1220), 22, fill=(176, 120, 72), outline=OL, width=6)   # taburete de Rex
-        d.rectangle((720, 1220, 750, 1400), fill=(150, 100, 60)); d.rectangle((950, 1220, 980, 1400), fill=(150, 100, 60))
-        put(c, "dino", 850, 1100 - 8 * abs(math.sin(T * 2)), .5)
-        mateo(c, "neutral_crayola", 380, 1020 + 60 * (1 - u), .82, T)   # se sienta derechito, crayola en la mano
-        etiqueta(c, T, S("F04B") + .3, "COMO UN MAESTRO DE VERDAD", 540, 470, CREMA, OL, 38)
+        for x in (330, 800):   # respaldos de las dos sillas
+            d.rounded_rectangle((x - 110, 930, x + 110, 1290), 26, fill=(176, 120, 72), outline=OL, width=6)
+            d.rounded_rectangle((x - 80, 960, x + 80, 1260), 18, fill=(196, 140, 90))
+        put(c, "dino", 800, 1180, .5, rot=3 * math.sin(T * 2.5))   # Rex ya sentado en su silla
+        u = ease((T - S("F04B") - .1) / 1.6)   # camina hasta su silla y se sienta
+        cx = 90 + 240 * u; sit = ease((T - S("F04B") - 1.5) / .6)
+        cy = 960 + 70 * sit - 14 * abs(math.sin(T * 7)) * (1 - sit) * (u > 0) * (u < 1)
+        ml = Image.new("RGBA", (W, H), (0, 0, 0, 0)); mateo(ml, "neutral_crayola", cx, cy, .85, T)
+        ml.paste((0, 0, 0, 0), (0, 1290, W, H))   # solo se ve de la mesa hacia arriba
+        c.alpha_composite(ml)
+        d = ImageDraw.Draw(c)   # la mesa va por delante
+        d.rectangle((90, 1315, 130, 1760), fill=(170, 120, 72), outline=OL, width=6); d.rectangle((950, 1315, 990, 1760), fill=(170, 120, 72), outline=OL, width=6)
+        d.rectangle((90, 1315, 990, 1400), fill=(190, 138, 84), outline=OL, width=6)
+        d.rounded_rectangle((30, 1250, 1050, 1320), 18, fill=(214, 160, 100), outline=OL, width=7)
+        etiqueta(c, T, S("F04B") + .3, "SE SIENTA AL LADO DE REX", 540, 470, CREMA, OL, 38)
         return c
     c = bg("bg_cocina", T, s0 - .1, 1.15, 1.25, 6, .5, .6)
     mateo(c, "feliz" if T >= S("F04") else "neutral", 420, 1260, 1.05, T, "F04")
@@ -1713,8 +1722,8 @@ def sc_feliz6(T):
         d = ImageDraw.Draw(c)
         d.rounded_rectangle((90, 520, 990, 1020), 20, fill=(46, 84, 66), outline=(150, 100, 60), width=24)
         k = popscale(T, S("F11B") + .2, .4)
-        if k > 0: d.text((540, 770), "E", font=font(F_ESC, int(380 * k)), fill=(245, 245, 235), anchor="mm")
-        mateo(c, "neutral_crayola", 800, 1110, .78, T)
+        if k > 0: d.text((330, 770), "E", font=font(F_ESC, int(380 * k)), fill=(245, 245, 235), anchor="mm")
+        mateo(c, "neutral_crayola", 780, 1280, 1.0, T)
         etiqueta(c, T, S("F11B") + .2, "YA ENSEÑA LA E EN EL COLE", 540, 470, CREMA, OL, 40)
         return c
     else:
