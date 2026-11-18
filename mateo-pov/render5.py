@@ -1327,7 +1327,7 @@ def sc_r(T):
         impresora(c, T, s0 - .1, 39); return c
     mp = pagina(c, 39, 230, 560, 400, 900, 1.5)
     Rs = trazos_R_p39(mp)
-    t0, t1 = WT("F06", "repasa") - .2, e0 + 1.1
+    t0, t1 = WT("F06", "Rex.") + .1, e0 + 1.1   # repasa más despacio: empieza antes y ocupa todo el final de la escena
     tip, u = escribir(c, Rs, T, t0, t1, 15, .5, entra=.8)
     for i, tf in enumerate(fines(Rs, t0, t1)):
         if T >= tf:
@@ -1337,6 +1337,7 @@ def sc_r(T):
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
     if T < WT("F06", "Rex."): etiqueta(c, T, tr, "LA R DE REGALO", 540, 1220, CREMA, OL, 40)
     else: etiqueta(c, T, WT("F06", "Rex."), "...Y DE REX", 540, 1220, VERDE, WHITE, 42)
+    pill_libro(c, T, t0 + .2, 3.3)   # una sola vez por vídeo: mientras repasa las letras
     return c
 
 def sc_noche_carta(T):
@@ -1416,7 +1417,6 @@ def sc_luna(T):
     for i, t in enumerate(ws):
         nxt = ws[i + 1] if i < 3 else e0 + 1.5
         if t <= T < nxt: etiqueta(c, T, t, f"{'LUNA'[i]} = {labs[i]}", 540, 1220, CREMA, OL, 38)
-    pill_libro(c, T, ws[0] - .2, 5.0)   # una sola vez por vídeo, ~5 s
     return c
 
 def sc_listo(T):
