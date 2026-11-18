@@ -11,6 +11,41 @@ TEXTO = ("Hola a todos. Quiero preguntarles algo de corazón: ¿les está gustan
          "Cada parte la hago con mucho cariño. Cuéntenme votando aquí. Y síganme, para no perderse la próxima parte.")
 FRASES = [("Hola a todos", .00, .12), ("¿Les está gustando\nla historia de Mateo?", .12, .42), ("Cada parte la hago\ncon mucho cariño", .42, .72),
           ("Cuéntenme votando aquí", .72, .86), ("Síganme para no perderse\nla próxima parte", .86, 1.0)]
+import json, unicodedata
+RR = V.R
+WORDS = json.load(open(os.path.join(HERE, "..", "descargas", "mateo_story", "S02.json"), encoding="utf-8")); OFF = .15   # adelay del mix
+def _n(w): return "".join(ch for ch in unicodedata.normalize("NFD", w.lower()) if ch.isalnum() and not unicodedata.combining(ch))
+def tw(p): return next(w["inicio"] for w in WORDS if _n(w["p"]) == _n(p)) + OFF
+T_CADA, T_CUENT, T_SIG = tw("Cada") - .2, tw("Cuéntenme") - .15, tw("Síganme") - .2
+def _grupos():
+    out, cur = [], []
+    for i, w in enumerate(WORDS):
+        cur.append(i)
+        if sum(len(WORDS[x]["p"]) + 1 for x in cur) >= 14 or w["p"].endswith((".", ",", ":", "?", "!")): out.append(cur); cur = []
+    if cur: out.append(cur)
+    return out
+GRUPOS = _grupos()
+
+def caption(c, t):
+    """Mismo subtítulo que los vídeos de la serie: Anton 96 px, mayúsculas, palabra activa en amarillo con salto, contorno negro."""
+    for gi, g in enumerate(GRUPOS):
+        t0 = WORDS[g[0]]["inicio"] + OFF; t1 = WORDS[g[-1]]["fin"] + OFF
+        nxt = WORDS[GRUPOS[gi + 1][0]]["inicio"] + OFF if gi + 1 < len(GRUPOS) else 1e9
+        if not (t0 - .04 <= t < t1 + .35) or t >= nxt - .04: continue
+        d = ImageDraw.Draw(c); k = .85 + .15 * RR.back((t - t0 + .04) / .14); f = font(F_ANTON, 96 * k)
+        ps = [WORDS[i]["p"].upper() for i in g]; wd = [d.textlength(p + " ", font=f) for p in ps]; tot = sum(wd) - d.textlength(" ", font=f)
+        sc = min(1.0, 820 / tot)
+        if sc < 1: f = font(F_ANTON, 96 * k * sc); wd = [d.textlength(p + " ", font=f) for p in ps]; tot = sum(wd) - d.textlength(" ", font=f)
+        x = W / 2 - tot / 2; y = 1480; st = [WORDS[i]["inicio"] + OFF for i in g] + [1e9]
+        for j, (i, p) in enumerate(zip(g, ps)):
+            ws, we = WORDS[i]["inicio"] + OFF, WORDS[i]["fin"] + OFF; fin_ = min(st[j + 1], we + .35) if j + 1 < len(g) else we + .35
+            act = ws - .03 <= t < fin_ - .03; dicha = t >= ws - .03; col = RR.YEL if act else (WHITE if dicha else (225, 225, 230))
+            if act:
+                u = RR.clamp((t - ws + .03) / .12); fa = font(F_ANTON, f.size * (1 + .06 * math.sin(u * math.pi)))
+                d.text((x + (wd[j] - d.textlength(" ", font=f)) / 2, y), p, font=fa, fill=col, anchor="mm", stroke_width=10, stroke_fill=(10, 10, 20))
+            else: d.text((x, y), p, font=f, fill=col, anchor="lm", stroke_width=9, stroke_fill=(10, 10, 20))
+            x += wd[j]
+        return
 HUECO = (150, 800, 930, 1130)
 ORG, ORG2, NV = (244, 124, 42), (255, 160, 70), (22, 36, 66)
 
@@ -72,7 +107,7 @@ def put(c, name, x, y, s, rot=0): V.put(c, name, x, y, s, rot=rot)
 mateo = V.mateo; sobre = V.sobre; carta = V.carta; corazon = V.corazon; ease = V.ease
 
 def frame(t, D):
-    P = [(0, .12, esc_carta), (.12, .42, esc_carta), (.42, .72, esc_dormido), (.72, 1.0, esc_final)]
+    P = [(0, T_CADA / D, esc_carta), (T_CADA / D, T_CUENT / D, esc_dormido), (T_CUENT / D, 1.0, esc_final)]
     c = None
     for i, (a_, b_, fn) in enumerate(P):
         ta, tb = a_ * D, b_ * D
@@ -95,19 +130,13 @@ def frame(t, D):
     c.alpha_composite(box)
     al = .5 + .5 * math.sin(t * 3); d = ImageDraw.Draw(c)
     d.rounded_rectangle((x0 - 6, y0 - 6, x1 + 6, y1 + 6), 60, outline=(255, int(190 + 50 * al), int(120 + 80 * al)), width=6)
-    if t > FRASES[3][1] * D - .6:
+    if t > T_CUENT:
         txt(c, (540, 772), "VOTA AQUÍ", 56, (255, 226, 170), 8)
         for sx in (x0 + 140, x1 - 140):
             off = 14 * math.sin(t * 4); d = ImageDraw.Draw(c)
             d.polygon([(sx - 36, y0 - 62 + off), (sx + 36, y0 - 62 + off), (sx, y0 - 14 + off)], fill=(255, 214, 160), outline=(20, 14, 30))
-    for s_, a_, b_ in FRASES[:4]:
-        ta, tb = a_ * D, b_ * D
-        if ta <= t < tb:
-            kk = min(1, (t - ta) / .35) * min(1, (tb - t) / .3)
-            lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); txt(lay, (540, 1290), s_, 56, WHITE, 8, F_BAL)
-            if kk < 1: lay.putalpha(lay.split()[3].point(lambda v: int(v * kk)))
-            c.alpha_composite(lay)
-    ts = FRASES[4][1] * D - .2
+    if t < T_SIG: caption(c, t)   # al final manda la pastilla de seguir (igual que el botón de votar en la serie)
+    ts = T_SIG
     if t >= ts:
         kk = ease((t - ts) / .5); pw, ph = 760, 150; y = 1480 + 60 * (1 - kk)
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((540 - pw / 2, y + 12, 540 + pw / 2, y + ph + 12), 75, fill=(0, 0, 0, 140))
