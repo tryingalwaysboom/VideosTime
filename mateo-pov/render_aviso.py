@@ -1681,9 +1681,9 @@ def sc_cuenta(T):
     c2 = Image.new("RGBA", fr.size, (0, 0, 0, 0)); c2.alpha_composite(fr)
     t_n = S("F05") + .5 * (E("F05") - S("F05")); t_p = _tw("F06", "siete", 1, .3) - .3; t_s = _tw("F07", "seguirnos", 1, .6) - .2
     if T >= s0 + .5:
-        marca(c2, T, t_n, zona(30, 140, 360, 190))
-        marca(c2, T, t_p, zona(2, 925, 718, 1398))
-        marca(c2, T, t_s, zona(30, 380, 460, 508))
+        if T < t_p: marca(c2, T, t_n, zona(30, 140, 360, 190))
+        if t_p <= T < t_s: marca(c2, T, t_p, zona(2, 925, 718, 1398))
+        if T >= t_s: marca(c2, T, t_s, zona(30, 380, 460, 508))
     c2 = c2.rotate(rot, expand=True, resample=Image.BICUBIC); shr = sh.rotate(rot, expand=True)
     c.alpha_composite(shr, (int(cx - shr.width / 2), int(cy - shr.height / 2) + 10))
     c.alpha_composite(c2, (int(cx - c2.width / 2), int(cy - c2.height / 2)))
