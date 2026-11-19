@@ -12,7 +12,7 @@ LINEAS = [
  ("F05","N","Con su manita firme, baja por el palito… y hace las tres rayitas, una por una.",
   "Con su manita *firme,* baja por el *palito…* y hace las tres *rayitas,* una por *una.*"),
  ("F06","K","[proud] ¡Mami, mira! ¡Hice la E!",
-  "¡*Mami,* mira! ¡Hice la *E!*"),
+  "*¡Mami,* mira! ¡Hice la *E!*"),
  ("F07","N","Y en la tarjeta de la fiesta, escribe con todas sus ganas el nombre del invitado de honor: REX.",
   "Y en la *tarjeta* de la fiesta, escribe con todas sus *ganas* el nombre del invitado de *honor:* *REX.*"),
  ("F08","K","[excited] ¡Listo, abuela! ¡Ya está la invitación!",
