@@ -199,9 +199,33 @@ def p6():
     etiqueta_parte(c, 6, 540, OY + 1340, -3)
     return c
 
+def escena_p7():
+    """Ganó abrir la carta juntos: Mateo y tú en el pasillo con el sobre entre los dos."""
+    import render5 as R5
+    s = bg("bg_sala", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
+    s.alpha_composite(Image.new("RGBA", s.size, (255, 220, 160, 40)))
+    put(s, "mateo_timido", 330, 1000 + 400 * 1.0, 1.0)
+    R5.sobre(s, 800, 1450, 1.1, rot=8)
+    return s.crop((0, 560, 1080, 1640))
+
+def p7():
+    c = cuaderno()
+    garabatos(c, 13)
+    cx, cy = 540, OY + 480
+    foto(c, escena_p7(), cx, cy, 680, 680, 2)
+    cinta(c, cx - 285, cy - 382, 210, 26, (244, 196, 48)); cinta(c, cx + 275, cy - 395, 210, -28, (240, 150, 190))
+    d = ImageDraw.Draw(c)
+    d.text((540, OY + 945), "la carta de...", font=font(F_HAND, 110), fill=NAVY, anchor="mm")
+    sz = 170; tr = nino_trazos("REX", 540 - ancho_nino("REX", sz) / 2, OY + 1010, sz, seed=7)
+    sombra = Image.new("RGBA", (CW, CH), (0, 0, 0, 0)); dibuja_trazos(sombra, [p for L in tr for p in L], sz * .13, (20, 70, 30))
+    c.alpha_composite(sombra.filter(ImageFilter.GaussianBlur(2)), (6, 8))
+    dibuja_trazos(c, [p for L in tr for p in L], sz * .13, (58, 168, 72))
+    etiqueta_parte(c, 7, 540, OY + 1340, 3)
+    return c
+
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    c = {2: p2, 3: p3, 4: p4, 5: p5, 6: p6}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
+    c = {2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7}[n]().convert("RGB").filter(ImageFilter.UnsharpMask(1.0, 50, 2))
     c.save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}_9x16.jpg"), quality=100, subsampling=0)
     c.crop((0, OY, CW, OY + 1440)).save(os.path.join(V.HERE, f"portada_cuaderno_parte{n}.jpg"), quality=95)
     print("ok")
