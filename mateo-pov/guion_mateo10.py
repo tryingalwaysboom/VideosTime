@@ -1,0 +1,26 @@
+# Parte 10. Ganó la B: Mateo escribe solito la invitación de Rex. 62-75 s, gancho directo, hoja real E (pág. 15) 1 vez antes de que escriba.
+VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4", "A": "aYQAm4rWuigkeuRA5i92"}
+LINEAS = [
+ ("F01","K","[excited] ¡Mami! ¡Yo escribo la invitación para la fiesta de Rex! ¡Solito!",
+  "*¡Mami!* ¡Yo escribo la *invitación* para la *fiesta* de Rex! ¡*Solito!*"),
+ ("F02","N","Sonríes. Y le dices que la invitación empieza con la E de «estás invitado».",
+  "*Sonríes.* Y le dices que la invitación empieza con la *E* de «estás *invitado».*"),
+ ("F03","N","Imprimes la hoja de la E. Y Mateo se sienta a la mesa con su crayola.",
+  "*Imprimes* la hoja de la *E.* Y Mateo se sienta a la mesa con su *crayola.*"),
+ ("F04","K","Una raya larga, y tres rayitas. ¡Como un peine!",
+  "Una raya *larga,* y tres *rayitas.* ¡Como un *peine!*"),
+ ("F05","N","Con su manita firme, baja por el palito… y hace las tres rayitas, una por una.",
+  "Con su manita *firme,* baja por el *palito…* y hace las tres *rayitas,* una por *una.*"),
+ ("F06","K","[proud] ¡Mami, mira! ¡Hice la E!",
+  "¡*Mami,* mira! ¡Hice la *E!*"),
+ ("F07","N","Y en la tarjeta de la fiesta, escribe con todas sus ganas el nombre del invitado de honor: REX.",
+  "Y en la *tarjeta* de la fiesta, escribe con todas sus *ganas* el nombre del invitado de *honor:* *REX.*"),
+ ("F08","K","[excited] ¡Listo, abuela! ¡Ya está la invitación!",
+  "*¡Listo,* abuela! ¡Ya está la *invitación!*"),
+ ("F09","N","Esa noche, deja la tarjeta junto a Rex. Y a la mañana siguiente, bajo su almohada, hay una respuesta: Rex irá a la fiesta. Pero quiere invitar a alguien más.",
+  "Esa *noche,* deja la tarjeta junto a *Rex.* Y a la mañana siguiente, bajo su *almohada,* hay una *respuesta:* Rex irá a la *fiesta.* Pero quiere invitar a *alguien* más."),
+ ("F10","K","[curious] ¿A quién quiere invitar Rex, mami?",
+  "¿A *quién* quiere invitar *Rex,* mami?"),
+ ("F11","N","¿Qué haces? A: Rex invita a toda la familia. B: Rex invita a los amigos de Mateo. Vota… y dime por qué.",
+  "¿Qué *haces?* *A:* Rex invita a toda la *familia.* *B:* Rex invita a los *amigos* de Mateo. *Vota…* y dime por *qué.*"),
+]
