@@ -1542,12 +1542,12 @@ def _lado(name):
 def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
-        A = bg("bg_sala", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_feliz", 280, 1480 + 400 * .72, .72); put(A, "dino", 760, 1640, .5)
+        A = bg("bg_noche", 0, 0, 1.0, 1.06, 1).convert("RGBA")
+        put(A, "mateo_timido", 280, 1480 + 400 * .72, .72); put(A, "dino", 760, 1640, .5)
         A.alpha_composite(Image.new("RGBA", (W, H), (30, 40, 110, 70)))
     else:
-        A = bg("bg_noche", 0, 0, 1.0, 1.06, 1).convert("RGBA")
-        abuela(A, 760, 1500, .7, 0); sobre(A, 400, 1620, .75, rot=-6)
+        A = bg("bg_cocina", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
+        put(A, "mateo_neutral", 800, 1480 + 400 * .72, .72); sobre(A, 380, 1620, .75, rot=-6)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 70)))
     _FC[name] = A
     return A
@@ -1568,7 +1568,7 @@ def sc_final(T):
         d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=YEL, width=5, joint="curve")
     k0 = popscale(T, s0, .4)
     text(d, (540, 220), "¿QUÉ HARÍAS TÚ?", 96 * max(k0, .01), YEL, stroke=8)
-    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "REX VISITA\nEL SÁBADO", "+ Sigue la magia", "- Más trabajo", AZ, ta, hiA),
+    for cx, L_, t1, t2, t3, col, t0, h in ((270, "A", "LO DEJAS ESPERAR\nDESPIERTO", "+ Sigue la magia", "- Te descubre", AZ, ta, hiA),
                                            (790, "B", "CONTARLE\nLA VERDAD", "+ Sin mentiras", "- Se acaba la magia", VERDE, tb, hiB)):
         k = popscale(T, t0, .35)
         if k > 0: _opcion(d, cx, 420, L_, t1, t2, t3, col, k, 1.08 if h else 1.0)
@@ -1779,12 +1779,8 @@ def sc_puerta(T):
     """F21: te quedas sin palabras; la abuela Pilar, en la puerta, con una bolsa enorme (¡Rex!)."""
     s0 = S("F21")
     c = bg("bg_puerta", T, s0 - .1, 1.15, 1.25, 8, .5, .6)
+    sobre(c, 520, 1420 + 6 * math.sin(T * 4), .8, rot=-14)
     abuela(c, 330, 1180, 1.0, T)
-    d = ImageDraw.Draw(c); bx, by = 790, 1330 + 6 * math.sin(T * 4)
-    d.polygon([(bx - 190, by - 250), (bx + 190, by - 250), (bx + 230, by + 230), (bx - 230, by + 230)], fill=(222, 176, 118), outline=OL)
-    put(c, "dino", bx + 10, by - 300, .45, rot=8 * math.sin(T * 5))
-    d.polygon([(bx - 190, by - 250), (bx + 190, by - 250), (bx + 205, by - 190), (bx - 205, by - 190)], fill=(236, 196, 140), outline=OL)
-    d.arc((bx - 80, by - 340, bx + 80, by - 200), 180, 360, fill=OL, width=10)
     return c
 
 SCENES = [
