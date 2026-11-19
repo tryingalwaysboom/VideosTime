@@ -1543,12 +1543,11 @@ def _lado(name):
     if name in _FC: return _FC[name]
     if name == "A":
         A = bg("bg_sala", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_feliz", 280, 1480 + 400 * .72, .72); put(A, "dino", 720, 1560, .55)
-        brillos(A, 1.0, 0, 720, 1480, 230)
+        put(A, "mateo_feliz", 280, 1480 + 400 * .72, .72); put(A, "dino", 760, 1640, .5)
         A.alpha_composite(Image.new("RGBA", (W, H), (30, 40, 110, 70)))
     else:
-        A = bg("bg_cocina", 0, 0, 1.2, 1.2, 1, .5, .6).convert("RGBA")
-        put(A, "mateo_timido", 800, 1480 + 400 * .72, .72); sobre(A, 400, 1620, .75, rot=-8)
+        A = bg("bg_noche", 0, 0, 1.0, 1.06, 1).convert("RGBA")
+        abuela(A, 760, 1500, .7, 0); sobre(A, 400, 1620, .75, rot=-6)
         A.alpha_composite(Image.new("RGBA", (W, H), (20, 90, 50, 70)))
     _FC[name] = A
     return A
@@ -1639,7 +1638,6 @@ def sc_abrir(T):
     mateo(c, "timido", 330, 1260, 1.05, T, "F02")
     sobre(c, 800, 1400 + 10 * math.sin(T * 3), 1.1, rot=8 + 3 * math.sin(T * 2))
     tarjeta_ganadora(c, T, "A", "Abrir la carta juntos", AZ, WT("F01", "sientas") - .1)
-    if T >= WT("F01", "sobre") - .2: etiqueta(c, T, WT("F01", "sobre") - .2, "EL SOBRE ENTRE LOS DOS", 540, 470, CREMA, OL, 38)
     d = ImageDraw.Draw(c)
     for i in range(3):
         k = popscale(T, S("F02") + i * .25, .3)
@@ -1654,11 +1652,9 @@ def sc_leer(T):
         k = clamp((T - s0 - .2) / .8)
         sobre(c, 540, 1000 + 8 * math.sin(T * 6), 1.5, rot=-4 + 5 * math.sin(T * 9) * k)
         if k > .9: brillos(c, T, s0 + 1.0, 540, 1000, 200)
-        etiqueta(c, T, s0 + .2, "ROMPES EL SOBRE DESPACITO", 540, 470, CREMA, OL, 38)
         return c
     k = ease((T - th) / .7)
     carta7(c, T, S("F04") + .4, E("F04") - .2, 600, 960 + 70 * (1 - k), .78 * max(k, .05), -3)
-    if T >= S("F04") - .1 and T < S("F05"): etiqueta(c, T, S("F04"), "DICE QUE QUIERE LA X", 540, 470, CREMA, OL, 40)
     if T >= S("F05") - .1:
         mateo(c, "feliz", 230, 1400, .8, T, "F05"); brillos(c, T, S("F05"), 230, 1130, 170)
     return c
@@ -1669,8 +1665,6 @@ def sc_conoces(T):
     c = bg("bg_sala", T, s0 - .1, 1.15, 1.25, 6, .5, .6); tinte(c, 70, (30, 40, 90))
     z = 1 + .22 * ease((T - th) / 1.4)
     carta7(c, T, 0, 0, 540, 930, .78 * z, -3, [x for x in LETRA_REX], corazon_k=popscale(T, th - .2, .4) if T >= th - .2 else 0, pulso=1 if T >= th else 0)
-    if T < th: etiqueta(c, T, s0 + .3, "ESA LETRA TORCIDA…", 540, 470, CREMA, OL, 40)
-    elif T < S("F07"): etiqueta(c, T, th, "LA CONOCES DE TODA LA VIDA", 540, 470, CREMA, OL, 38)
     if T >= S("F07") - .1:
         k = ease((T - S("F07") + .1) / .5); abuela(c, 790, 1430 + 150 * (1 - k), .8, T)
         etiqueta(c, T, S("F07") + .3, "LA LETRA DE LA ABUELA PILAR", 540, 470, ROSA, WHITE, 38)
@@ -1684,7 +1678,7 @@ def chat_abuela(T):
         d.text((x + 112 * s, y + 92 * s), "en línea", font=font(F_UI, int(20 * s)), fill=(200, 235, 215), anchor="lm")
         d.rectangle((x, y + 120 * s, x + w, y + h), fill=(236, 229, 221))
         yy = y + 150 * s
-        for t, nom, txt, col, dx in ((S("F08") + .4, "Tú", "Mamá… ¿escribiste tú\\nla carta de Rex?", (220, 248, 198), 60), (S("F08B") + .1, "Abuela Pilar", "Perdón, hija. La maestra\\nMarta me contó lo de Rex…\\ny no pude resistirme.", (255, 255, 255), 0)):
+        for t, nom, txt, col, dx in ((S("F08") + .4, "Tú", "Mamá… ¿escribiste tú\nla carta de Rex?", (220, 248, 198), 60), (S("F08B") + .1, "Abuela Pilar", "Perdón, hija. La maestra\nMarta me contó lo de Rex…\ny no pude resistirme.", (255, 255, 255), 0)):
             if T < t: continue
             k = ease((T - t) / .25); bh = burbuja(d, x + 24 * s + dx * s, yy + 20 * (1 - k), w * .8, nom, txt, s, col); yy += bh + 20 * s
     return fn
@@ -1696,8 +1690,7 @@ def sc_mensaje(T):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     put(lay, "manos_atras", 540, 960, 1.0); celular(lay, 540, 1000, 1.25, T, chat_abuela(T)); put(lay, "manos_delante", 540, 960, 1.0)
     k = ease((T - s0 + .1) / .5); c.alpha_composite(lay, (0, int(400 * (1 - k))))
-    if T >= S("F09") + .2: etiqueta(c, T, S("F09") + .2, "SECRETO DE LAS DOS", 540, 470, CREMA, OL, 40)
-    elif T >= s0 + .2: etiqueta(c, T, s0 + .2, "A ESCONDIDAS", 540, 470, CREMA, OL, 40)
+    if T >= S("F09") + .2: etiqueta(c, T, S("F09") + .2, "SECRETO DE LAS DOS", 540, 1220, CREMA, OL, 40)
     return c
 
 X_PAG = ((183, 228), (262, 305))   # las dos primeras X punteadas de la fila 2 de la página 67
@@ -1728,12 +1721,11 @@ def sc_x(T):
         d.ellipse((x - r, y - r, x + r, y + r), fill=VERDE, outline=WHITE, width=4)
         if k > .6: d.line([(x - 11, y), (x - 3, y + 9), (x + 13, y - 12)], fill=WHITE, width=6)
     c = seguir(c, tip[0] if tip else 470, tip[1] if tip else 900, 1.3, f=.5)
-    if T < tA0 - .3: etiqueta(c, T, tr, "LA X DE LA PÁGINA 67", 540, 1220, CREMA, OL, 40)
-    elif T < tB0: etiqueta(c, T, S("F12"), "PRIMER PALITO: DE ARRIBA A ABAJO", 540, 1220, VERDE, WHITE, 36)
-    elif T < S("F14"): etiqueta(c, T, S("F13"), "EL SEGUNDO CRUZA POR LA MITAD", 540, 1220, VERDE, WHITE, 36)
+    if T < tB0: etiqueta(c, T, tr, "LA X DE XILÓFONO", 540, 1220, CREMA, OL, 40)
+    elif T < S("F14"): etiqueta(c, T, S("F13"), "DOS PALITOS Y UN ABRAZO", 540, 1220, VERDE, WHITE, 38)
     else:
-        etiqueta(c, T, S("F14"), "¡UNA X DE VERDAD!", 540, 1220, ROSA, WHITE, 46); brillos(c, T, S("F14"), 470, 930, 200)
-    pill_libro(c, T, S("F12") + .1, 3.3)   # una sola vez por vídeo, mientras repasa
+        brillos(c, T, S("F14"), 470, 930, 200)
+    pill_libro(c, T, tr + .2, 3.3)   # una sola vez por vídeo, mientras repasa
     return c
 
 def sc_nombre(T):
@@ -1764,13 +1756,12 @@ def sc_buzon(T):
         c = bg("bg_noche", T, tn, 1.0, 1.06, 10); c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (90,)))
         buzon(c, 780, 1150, 1.0, T); abuela(c, 260, 1230 + 20 * math.sin(T * 3), .8, T)
         sobre(c, 540, 900 + 30 * math.sin(T * 2.5), .8, rot=-8 + 6 * math.sin(T * 3))
-        etiqueta(c, T, tn + .2, "A ESCONDIDAS", 540, 470, CREMA, OL, 40)
+        etiqueta(c, T, tn + .2, "MIENTRAS DUERME", 540, 470, CREMA, OL, 40)
         return c
     c = bg("bg_noche", T, S("F17"), 1.0, 1.06, 8); c.alpha_composite(Image.new("RGBA", (W, H), NOCHE_AZ + (90,)))
     g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((140, 420, 940, 1400), fill=(255, 220, 150, 90))
     c.alpha_composite(g.filter(ImageFilter.GaussianBlur(80)))
     carta7(c, T, S("F17") + .2, E("F17") - .2, 540, 920, .85, 2, LETRA_REX2)
-    etiqueta(c, T, S("F17"), "LA RESPUESTA DE REX", 540, 470, CREMA, OL, 40)
     return c
 
 def sc_manana(T):
@@ -1782,8 +1773,6 @@ def sc_manana(T):
         sobre(c, 880, 1500 + 14 * math.sin(T * 5), .7, rot=10)
     else:
         mateo(c, "neutral", 540, 1260, 1.2, T, "F20")
-        put(c, "manos_delante", 540, 1180, 1.0)
-        etiqueta(c, T, S("F19") + .3, "MUY SERIO", 540, 470, CREMA, OL, 44) if T < S("F20") else etiqueta(c, T, S("F20"), "QUIERE CONOCER A REX", 540, 470, ROSA, WHITE, 40)
     return c
 
 def sc_puerta(T):
@@ -1796,7 +1785,6 @@ def sc_puerta(T):
     put(c, "dino", bx + 10, by - 300, .45, rot=8 * math.sin(T * 5))
     d.polygon([(bx - 190, by - 250), (bx + 190, by - 250), (bx + 205, by - 190), (bx - 205, by - 190)], fill=(236, 196, 140), outline=OL)
     d.arc((bx - 80, by - 340, bx + 80, by - 200), 180, 360, fill=OL, width=10)
-    etiqueta(c, T, s0 + .2, "TE QUEDAS SIN PALABRAS", 540, 470, CREMA, OL, 40) if T < WT("F21", "bolsa") - .3 else etiqueta(c, T, WT("F21", "bolsa") - .3, "UNA BOLSA ENORME…", 540, 470, ROSA, WHITE, 42)
     return c
 
 SCENES = [
