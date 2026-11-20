@@ -11,8 +11,6 @@ LINEAS = [
   "Mateo lo *abraza* para *probarlo.* Y de pronto, lo *suelta* con los ojos muy *abiertos.*"),
  ("F05","K","[nervous] Mami… este huele a tienda. Rex huele a mí.",
   "*Mami…* este huele a *tienda.* Rex huele a *mí.*"),
- ("F06","N","[softly] Y ahora te pregunto a ti. ¿Tu hijo tiene un peluche que no suelta nunca? Cuéntame cuál es en los comentarios, que quiero leerte.",
-  "Y ahora te pregunto a *ti.* ¿Tu hijo tiene un *peluche* que no suelta *nunca?* Cuéntame cuál es en los *comentarios,* que quiero *leerte.*"),
  ("F07","N","Llegáis a casa. Leo abre la caja, y se le ilumina la cara. Por fin sonríe.",
   "Llegáis a *casa.* Leo abre la *caja,* y se le ilumina la *cara.* Por fin *sonríe.*"),
  ("F08","A","[disapproving] Ay, mija… ¿comprarle cosas para que se calle? ¿Eso es educar?",

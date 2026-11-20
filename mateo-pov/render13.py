@@ -1926,8 +1926,7 @@ def sc_final(T):
 ESCENAS_ESCRITURA = ()
 
 SCENES = [
-    (0, sc_gancho), (S("F02") - .15, sc_tienda), (S("F03") - .15, sc_hermano), (S("F04") - .15, sc_huele), (S("F06") - .15, sc_pregunta),
-    (S("F07") - .15, sc_leo_feliz), (S("F08") - .15, sc_abuela), (S("F09") - .15, sc_ensena), (S("F12") - .15, sc_noche),
+    (0, sc_gancho), (S("F02") - .15, sc_tienda), (S("F03") - .15, sc_hermano), (S("F04") - .15, sc_huele),     (S("F07") - .15, sc_leo_feliz), (S("F08") - .15, sc_abuela), (S("F09") - .15, sc_ensena), (S("F12") - .15, sc_noche),
     (S("F14") - .15, sc_cambio), (S("F15") - .15, sc_llora), (S("F17") - .3, sc_final),
 ]
 IMPACTS = [S("F17"), WT("F13", "Rex")]
