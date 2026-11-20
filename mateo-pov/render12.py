@@ -1746,7 +1746,7 @@ def telefono(c, cx, cy, s, T, timbra=True):
 def sc_gancho(T):
     """F01: arranca directo: gana B, Mateo no suelta a Rex."""
     c = bg("bg_sala", T, 0, 1.15, 1.25, 8, .5, .5)
-    mateo(c, "enojado", 400, 1220, 1.1, T, "F01")
+    mateo(c, "enojado", 400, 1220, 1.1, T)
     put(c, "dino", 780, 1470, .56, rot=3 * math.sin(T * 2)); gorro(c, 780, 1470, .56)
     tarjeta_ganadora(c, T, "B", "Mateo se queda con Rex", VERDE, 2.8)
     return c
