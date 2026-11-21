@@ -1,0 +1,69 @@
+{
+ "analista": {
+  "actualizado": "2026-10-23T20:12:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "animador": {
+  "actualizado": "2026-10-23T19:55:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "arte": {
+  "actualizado": "2026-10-23T22:42:32Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "community": {
+  "actualizado": "2026-10-23T20:12:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "creativo": {
+  "actualizado": "2026-10-23T20:36:00Z",
+  "archivo": "https://github.com/tryingalwaysboom/VideosTime/blob/main/pinti-organico/episodios/2026-10-23_ideas.md",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "critico": {
+  "actualizado": "2026-10-23T22:15:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "estratega": {
+  "actualizado": "2026-10-23T20:40:00Z",
+  "archivo": "https://github.com/tryingalwaysboom/VideosTime/blob/main/pinti-organico/episodios/2026-10-23_plan.md",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "guionista": {
+  "actualizado": "2026-10-23T22:15:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "montaje": {
+  "actualizado": "2026-10-23T19:55:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "pedagoga": {
+  "actualizado": "2026-10-23T22:15:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "productor": {
+  "actualizado": "2026-10-23T22:35:33Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "publicador": {
+  "actualizado": "2026-10-23T19:55:00Z",
+  "estado": "libre",
+  "tarea": ""
+ },
+ "sonido": {
+  "actualizado": "2026-10-23T19:55:00Z",
+  "estado": "libre",
+  "tarea": ""
+ }
+}
