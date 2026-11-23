@@ -3,7 +3,7 @@
 import os, sys, math
 import render1 as V
 from PIL import Image, ImageDraw, ImageFilter
-R = V.R; W, H = 1080, 1920; OY = 160
+R = V.R; W, H = 1080, 1920; OY = 250   # bajado: TikTok corta un poco arriba
 
 def escena_foto(llora=True):
     s = R.layer("bg_desvan").resize((W, H)).copy(); R.dark(s, 40)
@@ -31,13 +31,13 @@ def portada(parte, frase, palabra, out, rot=-3):
     d = ImageDraw.Draw(c)
     # frase a mano + palabra grande dorada
     d.text((540, OY + 1045), frase, font=V.font(V.F_HAND, 84), fill=(255, 244, 214), anchor="mm")
-    d.text((540, OY + 1160), palabra, font=V.font(V.F_BAL, 150), fill=V.ORO, anchor="mm", stroke_width=8, stroke_fill=(120, 70, 20))
+    d.text((540, OY + 1150), palabra, font=V.font(V.F_BAL, 150), fill=V.ORO, anchor="mm", stroke_width=8, stroke_fill=(120, 70, 20))
     # sello PARTE N
     st = Image.new("RGBA", (330, 120), (0, 0, 0, 0)); ds = ImageDraw.Draw(st)
     ds.rounded_rectangle((0, 0, 329, 119), 22, fill=(250, 246, 236), outline=(194, 58, 90), width=8)
     ds.text((165, 62), f"PARTE {parte}", font=V.font(V.F_ANTON, 74), fill=(60, 40, 90), anchor="mm")
     st = st.rotate(3 if parte % 2 else -3, expand=True, resample=Image.BICUBIC)
-    c.alpha_composite(st, (int(540 - st.width / 2), OY + 1285))
+    c.alpha_composite(st, (int(540 - st.width / 2), OY + 1255))
     c.convert("RGB").save(out, quality=92)
 
 if __name__ == "__main__":
