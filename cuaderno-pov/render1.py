@@ -604,39 +604,66 @@ def sc_pegada(T):   # F19: Sofía intenta pasar la página del mensaje: está pe
     return c
 
 RAYO = [(600, 0), (560, 520), (612, 560), (522, 1100), (578, 1132), (480, H)]
-def _opcion(d, cx, cy, letra, txt, mas, menos, col, k):
+def _tarjeta(c, cx, cy, letra, txt, mas, menos, col, k, big=1.0):
+    """Opción final estilo Mateo: tarjeta de color con borde blanco, letra en círculo arriba, texto grande y +/-."""
     if k <= 0: return
-    r = int(70 * k)
-    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=col, outline=WHITE, width=7)
-    d.text((cx, cy + 2), letra, font=font(F_ANTON, int(90 * k)), fill=WHITE, anchor="mm")
-    f = font(F_BAL, 60)
-    for i, l in enumerate(txt): d.text((cx, cy + 135 + i * 68), l, font=f, fill=WHITE, anchor="mm", stroke_width=6, stroke_fill=OL)
-    ff = font(F_UI, 38)
-    d.text((cx, cy + 290), "+ " + mas, font=ff, fill=(160, 240, 170), anchor="mm", stroke_width=4, stroke_fill=OL)
-    d.text((cx, cy + 345), "– " + menos, font=ff, fill=(255, 170, 170), anchor="mm", stroke_width=4, stroke_fill=OL)
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    w2, h1, h2 = 212 * k * big, 150 * k * big, (250 + 70 * (len(txt) - 2)) * k * big
+    d.rounded_rectangle((cx - w2 + 8, cy - h1 + 12, cx + w2 + 8, cy + h2 + 12), 40, fill=(10, 6, 20, 120))
+    d.rounded_rectangle((cx - w2, cy - h1, cx + w2, cy + h2), 40, fill=col + (240,), outline=WHITE, width=8)
+    r = 62 * k * big
+    d.ellipse((cx - r, cy - h1 - r * .9, cx + r, cy - h1 + r * 1.1), fill=WHITE, outline=OL, width=6)
+    d.text((cx, cy - h1 + r * .1), letra, font=font(F_ANTON, int(92 * k * big) + 1), fill=col, anchor="mm")
+    if k > .5:
+        for i, l in enumerate(txt):
+            d.text((cx, cy - 20 + i * 70 * big), l, font=font(F_ANTON, int(62 * big)), fill=WHITE, anchor="mm", stroke_width=7, stroke_fill=OL)
+        y = cy + 60 + 70 * big * (len(txt) - 1)
+        d.text((cx, y + 30), "+ " + mas, font=font(F_UI, int(36 * big)), fill=(170, 255, 180), anchor="mm", stroke_width=6, stroke_fill=OL)
+        d.text((cx, y + 82), "– " + menos, font=font(F_UI, int(34 * big)), fill=(255, 190, 180), anchor="mm", stroke_width=6, stroke_fill=OL)
+    c.alpha_composite(ov)
 
-def sc_final(T):   # F20
-    t0 = S("F20") - .2; ta = WT("F20", "sola") - .2; tb = WT("F20", "juntas") - .2
-    izq = Image.new("RGBA", (W, H), (36, 30, 70, 255)); put(izq, "bg_desvan", 300, 960, 1.0)
-    R.dark(izq, 120)
-    put(izq, "cuaderno", 300, 760, .42, rot=-8)
-    dz = ImageDraw.Draw(izq); dz.ellipse((420, 380, 480, 440), fill=(255, 244, 200))   # luna: de noche, tú sola
-    der = Image.new("RGBA", (W, H), (255, 220, 170, 255)); put(der, "bg_cuarto_sofia", 780, 960, 1.0)
-    sofia(der, "feliz", 800, 760, .86, T); put(der, "cuaderno", 820, 1180, .28, rot=8)
-    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO[::-1][:0] + RAYO + [(0, H)], fill=255)
-    c = der.copy(); c.paste(izq, (0, 0), mask)
-    d = ImageDraw.Draw(c); d.line(RAYO, fill=WHITE, width=14); d.line(RAYO, fill=ORO, width=6)
-    d.text((540, 300), "¿QUÉ HARÍAS TÚ?", font=font(F_ANTON, 92), fill=WHITE, anchor="mm", stroke_width=10, stroke_fill=OL)
-    _opcion(d, 270, 1000, "A", ["La lees tú", "sola"], "sabes qué dice", "Sofía queda fuera", (110, 90, 200), back((T - ta) / .35) if T >= ta else 0)
-    _opcion(d, 810, 1000, "B", ["La abren", "juntas mañana"], "lo viven juntas", "una noche de dudas", ROSA, back((T - tb) / .35) if T >= tb else 0)
-    # palabra secreta abajo del título
-    for k in range(5):
-        x = 540 + (k - 2) * 86; y = 430
+_FC = {}
+def _lado(name):
+    if name in _FC: return _FC[name]
+    if name == "A":   # tú sola, de noche, con la nota
+        im = Image.new("RGBA", (W, H), (36, 30, 70, 255)); put(im, "bg_desvan", 300, 960, 1.0); R.dark(im, 110)
+        put(im, "cuaderno", 290, 1060, .42, rot=-8)
+        lay = Image.new("RGBA", (360, 200), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
+        dl.rounded_rectangle((0, 0, 359, 199), 12, fill=(255, 240, 160), outline=OL, width=5)
+        dl.text((180, 60), "Para:", font=font(F_HAND, 54), fill=TINTA, anchor="mm"); dl.text((180, 135), "Andrea", font=font(F_HAND, 70), fill=(194, 58, 90), anchor="mm")
+        lay = lay.rotate(10, expand=True, resample=Image.BICUBIC); im.alpha_composite(lay, (60, 1150))
+        im.alpha_composite(Image.new("RGBA", (W, H), (40, 40, 140, 70)))
+    else:   # juntas, a la mañana, Sofía feliz
+        im = Image.new("RGBA", (W, H), (255, 220, 170, 255)); put(im, "bg_cuarto_sofia", 780, 960, 1.0)
+        sofia(im, "feliz", 810, 1290, .8, 0.5); put(im, "cuaderno", 880, 1640, .26, rot=8)
+        im.alpha_composite(Image.new("RGBA", (W, H), (255, 160, 120, 40)))
+    _FC[name] = im
+    return im
+
+def sc_final(T):   # F20: el dilema, destacado como en Mateo (lados que entran, rayo brillante, opción activa resaltada)
+    s0 = S("F20"); ta = WT("F20", "sola") - .35; tb = WT("F20", "juntas") - .35
+    hiA = ta <= T < tb; hiB = T >= tb
+    A_, B_ = _lado("A"), _lado("B"); negro = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    u = ease((T - s0 + .3) / .45)
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    c.alpha_composite(Image.blend(B_, negro, .5) if hiA else B_, (int(500 * (1 - u)), 0))
+    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).polygon([(0, 0)] + RAYO + [(0, H)], fill=255)
+    c.paste(Image.blend(A_, negro, .5) if hiB else A_, (int(-700 * (1 - u)), 0), mask)
+    d = ImageDraw.Draw(c)
+    if u > .9:
+        gl = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(RAYO, fill=(255, 210, 120, 255), width=40, joint="curve")
+        c.alpha_composite(gl.filter(ImageFilter.GaussianBlur(14))); d = ImageDraw.Draw(c)
+        d.line(RAYO, fill=WHITE, width=12, joint="curve"); d.line(RAYO, fill=YEL, width=5, joint="curve")
+    k0 = R.popscale(T, s0 - .2, .4)
+    if k0 > 0: d.text((540, 230), "¿QUÉ HARÍAS TÚ?", font=font(F_ANTON, int(96 * k0) + 1), fill=YEL, anchor="mm", stroke_width=9, stroke_fill=OL)
+    for k in range(5):   # palabra secreta bajo el título
+        x = 540 + (k - 2) * 86; y = 345
         d.rounded_rectangle((x - 34, y - 42, x + 34, y + 42), 10, fill=(40, 28, 60), outline=ORO, width=4)
         d.text((x, y), "C" if k == 0 else "?", font=font(F_BAL, 52), fill=ORO if k == 0 else (130, 110, 160), anchor="mm")
+    _tarjeta(c, 262, 720, "A", ["LA LEES", "TÚ SOLA"], "sabes qué dice", "Sofía queda fuera", (96, 78, 200), R.popscale(T, ta, .35), 1.07 if hiA else 1.0)
+    _tarjeta(c, 818, 720, "B", ["LA ABREN", "JUNTAS", "MAÑANA"], "lo viven juntas", "una noche de dudas", (226, 76, 108), R.popscale(T, tb, .35), 1.07 if hiB else 1.0)
     return c
 
-# ---------------------------------------------------------------- etiqueta de la serie (arriba, zona segura)
 def etiqueta_serie(c, T):
     d = ImageDraw.Draw(c); f = font(F_BAL, 34); txt = "EL CUADERNO DE LA ABUELA · PARTE 1"
     tw = d.textlength(txt, font=f)
