@@ -130,6 +130,7 @@ def confeti(c, T, t0, n=60):
         col = r.choice([(232, 85, 109), (255, 196, 60), (95, 191, 106), (74, 159, 224), (184, 138, 214)])
         d.rectangle((x - 9, y - 5, x + 9, y + 5), fill=col)
 
+_OV = []
 def rotulo(c, T, t0, txt, cx, cy, fill=YEL, fg=OL, size=46, rot=-3):
     """Rótulo corto tipo cinta de papel que aparece con rebote (solo palabras que dice la voz)."""
     if T < t0: return
@@ -141,7 +142,7 @@ def rotulo(c, T, t0, txt, cx, cy, fill=YEL, fg=OL, size=46, rot=-3):
     d.text(((lay.width - 8) / 2, (lay.height - 12) / 2 + 2), txt, font=f, fill=fg, anchor="mm")
     lay = lay.rotate(rot, expand=True, resample=Image.BICUBIC)
     if k < .99: lay = lay.resize((max(1, int(lay.width * k)), max(1, int(lay.height * k))))
-    c.alpha_composite(lay, (int(cx - lay.width / 2), int(cy - lay.height / 2)))
+    (_OV[-1] if _OV else c).alpha_composite(lay, (int(cx - lay.width / 2), int(cy - lay.height / 2)))
 
 # ---------------------------------------------------------------- hoja de Sofía con su nombre a medias
 def hoja_nombre(c, T, cx, cy, s, sof_u=1.0, rot=-4, tachon=False):
@@ -323,32 +324,99 @@ def s_punteada(c, x0, y0, s, alpha=255):
     for i, (x, y) in enumerate(s_path(x0 + 225 * s, y0 + 150 * s, 330 * s)):
         if i % 3 == 0: d.ellipse((x - 7 * s, y - 7 * s, x + 7 * s, y + 7 * s), fill=(60, 60, 80, alpha))
 
-def sc_abre(T):   # F08-F10: abres; la S punteada; la nota aparece; la tinta está fresca
-    t0 = S("F08") - .15
-    c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(7)).copy(); R.dark(c, 80)
-    tz = WT("F10", "tinta") - .1
-    z = 1.0 + .55 * ease((T - tz) / .6) if T > tz else 1.0
-    tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    def izq(cc, x0, y0, s):
-        if T >= WT("F08", "S") - .1: s_punteada(cc, x0, y0, s)
-    def der(cc, x0, y0, s):
-        if T >= S("F09") - .05:
-            manuscrito(cc, ["Si la escribes", "bien… te cuento", "un secreto."], T, S("F09"), E("F09"), x0 + 225 * s, y0 + 120 * s, int(54 * s), TINTA, int(78 * s), 3)
-            if T > E("F09"): cc.alpha_composite(Image.new("RGBA", (1, 1)), (0, 0)); ImageDraw.Draw(cc).text((x0 + 330 * s, y0 + 420 * s), "— R.", font=font(F_HAND, int(54 * s)), fill=TINTA)
-    cuaderno_abierto(tmp, 540, 800, 1.05, T, izq, der)
-    if z > 1.001:
-        cx, cy = 780, 700
-        tmp = tmp.resize((int(W * z), int(H * z)), Image.BICUBIC).crop((int(cx * z - cx), int(cy * z - cy), int(cx * z - cx) + W, int(cy * z - cy) + H))
-    c.alpha_composite(tmp)
-    if WT("F08", "mamá…") - .1 <= T < tz:
-        rotulo(c, T, WT("F08", "mamá…") - .1, "LETRA DE TU MAMÁ", 760, 380, fill=(255, 255, 255), fg=TINTA, size=42, rot=3)
-    if T >= WT("F10", "fresca.") - .1:   # brillo húmedo de la tinta
+# ---------------------------------------------------------------- el cuaderno abierto: estado coherente de sus páginas
+CB = (540, 800, 1.05)                      # cuaderno abierto: centro y escala (siempre el mismo encuadre base)
+PW, PH = 900 * CB[2] / 2, 640 * CB[2]      # tamaño de una página en pantalla
+PX_L, PX_R, PY = CB[0] - PW, CB[0], CB[1] - PH / 2
+
+NOTA = ["Si la escribes", "bien… te cuento", "un secreto."]
+MSG = ["Tu mamá también", "decía que no servía", "para escribir.", "Lloró tres tardes", "con esta misma S."]
+
+def izq_S(T, escrita=1.0):
+    def f(cc, x0, y0, s):
+        s_punteada(cc, x0, y0, s)
+        if escrita > 0: trazo(cc, recorrido(s_path(x0 + 225 * s, y0 + 150 * s, 330 * s), escrita), 18 * s, ROSA)
+    return f
+
+def der_nota(T, t0=-1, t1=0):
+    def f(cc, x0, y0, s):
+        manuscrito(cc, NOTA, T, t0, t1, x0 + 225 * s, y0 + 120 * s, int(54 * s), TINTA, int(78 * s), 3)
+        if T >= t1: ImageDraw.Draw(cc).text((x0 + 330 * s, y0 + 420 * s), "— R.", font=font(F_HAND, int(54 * s)), fill=TINTA)
+    return f
+
+def der_msg(T, t0=-1, t1=0, conC=0.0):
+    def f(cc, x0, y0, s):
+        manuscrito(cc, MSG, T, t0, t1, x0 + 225 * s, y0 + 60 * s, int(44 * s), TINTA, int(66 * s), 2)
+    return f
+
+_PAGE = {}
+def pagina_img_de(fn):
+    """Recorta la página derecha dibujada por fn como imagen suelta (para hacerla girar)."""
+    tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0)); cuaderno_abierto(tmp, *CB, 0, None, fn)
+    return tmp.crop((int(PX_R), int(PY), int(PX_R + PW), int(PY + PH)))
+
+def reverso(front):
+    """Reverso de una hoja: papel con la tinta del otro lado transparentándose (en espejo)."""
+    if "rev" not in _PAGE:
+        blank = pagina_img_de(None)
+        ghost = front.transpose(Image.FLIP_LEFT_RIGHT)
+        g = Image.blend(blank, ghost, .14)
+        _PAGE["rev"] = g
+    return _PAGE["rev"]
+
+def izq_reverso(cc, x0, y0, s):
+    if "nota" not in _PAGE: _PAGE["nota"] = pagina_img_de(der_nota(1e9))
+    cc.alpha_composite(reverso(_PAGE["nota"]), (int(x0), int(y0)))
+
+def hoja_girando(c, u, front, back):
+    """Una hoja que gira de derecha a izquierda (u: 0 -> 1) mostrando su frente y luego su reverso."""
+    cx = CB[0]; k = abs(math.cos(u * PI_)); ww = max(2, int(PW * k)); lift = int(36 * math.sin(u * PI_))
+    im = (front if u < .5 else back).resize((ww, int(PH) + 2 * lift))
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ds = ImageDraw.Draw(sh)
+    if u < .5:
+        ds.rectangle((cx, PY, cx + ww + 30, PY + PH), fill=(30, 20, 10, int(90 * math.sin(u * PI_))))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(20))); c.alpha_composite(im, (int(cx), int(PY - lift)))
+    else:
+        ds.rectangle((cx - ww - 30, PY, cx, PY + PH), fill=(30, 20, 10, int(90 * math.sin(u * PI_))))
+        c.alpha_composite(sh.filter(ImageFilter.GaussianBlur(20))); c.alpha_composite(im, (int(cx - ww), int(PY - lift)))
+    ImageDraw.Draw(c).line((cx, PY - lift, cx, PY + PH + lift), fill=(150, 130, 100), width=6)
+
+def fondo_libro(T, t0, blur=7, osc=80):
+    c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(blur)).copy(); R.dark(c, osc); polvo(c, T, 25, 3)
+    return c
+
+def dedos(c, x, y, T, s=1.0):
+    """Deditos de Sofía pellizcando la esquina de una hoja (sin crayola)."""
+    d = ImageDraw.Draw(c); sk = (243, 194, 155)
+    d.polygon([(x + 40 * s, y + 30 * s), (x + 230 * s, y + 260 * s), (x + 330 * s, y + 200 * s), (x + 120 * s, y - 20 * s)], fill=(246, 201, 74), outline=OL)
+    d.ellipse((x - 20 * s, y - 40 * s, x + 120 * s, y + 70 * s), fill=sk, outline=OL, width=5)
+    for k in range(3):
+        fx, fy = x - 40 * s + k * 26 * s, y - 50 * s + k * 18 * s
+        d.ellipse((fx - 30 * s, fy - 16 * s, fx + 30 * s, fy + 16 * s), fill=sk, outline=OL, width=4)
+    d.ellipse((x - 70 * s, y - 10 * s, x - 10 * s, y + 30 * s), fill=sk, outline=OL, width=4)
+
+def sc_abre(T):   # F08-F10: abres; la S punteada; la nota con la letra de tu mamá; la tinta está fresca
+    t0 = S("F08") - .15; tz = WT("F10", "tinta") - .1
+    c = fondo_libro(T, t0)
+    u = ease((T - t0) / .6)   # la tapa se abre
+    izq = (lambda cc, x0, y0, s: s_punteada(cc, x0, y0, s)) if T >= WT("F08", "S") - .1 else None
+    der = der_nota(T, S("F09"), E("F09")) if T >= S("F09") - .05 else None
+    cuaderno_abierto(c, *CB, T, izq, der)
+    if u < 1:   # tapa verde que gira sobre el lomo
+        ww = int(PW * abs(math.cos(u * PI_)))
+        if ww > 4:
+            tapa = R.layer("cuaderno").resize((ww, int(PH + 40)))
+            c.alpha_composite(tapa, (int(CB[0] if u < .5 else CB[0] - ww), int(PY - 20)))
+    if T >= WT("F10", "fresca.") - .1:   # brillo húmedo de la tinta que recorre la nota
         d = ImageDraw.Draw(c); ph = (T - WT("F10", "fresca.")) * 1.4 % 1
         for k in range(3):
-            x = 380 + ph * 600 + k * 40; d.line((x, 500, x - 80, 900), fill=(255, 255, 255, 70), width=18)
-        rotulo(c, T, WT("F10", "fresca.") - .1, "TINTA FRESCA", 540, 1200, fill=(255, 255, 255), fg=TINTA, size=56)
-    elif T >= WT("F10", "niña.") - .2 and T < tz:
-        rotulo(c, T, WT("F10", "niña.") - .2, "ANTES NO ESTABA", 540, 1230, size=48)
+            x = PX_R + 40 + ph * 420 + k * 34; d.line((x, PY + 60, x - 70, PY + 420), fill=(255, 255, 255, 80), width=16)
+        brillos(c, T, WT("F10", "fresca.") - .1, 780, 680, 160, (200, 220, 255), 8)
+        rotulo(c, T, WT("F10", "fresca.") - .1, "TINTA FRESCA", 540, 1250, fill=(255, 255, 255), fg=TINTA, size=56)
+    elif T >= WT("F10", "niña.") - .2:
+        rotulo(c, T, WT("F10", "niña.") - .2, "ANTES NO ESTABA", 540, 1250, size=50)
+    elif WT("F08", "mamá…") - .1 <= T:
+        rotulo(c, T, WT("F08", "mamá…") - .1, "LETRA DE TU MAMÁ", 760, 360, fill=(255, 255, 255), fg=TINTA, size=44, rot=3)
     return c
 
 def sc_puerta(T):   # F11: Sofía se asoma
@@ -434,82 +502,107 @@ def sc_salio(T):   # F15
     confeti(c, T, t0)
     return c
 
-def sc_mensaje(T):   # F16-F17: escribe su S EN EL CUADERNO, encima de la punteada; pasas la página: mensaje de tu mamá
-    t0 = S("F16") - .15; ta = WT("F16", "escribe") - .1; tb = WT("F16", "punteada.") + .2; tf = WT("F16", "página…")
-    c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(7)).copy(); R.dark(c, 80)
-    def S_cuaderno(x0, y0, s): return s_path(x0 + 225 * s, y0 + 150 * s, 330 * s)
-    if T < tf - .1:   # escribe su S en el cuaderno, sobre la punteada
+def sc_mensaje(T):   # F16-F17: escribe su S EN EL CUADERNO; pasas la página (la de la nota) -> mensaje nuevo de tu mamá
+    t0 = S("F16") - .15; ta = WT("F16", "escribe") - .1; tb = WT("F16", "punteada.") + .2
+    tf = WT("F16", "página…") - .3; tf1 = tf + 1.1
+    c = fondo_libro(T, t0)
+    if T < tf:   # escribe la S en el cuaderno, sobre la punteada (la nota sigue a la derecha)
         tip = [None]
         def izq(cc, x0, y0, s):
             s_punteada(cc, x0, y0, s)
             if T >= ta:
-                pts = recorrido(S_cuaderno(x0, y0, s), (T - ta) / max(.3, tb - ta)); trazo(cc, pts, 18 * s, ROSA)
+                pts = recorrido(s_path(x0 + 225 * s, y0 + 150 * s, 330 * s), (T - ta) / max(.3, tb - ta)); trazo(cc, pts, 18 * s, ROSA)
                 if T < tb + .1: tip[0] = pts[-1]
-        cuaderno_abierto(c, 540, 800, 1.05, T, izq, None)
+        cuaderno_abierto(c, *CB, T, izq, der_nota(1e9))
         rotulo(c, T, WT("F16", "cuaderno,") - .1, "AHORA, EN EL CUADERNO", 540, 330, size=46, rot=-2)
         if tip[0]: mano(c, tip[0], T, .62)
+        elif T >= tb + .1: brillos(c, T, tb, PX_L + PW / 2, PY + 330, 150)
         return c
-    def izq(cc, x0, y0, s):
-        s_punteada(cc, x0, y0, s); trazo(cc, S_cuaderno(x0, y0, s), 18 * s, ROSA)
-    def der(cc, x0, y0, s):
-        if T >= S("F17") - .05:
-            manuscrito(cc, ["Tu mamá también", "decía que no servía", "para escribir.", "Lloró tres tardes", "con esta misma S."],
-                       T, S("F17"), E("F17") - .3, x0 + 225 * s, y0 + 70 * s, int(46 * s), TINTA, int(70 * s), 2)
-    if T < tf + .5:   # la hoja dando la vuelta
-        u = clamp((T - tf + .1) / .6)
-        tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0)); cuaderno_abierto(tmp, 540, 800, 1.05, T, izq, None)
-        d = ImageDraw.Draw(tmp); xr = 540 + 472 * math.cos(u * PI_)
-        d.polygon([(540, 464), (xr, 464 - 40 * math.sin(u * PI_)), (xr, 1136 + 40 * math.sin(u * PI_)), (540, 1136)], fill=(244, 232, 204), outline=OL)
-        c.alpha_composite(tmp)
-    else:
-        cuaderno_abierto(c, 540, 800, 1.05, T, izq, der)
-        if T >= S("F17") - .05: rotulo(c, T, S("F17") - .05, "LETRA DE TU MAMÁ", 760, 360, fill=(255, 255, 255), fg=TINTA, size=42, rot=3)
-        if T >= WT("F17", "S."): rotulo(c, T, WT("F17", "S.") - .1, "TÚ TAMBIÉN LLORASTE", 540, 1230, size=50)
+    if "nota" not in _PAGE: _PAGE["nota"] = pagina_img_de(der_nota(1e9))
+    if T < tf1:   # la hoja de la nota gira: debajo aparece una página nueva
+        cuaderno_abierto(c, *CB, T, izq_S(T), None)
+        uu = clamp((T - tf) / (tf1 - tf)); hoja_girando(c, uu * uu * (3 - 2 * uu), _PAGE["nota"], reverso(_PAGE["nota"]))
+        return c
+    cuaderno_abierto(c, *CB, T, izq_reverso, der_msg(T, S("F17"), E("F17") - .3))
+    if T >= S("F17") - .05: rotulo(c, T, S("F17") - .05, "LETRA DE TU MAMÁ", 760, 360, fill=(255, 255, 255), fg=TINTA, size=42, rot=3)
+    if T >= WT("F17", "S."): rotulo(c, T, WT("F17", "S.") - .1, "TÚ TAMBIÉN LLORASTE", 540, 1250, size=50)
     return c
 
-def sc_dorada(T):   # F18: no te acordabas; letra dorada C; palabra secreta C _ _ _ _
-    t0 = S("F18") - .15; tg = WT("F18", "dorada:") - .1
-    c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(8)).copy(); R.dark(c, 110)
-    cuaderno_abierto(c, 540, 760, 1.0, T)
-    d = ImageDraw.Draw(c)
-    if T >= tg:
-        k = back((T - tg) / .5); glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dg = ImageDraw.Draw(glow)
-        dg.ellipse((540 - 260 * k, 760 - 260 * k, 540 + 260 * k, 760 + 260 * k), fill=(255, 200, 80, 140)); c.alpha_composite(glow.filter(ImageFilter.GaussianBlur(50)))
-        d.text((540, 760), "C", font=font(F_BAL, int(330 * k) + 1), fill=ORO, anchor="mm", stroke_width=10, stroke_fill=(140, 90, 20))
-        brillos(c, T, tg, 540, 760, 220)
-    ts = WT("F18", "palabra") - .1
-    if T >= ts:   # casillas de la palabra secreta
-        u = ease((T - ts) / .5)
-        for k in range(5):
-            x = 540 + (k - 2) * 150; y = 1210 + 60 * (1 - u)
-            d.rounded_rectangle((x - 62, y - 76, x + 62, y + 76), 18, fill=(40, 28, 60, int(230 * u)), outline=ORO, width=6)
-            d.text((x, y), "C" if k == 0 else "?", font=font(F_BAL, 96), fill=ORO if k == 0 else (130, 110, 160), anchor="mm")
-        rotulo(c, T, ts, "PALABRA SECRETA", 540, 1060, fill=ORO, size=48, rot=0)
+CPOS = (PX_R + PW / 2, PY + PH - 120)      # donde brilla la C (abajo de la página del mensaje)
+def casillas(c, T, t0, llena=0.0):
+    """Las 5 casillas de la palabra secreta; la C entra en la primera cuando llena=1."""
+    d = ImageDraw.Draw(c); u = ease((T - t0) / .5)
+    for k in range(5):
+        x = 540 + (k - 2) * 150; y = 1300 + 80 * (1 - u)
+        d.rounded_rectangle((x - 62, y - 76, x + 62, y + 76), 18, fill=(40, 28, 60, int(235 * u)), outline=ORO, width=6)
+        if k == 0 and llena >= 1:
+            d.text((x, y), "C", font=font(F_BAL, 104), fill=ORO, anchor="mm", stroke_width=4, stroke_fill=(140, 90, 20))
+        elif k > 0:   # candadito
+            d.rounded_rectangle((x - 22, y - 4, x + 22, y + 32), 6, fill=(130, 110, 160)); d.arc((x - 16, y - 30, x + 16, y + 6), 180, 360, fill=(130, 110, 160), width=7)
+
+def sc_dorada(T):   # F18: no te acordabas (recuerdo) -> la C dorada se forma bajo el mensaje -> vuela a la palabra secreta
+    t0 = S("F18") - .15; tg = WT("F18", "brilla") - .2; tc = WT("F18", "C,") - .1; ts = WT("F18", "primera") - .1
+    if T < tg:   # "tú no te acordabas de eso": la foto de cuando eras niña, con la manga de tu mamá
+        c = fondo_libro(T, t0, 10, 120)
+        if "f" not in _FOTO: _FOTO["f"] = foto_infancia().crop((60, 360, 1020, 1500)).resize((640, 760))
+        k = 1.0 + .25 * ease((T - t0) / 2.2)
+        pol = Image.new("RGBA", (700, 920), (250, 246, 236, 255)); dp = ImageDraw.Draw(pol)
+        pol.alpha_composite(_FOTO["f"], (30, 30)); dp.rectangle((0, 0, 699, 919), outline=OL, width=5)
+        dp.text((350, 850), "yo, con 5 años", font=font(F_HAND, 64), fill=(90, 70, 60), anchor="mm")
+        pol = pol.resize((int(700 * k), int(920 * k))).rotate(-3, expand=True, resample=Image.BICUBIC)
+        c.alpha_composite(pol, (int(540 - pol.width / 2), int(800 - pol.height / 2)))
+        rotulo(c, T, t0 + .2, "NO TE ACORDABAS", 540, 1300, fill=(255, 236, 200), size=50)
+        return c
+    c = fondo_libro(T, t0)
+    cuaderno_abierto(c, *CB, T, izq_reverso, der_msg(1e9))
+    # partículas doradas que se juntan en la C
+    d = ImageDraw.Draw(c); cx, cy = CPOS
+    if T < tc + .3:
+        r = random.Random(4); u = ease((T - tg) / max(.4, tc + .3 - tg))
+        for k in range(46):
+            a = r.uniform(0, 2 * PI_); rr = r.uniform(150, 420) * (1 - u)
+            x, y = cx + rr * math.cos(a), cy + rr * math.sin(a); sz = 4 + 5 * r.random()
+            d.ellipse((x - sz, y - sz, x + sz, y + sz), fill=(255, 214, 90, 230))
+    fly = ease((T - ts) / .8) if T >= ts else 0.0
+    if T >= ts: casillas(c, T, ts, 1.0 if fly > .97 else 0)
+    if T >= tc - .1 and fly <= .97:
+        k = back((T - tc + .1) / .45); pulse = 1 + .06 * math.sin((T - tc) * 9)
+        x = cx + (540 - 2 * 150 - cx) * fly; y = cy + (1300 - cy) * fly - 260 * math.sin(fly * PI_)
+        size = int(190 * k * pulse * (1 - .45 * fly)) + 1
+        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((x - size, y - size, x + size, y + size), fill=(255, 200, 80, 150))
+        c.alpha_composite(glow.filter(ImageFilter.GaussianBlur(40)))
+        ImageDraw.Draw(c).text((x, y), "C", font=font(F_BAL, size), fill=ORO, anchor="mm", stroke_width=8, stroke_fill=(140, 90, 20))
+        brillos(c, T, tc, x, y, 90 + 60 * (1 - fly), (255, 236, 160), 10)
+    if T >= tc: rotulo(c, T, tc, "LETRA DORADA", 760, 360, fill=ORO, size=46, rot=3)
+    if T >= ts:
+        rotulo(c, T, ts, "PALABRA SECRETA", 540, 1140, fill=ORO, size=50, rot=0)
+        if fly > .97: brillos(c, T, ts + .8, 240, 1300, 90)
     return c
 
-def sc_pegada(T):   # F19: la página siguiente está pegada; asoma una nota con tu nombre
-    t0 = S("F19") - .15; tn = WT("F19", "nota,") - .1
-    c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(7)).copy(); R.dark(c, 90)
-    cuaderno_abierto(c, 540, 820, 1.05, T)
+def sc_pegada(T):   # F19: Sofía intenta pasar la página del mensaje: está pegada; por el borde asoma una nota "Para: Andrea"
+    t0 = S("F19") - .15; tp = WT("F19", "pegada.") - .2; tn = WT("F19", "nota,") - .1
+    c = fondo_libro(T, t0)
+    cuaderno_abierto(c, *CB, T, izq_reverso, der_msg(1e9))
     d = ImageDraw.Draw(c)
-    # esquina que Sofía intenta levantar y no se despega
-    tug = abs(math.sin((T - t0) * 7)) * 30 * clamp(1 - max(0, T - tn) / .5)
-    d.polygon([(1012, 1136), (1012 - 120, 1136), (1012, 1136 - 120 - tug)], fill=(232, 220, 190), outline=OL)
-    if T >= WT("F19", "pegada.") - .1: rotulo(c, T, WT("F19", "pegada.") - .1, "PEGADA", 860, 430, fill=(255, 255, 255), fg=ROSA, size=52, rot=6)
-    if T >= tn:   # la nota asoma por el borde
+    # la esquina se levanta un poco y vuelve: no se despega
+    tug = (abs(math.sin((T - t0) * 6)) * 70 if T < tn + .3 else 10)
+    x1, y1 = PX_R + PW, PY + PH
+    d.polygon([(x1, y1), (x1 - 150, y1), (x1 - 20 - tug * .3, y1 - 150 - tug)], fill=(244, 232, 204), outline=OL)
+    d.line((x1 - 150, y1, x1 - 20 - tug * .3, y1 - 150 - tug), fill=(200, 180, 150), width=3)
+    dedos(c, x1 - 50 - tug * .3, y1 - 120 - tug, T, .8)
+    if T >= tp: rotulo(c, T, tp, "¡ESTÁ PEGADA!", 540, 330, fill=(255, 255, 255), fg=ROSA, size=54, rot=-3)
+    if T >= tn:   # la nota asoma por el borde derecho, entre la página pegada y la siguiente
         u = ease((T - tn) / .8)
-        lay = Image.new("RGBA", (420, 230), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
-        dl.rounded_rectangle((0, 0, 419, 229), 12, fill=(255, 240, 160), outline=OL, width=5)
-        dl.text((210, 80), "Para:", font=font(F_HAND, 64), fill=TINTA, anchor="mm")
-        dl.line((70, 160, 350, 160), fill=TINTA, width=4)
-        dl.text((210, 145), "Andrea", font=font(F_HAND, 74), fill=(194, 58, 90), anchor="mm")
-        lay = lay.rotate(8, expand=True, resample=Image.BICUBIC); lay = lay.resize((int(lay.width * 1.3), int(lay.height * 1.3)))
-        c.alpha_composite(lay, (int(1040 - 520 * u), int(1060 - 120 * u)))
-        brillos(c, T, tn + .5, 860, 1000, 150, (255, 240, 170), 8)
-    mano(c, (1000, 1110 - tug), T, .55)
+        lay = Image.new("RGBA", (440, 240), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
+        dl.rounded_rectangle((0, 0, 439, 239), 12, fill=(255, 240, 160), outline=OL, width=5)
+        dl.text((220, 70), "Para:", font=font(F_HAND, 64), fill=TINTA, anchor="mm")
+        dl.text((220, 160), "Andrea", font=font(F_HAND, 84), fill=(194, 58, 90), anchor="mm")
+        lay = lay.rotate(-8, expand=True, resample=Image.BICUBIC)
+        c.alpha_composite(lay, (int(x1 - 120 - 260 * u), int(PY + 120)))
+        brillos(c, T, tn + .4, x1 - 160, PY + 240, 170, (255, 240, 170), 8)
+        rotulo(c, T, tn + .2, "UNA NOTA PARA TI", 540, 1250, size=50)
     return c
 
-# ---------------------------------------------------------------- final: dilema
 RAYO = [(600, 0), (560, 520), (612, 560), (522, 1100), (578, 1132), (480, H)]
 def _opcion(d, cx, cy, letra, txt, mas, menos, col, k):
     if k <= 0: return
@@ -559,20 +652,59 @@ SCENES = [
 IMPACTS = [WT("F04", "rompe"), WT("F04", "encierra"), WT("F05", "cae"), WT("F10", "fresca."), WT("F15", "salió!"), WT("F18", "dorada:")]
 SUAVES = {S("F07") - .15, S("F08") - .15, S("F16") - .15}
 
+# ---------------------------------------------------------------- cámara: un plano nuevo cada ~2 s
+SHOTS = {
+    "sc_llanto": (1.2, [(540, 900, 1.12), (540, 960, 1.0)]),
+    "sc_sof": (2.0, [(540, 860, 1.0), (440, 820, 1.45), (700, 820, 1.5), (540, 780, 1.2)]),
+    "sc_unica": (2.0, [(540, 760, 1.0), (540, 760, 1.4)]),
+    "sc_rompe": (1.8, [(540, 900, 1.0), (540, 1150, 1.3), (540, 800, 1.0)]),
+    "sc_desvan": (2.0, [(540, 760, 1.0), (760, 980, 1.4), (560, 1220, 1.35)]),
+    "sc_cuaderno": (1.9, [(540, 820, 1.0), (610, 620, 1.5), (560, 880, 1.75)]),
+    "sc_recuerdo": (1.7, [(540, 820, 1.0), (520, 640, 1.45), (590, 1000, 1.55)]),
+    "sc_abre": (2.0, [(540, 800, 1.0), (300, 800, 1.55), (540, 760, 1.15), (780, 740, 1.6), (780, 700, 1.85), (540, 800, 1.05), (780, 760, 1.5)]),
+    "sc_puerta": (2.0, [(540, 760, 1.15)]),
+    "sc_imprime": (2.0, [(540, 800, 1.0), (580, 700, 1.5), (540, 900, 1.1), (540, 700, 1.45), (500, 900, 1.0)]),
+    "sc_escribe": (2.0, [(540, 820, 1.0), (380, 780, 1.55), (540, 760, 1.2), (440, 780, 1.7), (560, 800, 1.1)]),
+    "sc_salio": (1.2, [(540, 800, 1.0), (540, 640, 1.4)]),
+    "sc_mensaje": (2.0, [(540, 800, 1.0), (300, 800, 1.6), (540, 800, 1.1), (540, 800, 1.0), (780, 680, 1.6), (780, 860, 1.7), (540, 800, 1.1)]),
+    "sc_dorada": (2.0, [(540, 820, 1.0), (540, 900, 1.08), (540, 960, 1.0), (540, 960, 1.0)]),
+    "sc_pegada": (1.8, [(540, 800, 1.0), (900, 1050, 1.6), (540, 820, 1.15), (860, 760, 1.5)]),
+    "sc_final": (99, [(540, 960, 1.0)]),
+}
+def camara(c, name, T, t0):
+    iv, shots = SHOTS.get(name, (99, [(540, 960, 1.0)]))
+    k = int((T - t0) / iv); cx, cy, z = shots[k % len(shots)]
+    u = ((T - t0) % iv) / iv; z = z * (1 + .025 * u)          # deriva lenta dentro de cada plano
+    if z <= 1.001 and abs(cx - 540) < 1 and abs(cy - 960) < 1: return c
+    z = max(z, 1.0); hw, hh = W / (2 * z), H / (2 * z)
+    cx = min(max(cx, hw), W - hw); cy = min(max(cy, hh), H - hh)
+    return c.crop((int(cx - hw), int(cy - hh), int(cx + hw), int(cy + hh))).resize((W, H), Image.BICUBIC)
+
+def escena(i, T):
+    """Pinta la escena i en T con su plano de cámara; los rótulos van encima, sin zoom."""
+    t0, fn = SCENES[i]
+    _OV.append(Image.new("RGBA", (W, H), (0, 0, 0, 0)))
+    try:
+        c = fn(T); c = camara(c, fn.__name__, T, t0)
+        c.alpha_composite(_OV[-1])
+    finally:
+        _OV.pop()
+    return c
+
 TW = .22
 def frame(T):
     idx = max(i for i, (t, f) in enumerate(SCENES) if T >= t)
     t0, fn = SCENES[idx]
-    c = fn(T)
+    c = escena(idx, T)
     u = (T - t0) / TW
     if idx > 0 and u < 1 and t0 not in SUAVES:   # whip-pan
-        e = ease(u); prev = SCENES[idx - 1][1](T)
+        e = ease(u); prev = escena(idx - 1, T)
         k = int(2 + 22 * math.sin(PI_ * u))
         cv = Image.new("RGBA", (W, H), (0, 0, 0, 255))
         cv.alpha_composite(R.hblur(prev, k), (int(-W * e), 0)); cv.alpha_composite(R.hblur(c, k), (int(W * (1 - e)), 0))
         c = cv
     elif idx > 0 and (T - t0) < .4 and t0 in SUAVES:
-        prev = SCENES[idx - 1][1](T); c = Image.blend(prev, c, ease((T - t0) / .4))
+        prev = escena(idx - 1, T); c = Image.blend(prev, c, ease((T - t0) / .4))
     punch = sum(.025 * math.exp(-(T - ch[0]) * 9) for ch in R.CH if 0 <= T - ch[0] < .5)
     zz = 1 + punch + .02 * ((T - t0) / 6 % 1)
     if zz > 1.002:
