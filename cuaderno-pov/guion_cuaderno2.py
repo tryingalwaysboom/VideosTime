@@ -1,0 +1,33 @@
+# "El cuaderno de la abuela" · Parte 2. Ganó B (abrirla juntas mañana). Punto fijo P2 (guía): aprenden la O;
+# de noche aparece una página nueva con tinta fresca; primera pista de fondo (pañuelo de flores en la ventana de enfrente).
+VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "S": "iFhPOZcajR7W3sDL39qJ", "A": "D3ws14YxTqcjPaXEOehR"}
+LINEAS = [
+ ("F01","S","[whispers, excited, sweet] ¡Mami, despierta! ¡La nota!",
+  "*¡Mami,* despierta! ¡La *nota!*"),
+ ("F02","N","Eligieron abrirla juntas. Sofía no durmió en toda la noche, esperando.",
+  "*Eligieron* abrirla *juntas.* Sofía no *durmió* en toda la noche, *esperando.*"),
+ ("F03","N","La despegan con cuidado. Y dice, con la letra de tu mamá…",
+  "La *despegan* con cuidado. Y dice, con la letra de tu *mamá…*"),
+ ("F04","A","[softly, warm] Enséñale la O como te la enseñé a ti: con un abrazo redondo.",
+  "Enséñale la *O* como te la enseñé a *ti:* con un *abrazo* *redondo.*"),
+ ("F05","S","[softly, curious, tender] ¿Un abrazo redondo? ¿Cómo se abraza una letra?",
+  "¿Un abrazo *redondo?* ¿Cómo se *abraza* una *letra?*"),
+ ("F06","N","[emotional] Y te acuerdas de golpe. Tu mamá te abrazaba por la espalda… y te guiaba la mano en círculo.",
+  "Y te *acuerdas* de golpe. Tu mamá te *abrazaba* por la espalda… y te guiaba la *mano* en *círculo.*"),
+ ("F07","N","Imprimes la hoja de la O. La abrazas por la espalda… y su crayola da la vuelta entera.",
+  "*Imprimes* la hoja de la *O.* La *abrazas* por la espalda… y su crayola da la *vuelta* entera."),
+ ("F08","S","[giggles, sweet, tender] ¡Es una O! ¡Me salió redondita!",
+  "*¡Es* una *O!* ¡Me salió *redondita!*"),
+ ("F09","N","Luego la escribe en el cuaderno, encima de la punteada.",
+  "Luego la escribe en el *cuaderno,* encima de la *punteada.*"),
+ ("F10","N","[suspense, whispers] Esa noche, con Sofía dormida, pasas por el desván… y la luz está encendida.",
+  "Esa *noche,* con Sofía *dormida,* pasas por el *desván…* y la luz está *encendida.*"),
+ ("F11","N","[whispers] En el cuaderno hay una página nueva. La tinta todavía brilla.",
+  "En el cuaderno hay una página *nueva.* La tinta todavía *brilla.*"),
+ ("F12","A","[softly, warm] Qué bonita O. Mañana, la F. Pregúntale qué quiere ser de mayor.",
+  "Qué bonita *O.* Mañana, la *F.* Pregúntale qué quiere ser de *mayor.*"),
+ ("F13","N","[whispers, suspense] Miras por la ventana… y en la casa de enfrente, una luz se apaga.",
+  "Miras por la *ventana…* y en la casa de *enfrente,* una luz se *apaga.*"),
+ ("F14","N","¿Te quedas esta noche a vigilar el desván… o le dejas una respuesta en el cuaderno?",
+  "¿Te quedas esta noche a *vigilar* el desván… o le dejas una *respuesta* en el cuaderno?"),
+]
