@@ -152,6 +152,23 @@ def _flores(cx, cy, s, cols):
         b += f'<circle cx="{x}" cy="{y}" r="{11 * s:.1f}" fill="#ffd24a" stroke="{OL}" stroke-width="3"/>'
     return b
 
+def _nina_cabeza():
+    """Tú (la mamá) con 5 años: media melena con flequillo y diadema azul (distinta de Sofía)."""
+    b = cel('<path d="M226 480 Q200 250 400 220 Q600 250 574 480 Q580 590 540 640 L260 640 Q220 590 226 480Z"/>', "#6b3a1e", "#4a2612", "#8a5230", -24, -10, 8)
+    b += neck(362, 590, 76, 70) + face(400, 430, 162)
+    b += cel('<path d="M238 410 Q236 250 400 236 Q564 250 562 410 Q520 330 400 340 Q280 330 238 410Z"/>', "#6b3a1e", "#4a2612", "#8a5230", -20, -10, 8)
+    b += '<path d="M250 330 Q400 230 550 330" stroke="#4a8fd8" stroke-width="22" fill="none" stroke-linecap="round"/>'
+    b += '<ellipse cx="290" cy="520" rx="40" ry="24" fill="#f08a7a" opacity="0.5"/><ellipse cx="510" cy="520" rx="40" ry="24" fill="#f08a7a" opacity="0.5"/>'
+    b += cel('<path d="M394 446 Q424 482 408 498 Q392 504 380 494 Q382 470 394 446Z"/>', SK, SKS, None, -8, -4, 5)
+    return b
+
+def nina_mama():
+    h = _nina_cabeza() + MA._cejas("feliz") + MA._ojos("neutral") + _pestanas() + MA._boca("timido")
+    torso = '<path d="M160 1900 L170 900 Q180 770 300 730 Q400 712 500 730 Q620 770 630 900 L640 1900Z"/>'
+    b = cel(torso, "#7fb0e6", "#5a8cc4", "#a6cbf2", -46, -8, 8)
+    b += f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>'
+    return svg(800, 1900, b)
+
 def cuaderno():
     """Cuaderno viejo cerrado: tapa verde salvia con flores, esquinas gastadas, etiqueta con un nombre de niña."""
     b = f'<rect x="60" y="40" width="680" height="900" rx="26" fill="#7a5a3e" stroke="{OL}" stroke-width="9"/>'
@@ -162,7 +179,7 @@ def cuaderno():
     # etiqueta con nombre a mano (garabato ilegible + subrayado)
     b += f'<rect x="200" y="420" width="420" height="190" rx="18" fill="#fbf3df" stroke="{OL}" stroke-width="7" transform="rotate(-3 410 515)"/>'
     b += '<text x="410" y="490" font-family="Caveat" font-weight="700" font-size="48" text-anchor="middle" fill="#6a5a4a" transform="rotate(-3 410 490)">Este cuaderno es de:</text>'
-    b += '<path d="M260 560 Q290 520 320 560 Q350 590 380 550 Q410 520 440 560 Q470 590 500 545 Q530 520 560 556" stroke="#c23a5a" stroke-width="9" fill="none" stroke-linecap="round" transform="rotate(-3 410 550)"/>'
+    b += '<text x="410" y="582" font-family="Caveat" font-weight="700" font-size="96" text-anchor="middle" fill="#c23a5a" transform="rotate(-6 410 560)">Andrea</text>'
     # desgaste
     b += '<path d="M40 860 Q90 900 140 920" stroke="#e8dfc8" stroke-width="10" fill="none" opacity="0.6"/>'
     return svg(780, 960, b)
@@ -175,7 +192,7 @@ def caja_desvan():
     return svg(800, 800, b)
 
 LAYERS = {"bg_desvan": bg_desvan, "bg_cuarto_sofia": bg_cuarto_sofia, "cuaderno": cuaderno, "caja_desvan": caja_desvan,
-          "sofia_mano_crayola": sofia_mano_crayola}
+          "sofia_mano_crayola": sofia_mano_crayola, "nina_mama": nina_mama}
 for k in ("neutral", "llora", "triste", "timido", "feliz", "enojado"):
     LAYERS["sofia_" + k] = (lambda kk: (lambda: sofia(kk)))(k)
     LAYERS["sofia_" + k + "_hab"] = (lambda kk: (lambda: sofia(kk, True)))(k)
