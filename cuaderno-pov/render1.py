@@ -20,14 +20,14 @@ F_HAND = os.path.join(MF, "Caveat.ttf"); F_BAL = os.path.join(MF, "Baloo2-ExtraB
 PI_ = math.pi
 ORO = (255, 196, 60); ROSA = (232, 85, 109); TINTA = (52, 58, 130); CREMA = (252, 244, 226)
 
-R.GAP.update({"F02": .2, "F03": .2, "F04": .25, "F05": .45, "F06": .25, "F07": .3, "F08": .25, "F09": .2, "F10": .3,
-              "F11": .3, "F12": .3, "F13": .2, "F14": .2, "F15": .2, "F16": .3, "F17": .2, "F18": .3, "F19": .3, "F20": .3})
+R.GAP.update({"F02": .2, "F03": .2, "F04": .25, "F05": .3, "F06": .25, "F07": .3, "F08": .25, "F09": .2, "F10": .2,
+              "F11": .2, "F12": .3, "F13": .2, "F14": .2, "F15": .2, "F16": .2, "F17": .2, "F18": .2, "F19": .2, "F20": .3})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}
 R.TOTAL = R.TL["F20"][1] + .1          # corte en seco ~0,1 s tras la última palabra
 R.CH = R.chunks(); TL = R.TL; TOTAL = R.TOTAL
 S, E, WT = R.S, R.E, R.WT
-R.NOMBRE = {"S": "SOFÍA", "A": "LA NOTA DEL CUADERNO"}
+R.NOMBRE = {"S": "SOFÍA", "A": "NOTA DE TU MAMÁ (LA ABUELA)"}
 R.HIDE_LAST_CAPTION = False
 
 def talk(lid, T): return S(lid) <= T < E(lid)
@@ -268,26 +268,41 @@ def sc_cuaderno(T):   # F06: el cuaderno de flores con tu nombre
         brillos(c, T, WT("F06", "flores."), 560, 600, 200, (255, 200, 220), 8)
     return c
 
-def sc_recuerdo(T):   # F07: hace treinta años
+def foto_infancia(k=1.0):
+    """Foto vieja (sepia): tú con 5 años escribiendo en este mismo cuaderno; la mano de tu mamá te guía.
+    A la abuela no se le ve la cara (canon: no se ve hasta la Parte 14), solo su manga de flores."""
+    ph = Image.new("RGBA", (W, H), (236, 210, 170, 255)); d = ImageDraw.Draw(ph)
+    d.rectangle((0, 1150, W, H), fill=(190, 140, 96))
+    put(ph, "nina_mama", 400, 760 + 360, .9)
+    put(ph, "cuaderno", 560, 1300, .5, rot=-10)
+    # brazo de tu mamá entrando por la derecha, manga con flores, mano sobre la tuya
+    d.polygon([(W, 900), (W, 1120), (760, 1290), (700, 1200)], fill=(150, 110, 190), outline=OL)
+    for (x, y) in ((900, 1040), (980, 990), (820, 1150), (950, 1100)):
+        for j in range(5):
+            a = j * 2 * PI_ / 5; d.ellipse((x + 14 * math.cos(a) - 11, y + 14 * math.sin(a) - 11, x + 14 * math.cos(a) + 11, y + 14 * math.sin(a) + 11), fill=(245, 150, 180))
+        d.ellipse((x - 7, y - 7, x + 7, y + 7), fill=(255, 210, 74))
+    d.ellipse((610, 1170, 760, 1300), fill=(243, 194, 155), outline=OL, width=5)
+    d.ellipse((540, 1230, 640, 1310), fill=(243, 194, 155), outline=OL, width=4)
+    g = ph.convert("L"); sep = Image.merge("RGBA", (g.point(lambda v: min(255, int(v * 1.05) + 30)), g.point(lambda v: min(255, v + 10)), g.point(lambda v: int(v * .82)), Image.new("L", (W, H), 255)))
+    return sep
+
+_FOTO = {}
+def sc_recuerdo(T):   # F07: es TU cuaderno; con él te enseñó a escribir TU mamá (= la abuela de Sofía)
     t0 = S("F07") - .15
-    c = Image.new("RGBA", (W, H), (60, 44, 30, 255))
-    base = R.layer("bg_desvan").resize((W, H)).filter(ImageFilter.GaussianBlur(8))
-    g = base.convert("L").point(lambda v: int(v * .9)); sep = Image.merge("RGBA", (g.point(lambda v: min(255, v + 40)), g.point(lambda v: min(255, v + 18)), g, Image.new("L", (W, H), 255)))
-    c.alpha_composite(sep)
-    # polaroid del cuaderno nuevo (de cuando eras niña)
-    k = .9 + .05 * clamp((T - t0) / 5)
-    pol = Image.new("RGBA", (int(620 * k), int(760 * k)), (250, 246, 236, 255)); dp = ImageDraw.Draw(pol)
-    dp.rectangle((0, 0, pol.width - 1, pol.height - 1), outline=OL, width=5)
-    tmp = Image.new("RGBA", (W, H), (255, 230, 190, 255)); put(tmp, "cuaderno", 540, 960, .8)
-    tmp = tmp.crop((140, 480, 940, 1440)).resize((int(540 * k), int(560 * k)))
-    pol.alpha_composite(tmp, (int(40 * k), int(40 * k)))
-    dp.text((pol.width / 2, pol.height - 80 * k), "hace 30 años", font=font(F_HAND, 64 * k), fill=(90, 70, 60), anchor="mm")
-    pol = pol.rotate(5, expand=True, resample=Image.BICUBIC)
+    c = bgz("bg_desvan", T, t0, 1.25, 1.3, 6).filter(ImageFilter.GaussianBlur(8)).copy(); R.dark(c, 110)
+    if "f" not in _FOTO: _FOTO["f"] = foto_infancia().crop((60, 360, 1020, 1500)).resize((640, 760))
+    k = .92 + .05 * clamp((T - t0) / 5)
+    pol = Image.new("RGBA", (700, 920), (250, 246, 236, 255)); dp = ImageDraw.Draw(pol)
+    pol.alpha_composite(_FOTO["f"], (30, 30)); dp.rectangle((0, 0, 699, 919), outline=OL, width=5)
+    dp.text((350, 850), "yo, con 5 años", font=font(F_HAND, 64), fill=(90, 70, 60), anchor="mm")
+    pol = pol.resize((int(700 * k), int(920 * k))).rotate(4, expand=True, resample=Image.BICUBIC)
     c.alpha_composite(pol, (int(540 - pol.width / 2), int(820 - pol.height / 2)))
-    if T >= WT("F07", "mamá,"): rotulo(c, T, WT("F07", "mamá,"), "TU MAMÁ TE ENSEÑÓ", 540, 330, fill=(255, 236, 200), size=50)
+    if T >= WT("F07", "mamá,") - .1:
+        rotulo(c, T, WT("F07", "mamá,") - .1, "TU MAMÁ = LA ABUELA DE SOFÍA", 540, 300, fill=(255, 236, 200), size=44, rot=-2)
+    if T >= WT("F07", "treinta") - .1:
+        rotulo(c, T, WT("F07", "treinta") - .1, "HACE 30 AÑOS", 540, 1330, size=50, rot=3)
     return c
 
-# ---------------------------------------------------------------- cuaderno abierto (páginas)
 def cuaderno_abierto(c, cx, cy, s, T, izq=None, der=None):
     """Dibuja el cuaderno abierto; izq/der son funciones que pintan sobre cada página (reciben (c, x0, y0, s))."""
     w, h = 900 * s, 640 * s
@@ -325,13 +340,15 @@ def sc_abre(T):   # F08-F10: abres; la S punteada; la nota aparece; la tinta est
         cx, cy = 780, 700
         tmp = tmp.resize((int(W * z), int(H * z)), Image.BICUBIC).crop((int(cx * z - cx), int(cy * z - cy), int(cx * z - cx) + W, int(cy * z - cy) + H))
     c.alpha_composite(tmp)
+    if WT("F08", "mamá…") - .1 <= T < tz:
+        rotulo(c, T, WT("F08", "mamá…") - .1, "LETRA DE TU MAMÁ", 760, 380, fill=(255, 255, 255), fg=TINTA, size=42, rot=3)
     if T >= WT("F10", "fresca.") - .1:   # brillo húmedo de la tinta
         d = ImageDraw.Draw(c); ph = (T - WT("F10", "fresca.")) * 1.4 % 1
         for k in range(3):
             x = 380 + ph * 600 + k * 40; d.line((x, 500, x - 80, 900), fill=(255, 255, 255, 70), width=18)
         rotulo(c, T, WT("F10", "fresca.") - .1, "TINTA FRESCA", 540, 1200, fill=(255, 255, 255), fg=TINTA, size=56)
     elif T >= WT("F10", "niña.") - .2 and T < tz:
-        rotulo(c, T, WT("F10", "niña.") - .2, "¿ESTO NO ESTABA?", 540, 1230, size=48)
+        rotulo(c, T, WT("F10", "niña.") - .2, "ANTES NO ESTABA", 540, 1230, size=48)
     return c
 
 def sc_puerta(T):   # F11: Sofía se asoma
@@ -351,20 +368,32 @@ def pg(s):
     if s not in _PS: _PS[s] = pagina_s(s)
     return _PS[s]
 
-def sc_imprime(T):   # F12: imprimes la hoja de la S y se sientan juntas en el suelo
-    t0 = S("F12") - .15; tj = WT("F12", "juntas")
+def sc_imprime(T):   # F12: el cuaderno es muy viejo -> imprimes la hoja de la S para practicar primero -> se sientan juntas
+    t0 = S("F12") - .15; tp = WT("F12", "imprimes") - .15; tj = WT("F12", "juntas") - .3
     c = bgz("bg_desvan", T, t0, 1.05, 1.1, 6).copy()
-    if T < tj - .3:   # la hoja sale de la impresora
+    if T < tp:   # el cuaderno viejo: hojas amarillas que se deshacen
+        R.dark(c, 90)
+        def izq(cc, x0, y0, s): s_punteada(cc, x0, y0, s)
+        tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0)); cuaderno_abierto(tmp, 540, 800, 1.0, T, izq, None)
+        d = ImageDraw.Draw(tmp)
+        for k in range(14):   # migas de papel que caen
+            x = 300 + (k * 53) % 520; y = 1120 + ((T - t0) * 160 + k * 37) % 260
+            d.polygon([(x, y), (x + 10, y + 4), (x + 4, y + 12)], fill=(230, 210, 170))
+        d.line((560, 470, 600, 620, 580, 760), fill=(150, 120, 80), width=4)   # grieta en la hoja
+        c.alpha_composite(tmp)
+        rotulo(c, T, WT("F12", "viejo…") - .1, "MUY VIEJO", 540, 1230, fill=(255, 255, 255), fg=(150, 90, 40), size=54)
+    elif T < tj:   # la hoja sale de la impresora
         R.dark(c, 90); d = ImageDraw.Draw(c)
         d.rounded_rectangle((210, 980, 870, 1260), 30, fill=(236, 236, 242), outline=OL, width=8)
         d.rectangle((260, 1000, 820, 1030), fill=(60, 60, 70))
-        u = ease((T - t0 - .2) / 1.6); im = pg(.48)
+        u = ease((T - tp - .1) / 1.6); im = pg(.48)
         crop = im.crop((0, im.height - int(im.height * u), im.width, im.height)) if u > 0 else None
         if crop and crop.height > 2: c.alpha_composite(crop, (int(540 - im.width / 2), int(1010 - crop.height)))
         d.rounded_rectangle((210, 1030, 870, 1260), 30, fill=(236, 236, 242), outline=OL, width=8)
         d.ellipse((780, 1100, 820, 1140), fill=(95, 191, 106))
-    else:   # en el suelo del desván: la hoja y Sofía al lado
-        k = ease((T - tj + .3) / .4)
+        if T >= WT("F12", "practique") - .1: rotulo(c, T, WT("F12", "practique") - .1, "PRIMERO, PRACTICAR", 540, 1330, size=50)
+    else:   # en el suelo del desván: la hoja impresa delante, el cuaderno guardado al lado
+        k = ease((T - tj) / .4)
         sofia(c, "neutral", 300, 900, .9, T)
         im = pg(.5).rotate(4, expand=True, resample=Image.BICUBIC)
         c.alpha_composite(im, (int(600 - im.width / 2), int(900 - im.height / 2 + 400 * (1 - k))))
@@ -405,25 +434,36 @@ def sc_salio(T):   # F15
     confeti(c, T, t0)
     return c
 
-def sc_mensaje(T):   # F16-F17: pasas la página: mensaje nuevo, leído por la voz de la abuela
-    t0 = S("F16") - .15; tf = WT("F16", "página.")
+def sc_mensaje(T):   # F16-F17: escribe su S EN EL CUADERNO, encima de la punteada; pasas la página: mensaje de tu mamá
+    t0 = S("F16") - .15; ta = WT("F16", "escribe") - .1; tb = WT("F16", "punteada.") + .2; tf = WT("F16", "página…")
     c = bgz("bg_desvan", T, t0, 1.3, 1.36, 9).filter(ImageFilter.GaussianBlur(7)).copy(); R.dark(c, 80)
+    def S_cuaderno(x0, y0, s): return s_path(x0 + 225 * s, y0 + 150 * s, 330 * s)
+    if T < tf - .1:   # escribe su S en el cuaderno, sobre la punteada
+        tip = [None]
+        def izq(cc, x0, y0, s):
+            s_punteada(cc, x0, y0, s)
+            if T >= ta:
+                pts = recorrido(S_cuaderno(x0, y0, s), (T - ta) / max(.3, tb - ta)); trazo(cc, pts, 18 * s, ROSA)
+                if T < tb + .1: tip[0] = pts[-1]
+        cuaderno_abierto(c, 540, 800, 1.05, T, izq, None)
+        rotulo(c, T, WT("F16", "cuaderno,") - .1, "AHORA, EN EL CUADERNO", 540, 330, size=46, rot=-2)
+        if tip[0]: mano(c, tip[0], T, .62)
+        return c
+    def izq(cc, x0, y0, s):
+        s_punteada(cc, x0, y0, s); trazo(cc, S_cuaderno(x0, y0, s), 18 * s, ROSA)
     def der(cc, x0, y0, s):
         if T >= S("F17") - .05:
             manuscrito(cc, ["Tu mamá también", "decía que no servía", "para escribir.", "Lloró tres tardes", "con esta misma S."],
                        T, S("F17"), E("F17") - .3, x0 + 225 * s, y0 + 70 * s, int(46 * s), TINTA, int(70 * s), 2)
-    def izq(cc, x0, y0, s):
-        # la S rosa de Sofía (ya escrita) + la vieja S de cuando eras niña, desvaída
-        trazo(cc, s_path(x0 + 160 * s, y0 + 170 * s, 260 * s, .5, 11), 14 * s, (180, 140, 150))
-        trazo(cc, s_path(x0 + 320 * s, y0 + 170 * s, 260 * s), 14 * s, ROSA)
-    if T < tf + .05:   # la hoja dando la vuelta
-        u = clamp((T - t0) / max(.1, tf - t0 + .05))
+    if T < tf + .5:   # la hoja dando la vuelta
+        u = clamp((T - tf + .1) / .6)
         tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0)); cuaderno_abierto(tmp, 540, 800, 1.05, T, izq, None)
         d = ImageDraw.Draw(tmp); xr = 540 + 472 * math.cos(u * PI_)
         d.polygon([(540, 464), (xr, 464 - 40 * math.sin(u * PI_)), (xr, 1136 + 40 * math.sin(u * PI_)), (540, 1136)], fill=(244, 232, 204), outline=OL)
         c.alpha_composite(tmp)
     else:
         cuaderno_abierto(c, 540, 800, 1.05, T, izq, der)
+        if T >= S("F17") - .05: rotulo(c, T, S("F17") - .05, "LETRA DE TU MAMÁ", 760, 360, fill=(255, 255, 255), fg=TINTA, size=42, rot=3)
         if T >= WT("F17", "S."): rotulo(c, T, WT("F17", "S.") - .1, "TÚ TAMBIÉN LLORASTE", 540, 1230, size=50)
     return c
 
@@ -462,7 +502,7 @@ def sc_pegada(T):   # F19: la página siguiente está pegada; asoma una nota con
         dl.rounded_rectangle((0, 0, 419, 229), 12, fill=(255, 240, 160), outline=OL, width=5)
         dl.text((210, 80), "Para:", font=font(F_HAND, 64), fill=TINTA, anchor="mm")
         dl.line((70, 160, 350, 160), fill=TINTA, width=4)
-        dl.text((210, 145), "~ tu nombre ~", font=font(F_HAND, 54), fill=TINTA, anchor="mm")
+        dl.text((210, 145), "Andrea", font=font(F_HAND, 74), fill=(194, 58, 90), anchor="mm")
         lay = lay.rotate(8, expand=True, resample=Image.BICUBIC); lay = lay.resize((int(lay.width * 1.3), int(lay.height * 1.3)))
         c.alpha_composite(lay, (int(1040 - 520 * u), int(1060 - 120 * u)))
         brillos(c, T, tn + .5, 860, 1000, 150, (255, 240, 170), 8)
