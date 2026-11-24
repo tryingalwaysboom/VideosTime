@@ -7,7 +7,7 @@ LINEAS = importlib.import_module(MOD).LINEAS
 SRC = os.path.join(HERE, "..", "descargas", f"cuaderno_{EP}" if EP.startswith("story") else f"cuaderno_ep{EP}")
 DST = os.path.join(HERE, ("voz_" if EP.startswith("story") else "voz") + EP); os.makedirs(DST, exist_ok=True)
 TEMPO = {"N": 1.07, "S": 1.03, "A": 1.0, "K": 1.0}
-if EP.endswith("b"): TEMPO = {"N": 1.12, "S": 1.06, "A": 1.0, "K": 1.0}
+if EP.endswith("b") or EP == "3": TEMPO = {"N": 1.12, "S": 1.06, "A": 1.0, "K": 1.0}
 PITCH = {"S": 1.14, "K": 1.13}
 VOCES = importlib.import_module(MOD).VOCES
 if VOCES.get("S") == "iFhPOZcajR7W3sDL39qJ": PITCH["S"] = 1.08   # Blackie (voz fija de Sofía desde la Parte 2)   # Sofía: voz de niña de 5 años
