@@ -119,7 +119,7 @@ def sc_ranking(T):   # F02: el comentario con más corazones sale en el siguient
     t0 = S("F02") - .15
     c = bgz("bg_cuarto", T, t0, 1.2, 1.28).filter(ImageFilter.GaussianBlur(10)); R.dark(c, 105)
     tw = WT("F02", "corazones") - .2; ts = WT("F02", "siguiente") - .2
-    pos = [(540, 620, 1.0), (540, 860, 1.0), (540, 1100, 1.0)]
+    pos = [(420, 540, 1.45), (420, 880, 1.45), (420, 1220, 1.45)]
     for i, (x, y, s) in enumerate(pos):
         ti = t0 + .1 + i * .2
         if T < ti: continue
@@ -129,33 +129,33 @@ def sc_ranking(T):   # F02: el comentario con más corazones sale en el siguient
         burbuja(c, x - 40, y, s * (1.12 if grande else 1), k, 2)
         d = ImageDraw.Draw(c); n = 5 if grande else (2 if i == 0 else 1)
         for j in range(n):   # corazones de votos (más = más corazones)
-            hx = x + 210 + j * 34 - (n - 1) * 17; hy = y - 10 * abs(math.sin(T * 6 + j)) if grande else y
-            corazon(d, hx, hy, 15 if not grande else 17, ROSA)
-        if grande: corona(d, x - 40, y - 95 * s, .9)
-    if T >= tw: rot(c, T, tw, "EL DE MÁS CORAZONES", 540, 330, fill=ROSA, fg=WHITE, size=60)
-    if T >= ts: rot(c, T, ts, "¡SALE EN EL PRÓXIMO VIDEO!", 540, 1290, fill=YEL, size=54, rot=3)
-    return cam(c, T, t0, [(540, 880, 1.0), (540, 860, 1.1)], 1.6)
+            hx = x + (330 if grande else 290) + j * (46 if grande else 52); hy = y - 10 * abs(math.sin(T * 6 + j)) if grande else y
+            corazon(d, hx, hy, 24 if not grande else 28, ROSA)
+        if grande: corona(d, x - 250, y - 100, 1.1)
+    if tw <= T < ts: rot(c, T, tw, "EL DE MÁS CORAZONES", 540, 330, fill=ROSA, fg=WHITE, size=60)
+    if T >= ts: rot(c, T, ts, "¡SALE EN EL PRÓXIMO VIDEO!", 540, 330, fill=YEL, size=56)
+    return cam(c, T, t0, [(540, 880, 1.0), (540, 880, 1.06)], 1.6)
 
 def sc_tuyo(T):   # F03: ¡El tuyo puede ser el próximo! Comenta... dale corazón
     t0 = S("F03") - .15; tc = WT("F03", "Comenta") - .15; th = WT("F03", "corazón") - .2
     c = bgz("bg_cuarto", T, t0, 1.04, 1.1)
     if T < tc:
-        mateo(c, 540, 840, 1.0, T, "F03", "timido"); rex(c, T, 720, 1050, .36, -6)
+        mateo(c, 540, 840, 1.0, T, "F03", "timido"); rex(c, T, 770, 980, .32, -6)
         rot(c, T, WT("F03", "tuyo") - .2, "¡EL TUYO PUEDE SER EL PRÓXIMO!", 540, 330, fill=YEL, size=50)
         return cam(c, T, t0, [(540, 700, 1.36), (560, 780, 1.22)], 1.4)
-    mateo(c, 540, 840, 1.0, T, "F03", "feliz"); rex(c, T, 720, 1050, .36, -6)
-    rot(c, T, tc, "COMENTA", 540, 330, fill=ROSA, fg=WHITE, size=72)
+    mateo(c, 540, 840, 1.0, T, "F03", "feliz"); rex(c, T, 770, 980, .32, -6)
+    if T < th: rot(c, T, tc, "COMENTA", 540, 330, fill=ROSA, fg=WHITE, size=72)
     if T >= th:
         d = ImageDraw.Draw(c); k = back((T - th) / .35)
         corazon(d, 820, 880, int(70 * k * (1 + .1 * math.sin(T * 9))), ROSA)
         corazones(c, T, th, 12, 5, 1250)
-        rot(c, T, th, "DALE ❤ A TU FAVORITO".replace("❤", "CORAZÓN"), 540, 1250, fill=WHITE, size=48, rot=3)
+        rot(c, T, th, "DALE CORAZÓN A TU FAVORITO", 540, 330, fill=ROSA, fg=WHITE, size=52)
     return cam(c, T, tc, [(540, 720, 1.3), (560, 790, 1.18)], 1.4)
 
 def sc_gracias(T):   # F04: Leemos todos sus comentarios. Gracias por acompañarnos
     t0 = S("F04") - .15; tg = WT("F04", "Gracias") - .2
     c = bgz("bg_cuarto", T, t0, 1.05, 1.12)
-    mateo(c, 540, 840, 1.0, T, None, "feliz"); rex(c, T, 720, 1050, .36, -6)
+    mateo(c, 540, 840, 1.0, T, None, "feliz"); rex(c, T, 770, 980, .32, -6)
     if T < tg:
         tl = t0 + .1
         for i, (x, y) in enumerate(((250, 560), (830, 700), (260, 980))):
