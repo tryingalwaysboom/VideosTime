@@ -3,7 +3,7 @@ Uso: python3 render_story_ayuda.py voz | still 1 5 | info | video"""
 import os, sys, math, json, re, shutil, subprocess, random
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
-VOZD = os.path.join(HERE, "voz_story_ayuda"); SRC = os.path.join(ROOT, "descargas", "mateo_story_ayuda")
+VOZD = os.path.join(HERE, "voz_story_ayuda"); SRC = os.path.join(ROOT, "descargas", "mateo_story_ayuda2")
 import guion_story_ayuda as G
 
 def prep_voz():   # mismo tratamiento que prep_voz.py de la serie (Mateo más agudo, mamá un pelín más rápida)
