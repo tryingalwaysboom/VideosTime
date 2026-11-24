@@ -1,6 +1,6 @@
 # "El cuaderno de la abuela" · Parte 2. Ganó B (abrirla juntas mañana). Punto fijo P2 (guía): aprenden la O;
 # de noche aparece una página nueva con tinta fresca; primera pista de fondo (pañuelo de flores en la ventana de enfrente).
-VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "S": "iFhPOZcajR7W3sDL39qJ", "A": "D3ws14YxTqcjPaXEOehR"}
+VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "S": "qSd0nNFPQdeWlFXiPj2l", "A": "D3ws14YxTqcjPaXEOehR"}
 LINEAS = [
  ("H1","S","[sobbing softly, sad, tender] Mami… mi O parece un huevo.",
   "*Mami…* mi *O* parece un *huevo.*"),
