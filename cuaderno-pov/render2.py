@@ -787,8 +787,8 @@ def sc_final(T):   # F14: el dilema, como en Mateo
         x = 540 + (k - 2) * 86; y = 345
         d.rounded_rectangle((x - 34, y - 42, x + 34, y + 42), 10, fill=(40, 28, 60), outline=ORO, width=4)
         d.text((x, y), "C" if k == 0 else "?", font=font(F_BAL, 52), fill=ORO if k == 0 else (130, 110, 160), anchor="mm")
-    _tarjeta(c, 262, 720, "A", ["TE QUEDAS", "A VIGILAR"], "ves quién es", "puede asustarse", (96, 78, 200), R.popscale(T, ta, .35), 1.07 if hiA else 1.0)
-    _tarjeta(c, 818, 720, "B", ["LE DEJAS", "UNA", "RESPUESTA"], "te contesta", "sigues sin verla", (226, 76, 108), R.popscale(T, tb, .35), 1.07 if hiB else 1.0)
+    _tarjeta(c, 262, 720, "A", ["TE QUEDAS", "A VIGILAR"], "quizá lo descubres", "noche sin dormir", (96, 78, 200), R.popscale(T, ta, .35), 1.07 if hiA else 1.0)
+    _tarjeta(c, 818, 720, "B", ["LE DEJAS", "UNA", "RESPUESTA"], "te contesta", "no sabrás quién es", (226, 76, 108), R.popscale(T, tb, .35), 1.07 if hiB else 1.0)
     return c
 
 def etiqueta_serie(c, T):
