@@ -20,7 +20,7 @@ F_HAND = os.path.join(MF, "Caveat.ttf"); F_BAL = os.path.join(MF, "Baloo2-ExtraB
 PI_ = math.pi
 ORO = (255, 196, 60); ROSA = (232, 85, 109); TINTA = (52, 58, 130); CREMA = (252, 244, 226)
 
-R.GAP.update({"F02": .25, "F03": .25, "F04": .45, "F05": .3, "F06": .35, "F07": .3, "F08": 1.5, "F08B": .3, "F08C": .3,
+R.GAP.update({"H2": .3, "F03": .25, "F04": .45, "F05": .3, "F06": .35, "F07": .3, "F08": 1.5, "F08B": .3, "F08C": .3,
               "F09": .5, "F10": .6, "F11": .8, "F12": .4, "F13": .8, "F14": .4})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}
@@ -454,56 +454,60 @@ def tinta_brilla(c, T, t0, x0, y0, w, h):
     brillos(c, T, t0, x0 + w / 2, y0 + h / 2 - 40, min(w, h) * .45, (200, 220, 255), 8)
 
 # ================================================================ ESCENAS PARTE 2
-def sc_despierta(T):   # F01 (segundo 0): de madrugada, Sofía te despierta con la nota "Para: Andrea" brillando
-    c = bgz("bg_cuarto_sofia", T, 0, 1.12, 1.04, 4).copy(); noche(c, 135)
-    glow(c, 540, 860, 330, (255, 220, 130), 170, 60)
-    sofia(c, "feliz", 540, 470, .88, T, "F01")
-    d = ImageDraw.Draw(c)   # tu manta (estás en la cama): tapa el final del cuerpo
-    d.rounded_rectangle((-60, 1240, W + 60, H + 60), 80, fill=(92, 104, 150), outline=OL, width=7)
-    for k in range(6): d.arc((-40 + k * 200, 1300, 160 + k * 200, 1420), 200, 340, fill=(70, 80, 122), width=6)
-    n = nota_andrea(1.3, -6 + 3 * math.sin(T * 3))
-    c.alpha_composite(n, (int(540 - n.width / 2), int(860 - n.height / 2 + 8 * math.sin(T * 4))))
-    brillos(c, T, 0, 540, 860, 300, (255, 236, 160), 12)
+def hoja_huevo(c, cx, cy, s, rot=-4, aro=1.0, wob=1.0, seed=7):
+    """Hoja rayada con una O torcida (huevo) enorme y un aro rojo de corrector."""
+    lay = Image.new("RGBA", (int(760 * s), int(620 * s)), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle((0, 0, lay.width - 1, lay.height - 1), int(14 * s), fill=(253, 250, 240), outline=OL, width=max(3, int(6 * s)))
+    for k in range(5):
+        y = int((110 + k * 110) * s); d.line((int(30 * s), y, int(730 * s), y), fill=(150, 190, 230), width=max(2, int(4 * s)))
+    pts = [(x + 380 * s - 380 * s, y) for x, y in o_path(380 * s, 310 * s, 150 * s, 235 * s, wob, seed)]
+    pts = [(x + (y - 310 * s) * .22, y) for x, y in pts]          # aplastada y torcida: parece un huevo
+    trazo(lay, pts, 20 * s, (226, 86, 108))
+    if aro > 0:
+        ring = recorrido(o_path(380 * s, 310 * s, 250 * s, 290 * s, 0.3, 3), aro); d = ImageDraw.Draw(lay)
+        d.line(ring, fill=(214, 40, 40), width=max(5, int(14 * s)), joint="curve")
+    lay = lay.rotate(rot, expand=True, resample=Image.BICUBIC)
+    c.alpha_composite(lay, (int(cx - lay.width / 2), int(cy - lay.height / 2)))
+
+def sc_huevo(T):   # H1 (segundo 0): Sofía llora y enseña su O torcida enorme: "mi O parece un huevo"
+    c = bgz("bg_cuarto_sofia", T, 0, 1.06, 1.0, 4).copy()
+    sofia(c, "llora", 540, 560, .88, T, "H1")
+    lagrimas(c, 540, 560, .88, T)
+    hoja_huevo(c, 540, 1130, 1.18, -4 + 2 * math.sin(T * 5), clamp((T - .25) / .6))
     return c
 
-def sc_eligieron(T):   # F02: cartel ELIGIERON (opción B) -> Sofía no durmió esperando
-    t0 = S("F02") - .15; tn = WT("F02", "Sofía") - .15
-    if T < tn:
-        c = bgz("bg_cuarto_sofia", T, t0, 1.1, 1.16, 4).filter(ImageFilter.GaussianBlur(9)).copy()
-        c.alpha_composite(Image.new("RGBA", (W, H), (255, 150, 120, 60))); R.dark(c, 60)
-        k = R.popscale(T, t0 + .05, .4)
-        if k > 0:
-            d = ImageDraw.Draw(c)
-            d.text((540, 380), "ELIGIERON", font=font(F_ANTON, int(130 * k) + 1), fill=YEL, anchor="mm", stroke_width=10, stroke_fill=OL)
-        _tarjeta(c, 540, 760, "B", ["LA ABREN", "JUNTAS", "MAÑANA"], "lo viven juntas", "una noche de dudas", (226, 76, 108), R.popscale(T, t0 + .25, .4), 1.25)
-        if T >= WT("F02", "juntas.") - .1:   # sello de ganadora
-            kk = R.popscale(T, WT("F02", "juntas.") - .1, .3)
-            lay = Image.new("RGBA", (420, 150), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
-            dl.rounded_rectangle((0, 0, 419, 149), 20, outline=(60, 190, 90), width=12)
-            dl.text((210, 76), "GANÓ", font=font(F_ANTON, 100), fill=(60, 190, 90), anchor="mm")
-            lay = lay.rotate(-14, expand=True, resample=Image.BICUBIC)
-            if kk > .05:
-                lay = lay.resize((max(1, int(lay.width * kk)), max(1, int(lay.height * kk))))
-                c.alpha_composite(lay, (int(800 - lay.width / 2), int(1180 - lay.height / 2)))
-        return c
-    c = bgz("bg_cuarto_sofia", T, tn, 1.0, 1.06, 5).copy(); noche(c, 150)
-    d = ImageDraw.Draw(c)
-    d.ellipse((820, 260, 940, 380), fill=(255, 246, 200)); d.ellipse((790, 240, 900, 350), fill=AZUL_NOCHE + (255,))   # luna
-    # Sofía en la cama con los ojos bien abiertos, la nota bajo la almohada
-    d.ellipse((120, 360, 960, 860), fill=(236, 230, 246), outline=OL, width=6)
-    sofia(c, "timido", 540, 620, .82, T)
-    d = ImageDraw.Draw(c)
-    d.rounded_rectangle((90, 760, 990, 1500), 50, fill=(150, 178, 226), outline=OL, width=7)
-    n = nota_andrea(.6, 8); c.alpha_composite(n, (700, 700))
-    # reloj que corre toda la noche
-    u = clamp((T - tn) / max(.5, E("F02") - tn)); cx, cy = 230, 330
-    d.ellipse((cx - 95, cy - 95, cx + 95, cy + 95), fill=(255, 255, 255), outline=OL, width=7)
-    a = -PI_ / 2 + u * 2 * PI_ * 6; d.line((cx, cy, cx + 70 * math.cos(a), cy + 70 * math.sin(a)), fill=OL, width=7)
-    a2 = -PI_ / 2 + u * 2 * PI_ * .5 + PI_ * .6; d.line((cx, cy, cx + 45 * math.cos(a2), cy + 45 * math.sin(a2)), fill=ROSA, width=10)
-    if T >= WT("F02", "durmió") - .1: rotulo(c, T, WT("F02", "durmió") - .1, "NO DURMIÓ", 540, 1250, size=56)
+def sc_intentos(T):   # H2 (1): diez intentos, todas huevos
+    t0 = S("H2") - .15
+    c = Image.new("RGBA", (W, H), (0, 0, 0, 255)); c.alpha_composite(bgz("bg_cuarto_sofia", T, t0, 1.1, 1.18, 6).filter(ImageFilter.GaussianBlur(8)))
+    R.dark(c, 70)
+    tf = WT("H2", "huevos.") - .1; paso = max(.14, (tf - t0 - .3) / 10)
+    n = min(10, int(max(0.0, (T - t0 - .05) / paso)) + (1 if T >= t0 + .05 else 0))
+    pos = lambda k: (290 + (k % 2) * 500 + ((k // 2) % 2) * 20, 500 + (k // 2) * 215)
+    for k in range(min(n, 10)):
+        x, y = pos(k); sc = R.popscale(T, t0 + .05 + k * paso)
+        if sc <= .05: continue
+        lay = Image.new("RGBA", (340, 280), (0, 0, 0, 0)); hoja_huevo(lay, 170, 140, .42, [-6, 5, -3, 7, -5][(k // 2) % 5] + (k % 2) * 3, 0, .8 + .1 * k, 11 + k)
+        lay = lay.resize((max(1, int(340 * sc)), max(1, int(280 * sc))))
+        c.alpha_composite(lay, (int(x - lay.width / 2), int(y - lay.height / 2)))
+    if T >= WT("H2", "Diez") - .05: rotulo(c, T, WT("H2", "Diez") - .05, f"INTENTO {min(max(n, 1), 10)}", 540, 330, size=54, rot=-3)
+    if T >= tf:
+        d = ImageDraw.Draw(c)
+        for k in range(10):
+            x, y = pos(k); u = R.popscale(T, tf + k * .04)
+            if u > .1: d.text((x + 100, y - 20), "×", font=font(F_ANTON, int(110 * u)), fill=(214, 40, 40), anchor="mm", stroke_width=4, stroke_fill=OL)
     return c
 
-def sc_despegan(T):   # F03-F04: despegan la nota de la página pegada; se abre: letra de tu mamá (voz de la abuela)
+def sc_nota(T):   # H2 (2): miras la nota pegada en el cuaderno de tu madre: "Para: Andrea"
+    t0 = WT("H2", "Entonces") - .15
+    c = fondo_libro(T, t0, 6, 40); glow(c, 540, 800, 420, (255, 214, 120), 130, 70)
+    cuaderno_abierto(c, *CB, T, izq_reverso, der_msg(1e9))
+    n = nota_andrea(1.0, -8 + 2 * math.sin(T * 3))
+    c.alpha_composite(n, (int(PX_R + PW / 2 - n.width / 2), int(PY + 230 + 5 * math.sin(T * 4))))
+    brillos(c, T, t0, PX_R + PW / 2, PY + 330, 220, (255, 236, 160), 10)
+    if T >= WT("H2", "nota") - .05: rotulo(c, T, WT("H2", "nota") - .05, "UNA NOTA", 540, 330, size=52, rot=-3)
+    return c
+
+def _sc_despegan(T):   # F03-F04: despegan la nota de la página pegada; se abre: letra de tu mamá (voz de la abuela)
     t0 = S("F03") - .15; ta = WT("F03", "dice,") - .15
     c = fondo_libro(T, t0, 7, 40)
     c.alpha_composite(Image.new("RGBA", (W, H), (255, 200, 140, 30)))
@@ -532,6 +536,11 @@ def sc_despegan(T):   # F03-F04: despegan la nota de la página pegada; se abre:
     if T >= WT("F04", "redondo.") - .05:   # un corazón-O alrededor de "abrazo redondo"
         uu = ease((T - WT("F04", "redondo.") + .05) / .6)
         pts = recorrido(o_path(540, 870, 310, 125), uu); trazo(c, pts, 10, ROSA)
+    return c
+
+def sc_despegan(T):
+    c = _sc_despegan(T); t0 = S("F03") - .15
+    if t0 + .35 <= T < t0 + 3.3: rotulo(c, T, t0 + .35, "GANÓ: LA ABREN JUNTAS", 540, 330, fill=(120, 214, 140), size=44, rot=-2)
     return c
 
 def sc_curiosa(T):   # F05: "¿cómo se abraza una letra?"
@@ -798,18 +807,19 @@ def etiqueta_serie(c, T):
     d.text((540, 207), txt, font=f, fill=(90, 60, 110), anchor="mm")
 
 SCENES = [
-    (0, sc_despierta), (S("F02") - .15, sc_eligieron), (S("F03") - .15, sc_despegan), (S("F05") - .15, sc_curiosa),
+    (0, sc_huevo), (S("H2") - .15, sc_intentos), (WT("H2", "Entonces") - .15, sc_nota), (S("F03") - .15, sc_despegan), (S("F05") - .15, sc_curiosa),
     (S("F06") - .15, sc_flash), (S("F07") - .15, sc_imprimeO), (WT("F07", "abrazas") - .2, sc_abrazo),
     (WT("F07", "crayola") - .2, sc_trazaO), (S("F08") - .1, sc_redondita), (S("F08B") - .15, sc_pregunta),
     (S("F08C") - .15, sc_tardes), (S("F09") - .3, sc_cuadernoO), (S("F10") - .3, sc_noche), (S("F11") - .5, sc_pagina),
     (S("F13") - .4, sc_ventana), (S("F14") - .2, sc_final),
 ]
-IMPACTS = [WT("F02", "juntas."), WT("F10", "encendida."), WT("F13", "apaga."), WT("F08", "O!")]
+IMPACTS = [S("F03") + .35, WT("F10", "encendida."), WT("F13", "apaga."), WT("F08", "O!")]
 SUAVES = {S("F06") - .15, S("F08C") - .15, S("F11") - .5}
 
 SHOTS = {
-    "sc_despierta": (1.0, [(540, 760, 1.15), (540, 640, 1.35), (540, 900, 1.05)]),
-    "sc_eligieron": (1.9, [(540, 960, 1.0), (540, 700, 1.25), (540, 820, 1.0), (300, 500, 1.6), (540, 760, 1.2)]),
+    "sc_huevo": (1.0, [(540, 820, 1.08), (540, 960, 1.28), (540, 700, 1.18)]),
+    "sc_intentos": (1.3, [(540, 960, 1.0), (330, 700, 1.3), (760, 1000, 1.3), (540, 960, 1.0)]),
+    "sc_nota": (1.3, [(540, 800, 1.0), (820, 700, 1.7), (540, 820, 1.2)]),
     "sc_despegan": (1.9, [(540, 800, 1.0), (820, 640, 1.6), (540, 800, 1.0), (540, 700, 1.25), (540, 900, 1.3), (540, 800, 1.05)]),
     "sc_curiosa": (1.7, [(540, 960, 1.0), (600, 760, 1.4)]),
     "sc_flash": (2.0, [(540, 820, 1.0), (500, 640, 1.45), (600, 1000, 1.55), (540, 820, 1.1)]),

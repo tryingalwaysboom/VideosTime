@@ -2,10 +2,10 @@
 # de noche aparece una página nueva con tinta fresca; primera pista de fondo (pañuelo de flores en la ventana de enfrente).
 VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "S": "iFhPOZcajR7W3sDL39qJ", "A": "D3ws14YxTqcjPaXEOehR"}
 LINEAS = [
- ("F01","S","[whispers, excited, sweet] ¡Mami, despierta! ¡La nota!",
-  "*¡Mami,* despierta! ¡La *nota!*"),
- ("F02","N","Eligieron abrirla juntas. Sofía no durmió en toda la noche, esperando.",
-  "*Eligieron* abrirla *juntas.* Sofía no *durmió* en toda la noche, *esperando.*"),
+ ("H1","S","[sobbing softly, sad, tender] Mami… mi O parece un huevo.",
+  "*Mami…* mi *O* parece un *huevo.*"),
+ ("H2","N","Diez intentos, y todas le salen como huevos. Entonces miras la nota pegada en el cuaderno de tu madre… Para: Andrea.",
+  "Diez *intentos,* y todas le salen como *huevos.* Entonces miras la *nota* pegada en el cuaderno de tu madre… Para: *Andrea.*"),
  ("F03","N","La despegan con cuidado. Y dice, con la letra de tu mamá…",
   "La *despegan* con cuidado. Y dice, con la letra de tu *mamá…*"),
  ("F04","A","[softly, warm] Enséñale la O como te la enseñé a ti: con un abrazo redondo.",
