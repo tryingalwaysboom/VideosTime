@@ -20,7 +20,7 @@ F_HAND = os.path.join(MF, "Caveat.ttf"); F_BAL = os.path.join(MF, "Baloo2-ExtraB
 PI_ = math.pi
 ORO = (255, 196, 60); ROSA = (232, 85, 109); TINTA = (52, 58, 130); CREMA = (252, 244, 226)
 
-R.GAP.update({"B2": .12, "B3": .12, "B4": .15, "F04": .2, "B5": .2, "B6": .15, "B7": .15, "F08B": .15, "F08C": .15, "B8": .3, "F12": .2, "F13": .3, "B9": .25})
+R.GAP.update({"B2": .12, "B3": .12, "E1": .12, "B4": .15, "F04": .2, "B5": .2, "B6": .15, "B7": .15, "F08B": .15, "F08C": .15, "B8": .3, "F12": .2, "F13": .3, "B9": .25})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}
 R.TOTAL = R.TL["B9"][1] + .1          # corte en seco ~0,1 s tras la última palabra
@@ -844,6 +844,23 @@ def sc_b3(T):   # B3: Sofía llora con su O torcida
     if T >= WT("B3", "papa!") - .1: rotulo(c, T, WT("B3", "papa!") - .1, "¡UNA PAPA!", 540, 330, size=60, rot=-3)
     return c
 
+def sc_elig(T):   # E1: ustedes eligieron (para quien llega nuevo) + comentario real
+    t0 = S("E1") - .12
+    c = bgz("bg_desvan", T, t0, 1.1, 1.2, 5).filter(ImageFilter.GaussianBlur(7)).copy(); R.dark(c, 120)
+    rotulo(c, T, t0, "USTEDES ELIGIERON", 540, 330, fill=(255, 220, 120), size=64, rot=-3)
+    if T >= WT("E1", "juntas.") - .35:
+        k = R.popscale(T, WT("E1", "juntas.") - .35)
+        d = ImageDraw.Draw(c); f = font(F_BAL, 56)
+        d.rounded_rectangle((150, 640, 930, 820), 30, fill=(120, 214, 140), outline=OL, width=6)
+        d.text((540, 730), "B · LA ABREN JUNTAS", font=f, fill=OL, anchor="mm")
+    if T >= WT("E1", "Monky:") - .2:
+        im = Image.open(os.path.join(HERE, "comentario_monky.jpg")).convert("RGBA"); im = im.resize((740, int(im.height * 740 / im.width)))
+        k = max(.05, R.popscale(T, WT("E1", "Monky:") - .2)); im = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))))
+        lay = Image.new("RGBA", (im.width + 24, im.height + 24), (255, 255, 255, 255)); lay.paste(im, (12, 12))
+        lay = lay.rotate(-2, expand=True, resample=Image.BICUBIC)
+        c.alpha_composite(lay, (int(540 - lay.width / 2), int(1080 - lay.height / 2)))
+    return c
+
 def sc_b4(T):   # B4: la nota pegada: "Para: Andrea"; ganó la opción B
     t0 = S("B4") - .15
     c = fondo_libro(T, t0, 6, 40); glow(c, 540, 800, 420, (255, 214, 120), 130, 70)
@@ -851,9 +868,7 @@ def sc_b4(T):   # B4: la nota pegada: "Para: Andrea"; ganó la opción B
     n = nota_andrea(1.0, -8 + 2 * math.sin(T * 3))
     c.alpha_composite(n, (int(PX_R + PW / 2 - n.width / 2), int(PY + 230 + 5 * math.sin(T * 4))))
     brillos(c, T, t0, PX_R + PW / 2, PY + 330, 220, (255, 236, 160), 10)
-    tj = WT("B4", "juntas.") - .45
-    if WT("B4", "nota.") - .05 <= T < tj: rotulo(c, T, WT("B4", "nota.") - .05, "UNA NOTA", 540, 330, size=52, rot=-3)
-    if T >= tj: rotulo(c, T, tj, "GANÓ: LA ABREN JUNTAS", 540, 330, fill=(120, 214, 140), size=44, rot=-2)
+    if T >= WT("B4", "nota.") - .05: rotulo(c, T, WT("B4", "nota.") - .05, "UNA NOTA", 540, 330, size=52, rot=-3)
     return c
 
 def sc_carta(T):   # F04: la nota abierta, con la letra de tu mamá (voz de la abuela)
@@ -892,18 +907,19 @@ def sc_b8(T):   # B8: vuelves a la página mojada; la tinta se aclara y se lee (
     return c
 
 SCENES = [
-    (0, sc_b1), (S("B2") - .12, sc_b2), (S("B3") - .12, sc_b3), (S("B4") - .15, sc_b4), (S("F04") - .15, sc_carta),
+    (0, sc_b1), (S("B2") - .12, sc_b2), (S("B3") - .12, sc_b3), (S("E1") - .12, sc_elig), (S("B4") - .15, sc_b4), (S("F04") - .15, sc_carta),
     (S("B5") - .15, sc_flash), (S("B6") - .15, sc_imprimeO), (WT("B6", "abrazas") - .2, sc_abrazo),
     (WT("B6", "crayola") - .2, sc_trazaO), (S("B7") - .1, sc_redondita), (S("F08B") - .15, sc_pregunta),
     (S("F08C") - .15, sc_tardes), (S("B8") - .3, sc_b8), (S("F13") - .4, sc_ventana), (S("B9") - .2, sc_final),
 ]
-IMPACTS = [S("B4") + .3, WT("B1", "mojada."), WT("F13", "apaga."), WT("B7", "O!")]
+IMPACTS = [S("E1") + .2, WT("B1", "mojada."), WT("F13", "apaga."), WT("B7", "O!")]
 SUAVES = {S("B5") - .15, S("F08C") - .15, S("B8") - .3}
 
 SHOTS = {
     "sc_b1": (1.1, [(790, 760, 2.7), (700, 900, 2.1), (840, 700, 2.3), (640, 800, 1.5), (540, 800, 1.15), (540, 800, 1.0)]),
     "sc_b2": (1.1, [(540, 840, 1.0), (540, 840, 1.45)]),
     "sc_b3": (1.1, [(540, 820, 1.1), (540, 960, 1.3), (540, 700, 1.2)]),
+    "sc_elig": (1.5, [(540, 960, 1.0), (540, 960, 1.08)]),
     "sc_b4": (1.2, [(540, 800, 1.0), (820, 700, 1.7), (540, 820, 1.2)]),
     "sc_carta": (1.6, [(540, 800, 1.0), (540, 650, 1.35), (540, 900, 1.3), (540, 800, 1.05)]),
     "sc_flash": (1.6, [(540, 820, 1.0), (500, 640, 1.45), (600, 1000, 1.55), (540, 820, 1.1)]),

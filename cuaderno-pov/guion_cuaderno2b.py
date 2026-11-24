@@ -7,6 +7,8 @@ LINEAS = [
   "*Doce* horas *antes,* Sofía no sabía hacer una *O.*"),
  ("B3","S","[sobbing softly, sad, tender] ¡Mami, mi O parece una papa!",
   "*¡Mami,* mi *O* parece una *papa!*"),
+ ("E1","N","Ustedes eligieron: la abren juntas. Como dijo Monky: lo leemos juntas mañana.",
+  "*Ustedes* eligieron: la abren *juntas.* Como dijo *Monky:* lo leemos juntas *mañana.*"),
  ("B4","N","Entonces recuerdas la nota. Hoy la abren juntas.",
   "Entonces recuerdas la *nota.* Hoy la abren *juntas.*"),
  ("F04","A","[softly, warm] Enséñale la O como te la enseñé a ti: con un abrazo redondo.",

@@ -17,7 +17,7 @@ def efectos():
     t1a, t1b = WT("B6", "crayola"), E("B6") + .2
     t2a, t2b = E("B6") + .45, S("B7") - .1
     e = [(m("brillo"), S("B1") + .1, -8), (m("brillo"), WT("B1", "mojada.") - .1, -8), (m("reloj"), S("B2"), -12),
-         (m("resultado"), S("B4") + .3, -9), (c("pagina"), S("F04") - .1, -6), (m("brillo"), WT("F04", "redondo.") - .1, -8),
+         (m("resultado"), S("E1") + .2, -9), (m("brillo"), WT("E1", "Monky:") - .1, -9), (c("pagina"), S("F04") - .1, -6), (m("brillo"), WT("F04", "redondo.") - .1, -8),
          (m("piano"), S("B5") - .15, -9), (m("brillo"), WT("B5", "círculo.") - .5, -9),
          (m("teclea"), S("B6") - .05, -12), (crayola(t1a, t1b), t1a, -5), (crayola(t2a, t2b), t2a, -5),
          (m("brillo"), t1b, -5), (m("brillo"), t2b, -4), (m("risa"), WT("B7", "redonda!"), -12),
