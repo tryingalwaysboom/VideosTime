@@ -290,7 +290,7 @@ def draw_hud(c, T):
     if T < T_HUD: return
     d = ImageDraw.Draw(c); k = 1
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
-    dl.rounded_rectangle((34, 146, 886, 334), 34, fill=PIZ2 + (232,), outline=(214, 190, 150, 255), width=6)
+    dl.rounded_rectangle((34, 146, 912, 334), 34, fill=PIZ2 + (232,), outline=(214, 190, 150, 255), width=6)
     c.alpha_composite(lay)
     calendario(d, 134, 240, HS); imanes(d, 290, 240, HS, T)
 
