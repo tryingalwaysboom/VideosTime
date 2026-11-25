@@ -15,7 +15,7 @@ LINEAS = [
  ("H11", "K", "[concentrating, slowly] Sube… baja… sube… baja.", "*Sube…* *baja…* *sube…* *baja.*"),
  ("H12", "N", "[warm, proud] Y ahí está. Su primera eme.", "Y ahí *está.* Su primera *M.*"),
  ("H13", "N", "Y justo entonces, suena el timbre.", "Y justo entonces, suena el *timbre.*"),
- ("H14", "P", "[excited, childlike] ¡Hola, Mateo! Mira, yo ya sé.", "¡Hola, Mateo! Mira, yo ya *sé.*"),
+ ("H14", "P", "[excited, childlike] ¡Hola, Mateo! Mira, yo ya sé escribir.", "¡Hola, Mateo! Mira, yo ya sé *escribir.*"),
  ("H15", "N", "Tomás escribe su nombre entero. Cinco letras. En cinco segundos.", "Tomás escribe su nombre *entero.* *5* letras. En *5* *segundos.*"),
  ("H16", "N", "Mateo mira su eme. Mira el nombre de Tomás. Y esconde su hoja debajo de la mesa.", "Mateo mira su *M.* Mira el nombre de *Tomás.* Y *esconde* su hoja debajo de la *mesa.*"),
  ("H17", "N", "Mientras tanto, en la escuela, la maestra tacha el primer día.", "Mientras tanto, en la *escuela,* la maestra *tacha* el primer *día.*"),
