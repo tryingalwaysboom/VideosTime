@@ -16,7 +16,7 @@ def base(dia, objeto, emocion, l1, l2):
     col = COLORES[(dia - 1) % len(COLORES)]; c = pizarra(); c.alpha_composite(Image.new("RGBA", (W, H), col + (120,))); objeto(c)
     d = ImageDraw.Draw(c); d.text((235, 372), "DÍA", font=font(F_BAL, 104), fill=CREMA, anchor="mm", stroke_width=8, stroke_fill=OL)
     d.text((235, 640), str(dia), font=font(F_ANTON, 470 if dia < 10 else 330), fill=AMA, anchor="mm", stroke_width=13, stroke_fill=OL)
-    mateo(c, emocion, 300, 1030, .6, 0, blink=False)
+    mateo(c, emocion, 300, 1002, .6, 0, blink=False)
     d = ImageDraw.Draw(c); d.rectangle((0, 1130, W, H), fill=col); d.line((0, 1130, W, 1130), fill=OL, width=9)
     d.text((540, 1225), l1, font=font(F_BAL, 80), fill=CREMA, anchor="mm", stroke_width=7, stroke_fill=OL)
     d.text((540, 1343), l2, font=font(F_BAL, 92), fill=AMA, anchor="mm", stroke_width=8, stroke_fill=OL)
