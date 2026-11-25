@@ -1,9 +1,13 @@
-# Story explicativa: desde hoy en la cuenta solo hay una serie; veremos paso a paso a Mateo hasta que escriba su nombre completo solo.
+# Story explicativa: es una SERIE NUEVA (no el capítulo 1 de la anterior); la historia de Mateo sigue solo aquí,
+# más divertida, mejor hecha y sin relleno, paso a paso hasta que escriba su nombre completo solo. CTA: comentar en el Día 1.
 VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4"}
 LINEAS = [
+ ("Y01", "N", "¡Ojo! Esto no es otro capítulo de la serie de antes: es una serie nueva.", "¡*Ojo!* Esto no es otro capítulo de la serie de *antes:* es una *serie* *nueva.*"),
+ ("Y02", "K", "¡Mi historia empieza otra vez!", "¡Mi historia *empieza* otra *vez!*"),
  ("X01", "N", "A partir de hoy, en esta cuenta solo habrá una historia.", "A partir de *hoy,* en esta cuenta solo habrá *una* *historia.*"),
  ("X02", "K", "¡La mía!", "¡La *mía!*"),
- ("X03", "N", "Cada día vas a ver, paso a paso, cómo Mateo aprende una letra nueva…", "Cada *día* vas a ver, *paso* *a* *paso,* cómo Mateo aprende una *letra* *nueva…*"),
+ ("Y03", "N", "Más divertida, mejor hecha, y sin relleno. Paso a paso…", "Más *divertida,* mejor *hecha,* y sin *relleno.* *Paso* *a* *paso…*"),
  ("X04", "K", "¡…hasta que escriba mi nombre completo, yo solito!", "¡…hasta que escriba mi *nombre* *completo,* yo *solito!*"),
- ("X05", "N", "Treinta días. Acompáñanos desde el día uno.", "*30* *días.* Acompáñanos desde el *día* *1.*"),
+ ("Y04", "N", "El día uno ya está en el perfil. Entra, y déjale un comentario.", "El *día* *1* ya está en el *perfil.* Entra, y déjale un *comentario.*"),
+ ("Y05", "K", "¡Los leo todos!", "¡Los leo *todos!*"),
 ]
