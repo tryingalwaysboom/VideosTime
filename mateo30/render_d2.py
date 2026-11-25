@@ -714,7 +714,7 @@ def hola(T, t0):
 @esc(WI("H14", 2) - .08)
 def yase(T, t0):
     c = bg("bg_puerta", T, t0, 1.5, 1.56, 3, .5, .36); tomas(c, "feliz", 480, 760, 1.7 + .05 * u_(T, t0, 2), T, "H14")
-    u = ease((T - t0) / .25); put(c, "crayola", 850, 1180 - 250 * u, .8, rot=-12 + 6 * math.sin(T * 8)); ImageDraw.Draw(c).ellipse((770, 1260 - 250 * u, 930, 1410 - 250 * u), fill=PIEL, outline=OL, width=6)
+    u = ease((T - t0) / .25); y = 1010 + 260 * (1 - u); put(c, "crayola", 880, y, .8, rot=78 + 5 * math.sin(T * 8)); ImageDraw.Draw(c).ellipse((806, y + 110, 954, y + 250), fill=PIEL, outline=OL, width=6)
     return c
 
 T_T0 = WI("H15", 1) - .05; T_TD = max(.9, WI("H15", 4) + .3 - T_T0)
