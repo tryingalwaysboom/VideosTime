@@ -27,9 +27,9 @@ DIAS_FALTAN = 27; LETRAS_ON = ""          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .45, "L03": .12, "L04": .55, "L05": .3, "L06": .3, "L07": .7, "L08": .5, "L09": .4, "L10": .35, "L11": .4, "L12": .5,
+BASE = {"L03": .12, "L04": .55, "L05": .3, "L06": .3, "L07": .7, "L08": .5, "L09": .4, "L10": .35, "L11": .4, "L12": .5,
         "L13": .4, "L14": .5, "L15": .6, "L16": .45, "L17": .3}
-FLEX = ("L04", "L07", "L08", "L09", "L11", "L12", "L13", "L15", "L16")      # pausas que absorben el ajuste para clavar la duración
+FLEX = ("L07", "L08", "L10", "L12", "L13", "L14", "L15", "L16")      # pausas que absorben el ajuste para clavar la duración
 COLA = .35
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["L17"][1] - .1 + COLA
 OBJ = float(max(80, math.ceil(_fin)))                                        # segundos enteros, mínimo 80
@@ -602,31 +602,6 @@ def llego(T, t0):
     if k > 0: rotulo(c, "…Y PAPÁ YA LLEGÓ", 500, 300, 84, ROJO, CREMA, -4, k=k)
     return c
 
-# ---------------------------------------------------------------- 2 · el objetivo, en una frase
-@esc(S("L02") - .15)
-def faltan(T, t0):
-    c = pizarra(); mateo(c, "timido", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.05 + .03 * u_(T, t0, 2.5), T)
-    k = pop(T, WI("L02", 1) - .08, .25)
-    if k > 0: tiza(c, "27", 770, 480, 330 * k * (1 + .03 * math.sin((T - t0) * 9)), AMA, 0, f=F_ANTON)
-    k = pop(T, WI("L02", 2) - .05, .22)
-    if k > 0: tiza(c, "DÍAS", 770, 700, 130 * k, TIZA, -2, f=F_BAL)
-    k = pop(T, WI("L02", 3) - .05, .22)
-    if k > 0: tiza(c, "para escribir", 770, 830, 72 * k, TIZA, -2, f=F_BAL)
-    k = pop(T, WI("L02", 5) - .05, .22)
-    if k > 0: tiza(c, "SU NOMBRE", 750, 925, 84 * k, AMA, -2, f=F_BAL)
-    return c
-
-@esc(WI("L02", 7) - .1)
-def o_repite(T, t0):
-    c = pizarra(); tr_ = WI("L02", 8) - .05
-    mateo(c, "neutral" if T < tr_ else "susto", 270 + (9 * math.sin(T * 40) * math.exp(-(T - tr_) * 5) if T >= tr_ else 0), 720, 1.1 + (.08 * ease((T - tr_) / .2) if T >= tr_ else 0), T, blink=False)
-    tiza(c, "…o", 760, 470, 150 * pop(T, t0 + .03, .22), TIZA, -3, f=F_BAL)
-    k2 = pop(T, tr_, .2)
-    if k2 > 0: rotulo(c, "REPITE", 750, 670, 128, ROJO, CREMA, -5, k=k2)
-    k3 = pop(T, WI("L02", 9) - .05, .2)
-    if k3 > 0: tiza(c, "EL CURSO", 750, 850, 96 * k3, TIZA, -3, f=F_BAL)
-    return c
-
 # ---------------------------------------------------------------- 3 · cómo llegó ahí: ustedes eligieron PREMIO
 @esc(S("L03") - .1)
 def eligieron(T, t0):
@@ -639,42 +614,37 @@ def eligieron(T, t0):
     if k > 0: rotulo(c, "PREMIO", 760, 720, 124, NAR, CREMA, -5, k=k); put(c, "tarro", 770, 990, .7 * k, rot=5)
     return c
 
-NCOM = len([f for f in os.listdir(os.path.join(HERE, "coment_d4")) if f.endswith(".jpg")])
-def _com_y():
-    ys, y = [], 400
-    for i in range(NCOM):
-        h = _coment(i + 1).height; ys.append(y + h / 2); y += h * (.62 if NCOM > 4 else 1.06)
-    k = min(1.0, (1180 - 400) / (y + _coment(NCOM).height * .38 - 400)); return [400 + (v - 400) * k for v in ys]
-COM_Y = _com_y()
 @esc(WI("L03", 4) - .1)
-def comentarios(T, t0):
-    """Comentarios reales de quienes votaron PREMIO y el sello."""
-    c = borroso(bg("bg_cocina", T, t0, 1.38, 1.42, 3, .5, .45), 12, 120); tiza(c, "UN DULCE POR CADA M", 470, 338, 70, AMA, -2, f=F_BAL, stroke=3, borde=True)
-    for i in range(NCOM):
-        ti = t0 + .04 + .9 * i / NCOM; k = pop(T, ti, .18)
-        if k <= 0: continue
-        im = _coment(i + 1); cx = 470 + (22 if i % 2 else -22); r = (-2.5, 2, -1.5, 2.5, -2, 1.5)[i]; cy = COM_Y[i] + 40 * (1 - ease((T - ti) / .18))
-        sombra(c, (cx - im.width / 2, cy - im.height / 2, cx + im.width / 2, cy + im.height / 2), 26, 120, 14); paste_rot(c, im, cx, cy, k, r)
-    ks = pop(T, t0 + 1.0, .2)
-    if ks > 0: rotulo(c, "✔ GANÓ: PREMIO", 470, 1246, 58, NAR, CREMA, -3, f=DJ, k=ks)
+def un_dulce(T, t0):
+    """Un dulce por cada M: el trato, dibujado."""
+    c = _mesa(T, t0, 1.05); k = pop(T, t0 + .04, .22); put(c, "tarro", 300, 860 + 8 * math.sin((T - t0) * 6), 1.0 * k, rot=-5)
+    k = pop(T, WI("L03", 5) - .05, .2)
+    if k > 0: dulce_ico(c, 740, 700, .8 * k)
+    k = pop(T, WI("L03", 6) - .05, .2)
+    if k > 0: tiza(c, "=", 740, 880, 150 * k, OL, 0, f=F_BAL)
+    k = pop(T, WI("L03", 8) - .08, .22)
+    if k > 0: tiza(c, "M", 740, 1070, 240 * k, VERDE, -4, f=F_AND, stroke=4, borde=True)
     return c
 
-# tres M rápidas sobre la fila punteada de la hoja real (la tercera, al revés: el error escondido)
-FS = [_poli([(208, 628), (213, 556), (240, 612), (262, 560), (271, 633)], 8, 51, 2.4), _poli([(298, 621), (307, 551), (326, 597), (353, 566), (350, 634)], 8, 52, 2.6),
-      _poli([(388, 560), (402, 629), (420, 581), (437, 631), (451, 556)], 8, 53, 2.4)]
+# tres M rápidas en una hoja suelta (la tercera, al revés: el error escondido). Sin la hoja del libro: se repetía en todos los vídeos.
+FS = [_poli([(190, 990), (204, 740), (270, 925), (338, 752), (364, 996)], 8, 51, 5), _poli([(420, 980), (442, 726), (492, 896), (566, 760), (560, 1000)], 8, 52, 6),
+      _poli([(634, 742), (664, 990), (714, 826), (760, 994), (806, 736)], 8, 53, 5)]
 T_F0 = WI("L04", 3) - .1
-def _hoja_rapida(c, T, s=4.4, cx=470, cy=900, hasta=None):
-    tr, sc = pagM(c, s, 330, 592, cx, cy); tip = None
+def _hoja_rapida(c, T, hasta=None, rot=-3):
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.rectangle((110, 600, 890, 1150), fill=CREMA + (255,), outline=(214, 190, 150, 255), width=7)
+    for y in (760, 1000): d.line((130, y, 870, y), fill=(190, 214, 236, 255), width=5)
+    sombra(c, (110, 600, 890, 1150), 6, 110, 16); tip = None
     for i, F in enumerate(FS):
-        u = 1 if hasta is None else u_(T, T_F0 + i * .4, .34); pts = parcial(F, u); cray(c, tr, sc, pts)
-        if pts and u < 1: tip = tr(pts[-1])
-    return tr, sc, tip
+        u = 1 if hasta is None else u_(T, T_F0 + i * .4, .34); pts = parcial(F, u)
+        if len(pts) >= 2: crayon(lay, pts, 20, VERDE)
+        if pts and u < 1: tip = pts[-1]
+    c.alpha_composite(lay); return tip
 
 @esc(S("L04") - .25)
 def rapido(T, t0):
-    c = _mesa(T, t0, 1.05); tr, sc, tip = _hoja_rapida(c, T, hasta=True)
-    put(c, "tarro", 800, 500, .62 + .02 * math.sin(T * 7), rot=4)
-    if tip is None: tip = tr(FS[0][0]) if T < T_F0 else tr(FS[2][-1])
+    c = _mesa(T, t0, 1.05); tip = _hoja_rapida(c, T, hasta=True)
+    put(c, "tarro", 800, 420, .62 + .02 * math.sin(T * 7), rot=4)
+    if tip is None: tip = FS[0][0] if T < T_F0 else FS[2][-1]
     if T_F0 <= T < T_F0 + 1.2:
         d = ImageDraw.Draw(c)
         for i in range(3): d.line((tip[0] + 120 + i * 46, tip[1] - 150 + i * 30, tip[0] + 260 + i * 46, tip[1] - 200 + i * 30), fill=TIZA, width=9)
@@ -682,11 +652,11 @@ def rapido(T, t0):
 
 @esc(WI("L04", 5) - .1)
 def mal(T, t0):
-    c = _mesa(T, t0, 1.1); tr, sc, _ = _hoja_rapida(c, T, 4.8, 500, 900)
+    c = _mesa(T, t0, 1.1); _hoja_rapida(c, T)
     for i, F in enumerate(FS):
         k = pop(T, WI("L04", 7) - .05 + i * .16, .2)
-        if k > 0: a = tr(F[len(F) // 2]); tiza(c, "✗", a[0], a[1] - 150, 120 * k, ROJO, 6, f=DJ, stroke=3, borde=True)
-    return view(c, 520, 880, 1 + .08 * u_(T, t0, 2))
+        if k > 0: a = F[len(F) // 2]; tiza(c, "✗", a[0], a[1] - 250, 130 * k, ROJO, 6, f=DJ, stroke=3, borde=True)
+    return view(c, 500, 880, 1.02 + .1 * u_(T, t0, 2))
 
 @esc(S("L05") - .2)
 def mi_dulce(T, t0):
@@ -725,7 +695,7 @@ def se_fue(T, t0):
 @esc(S("L07") - .25)
 def silencio(T, t0):
     """La hoja y la crayola, abandonadas."""
-    c = _mesa(T, t0, 1.0); _hoja_rapida(c, T, 3.6, 500, 900); put(c, "crayola", 760, 1250, .6, rot=24); oscurecer(c, (10, 14, 40), 70)
+    c = _mesa(T, t0, 1.0); _hoja_rapida(c, T); put(c, "crayola", 760, 1260, .6, rot=24); oscurecer(c, (10, 14, 40), 70)
     return view(c, 540, 900, 1.12 - .08 * u_(T, t0, 1.6))
 
 @esc(WI("L07", 1) - .1)
@@ -950,13 +920,11 @@ def final(T, t0):
     kv = pop(T, T_B + .1, .25)
     if kv > 0:
         r = 65 * kv; d = ImageDraw.Draw(c); d.ellipse((483 - r, 659 - r, 483 + r, 659 + r), fill=AMA, outline=OL, width=8); d.text((483, 657), "vs", font=font(F_BAL, 78 * kv), fill=OL, anchor="mm")
-    kt = pop(T, T_TU, .25)
-    if kt > 0: paste_rot(c, _coment(min(3, NCOM), 540), 478, 356 - 30 * (1 - ease((T - T_TU) / .25)), kt, -3)     # "Tu comentario puede salir…": asoma un comentario real
     return c
 
 SC.sort(key=lambda x: x[0])
 SCENES = [(t, f) for t, f, s_ in SC]; SUAVES = {t for t, f, s_ in SC if s_}
-IMPACTS = [.05, WI("L02", 8), T_REV, WI("L09", 12), WI("L12", 6), WI("L13", 10)]
+IMPACTS = [.05, T_REV, WI("L09", 12), WI("L12", 6), WI("L13", 10)]
 
 def hblur(im, k):
     if k < 2: return im
