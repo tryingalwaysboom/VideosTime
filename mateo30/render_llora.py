@@ -140,7 +140,7 @@ def lagrimas(c, hx, hy, s, T):
 def sc_llora(T):
     """'Mami… nadie me dijo qué hago mañana.': Mateo llora (dos planos)."""
     c = pizarra(); tm = WT("L01", "mañana.") - .15
-    mateo(c, "llora", W / 2, 760, 1.45, T, "L01"); lagrimas(c, W / 2, 760, 1.45, T)
+    mateo(c, "llora", W / 2, 760, 1.45, T, "L01")
     if T >= tm: tiza(c, "¿Y MAÑANA?", W / 2, 330, int(120 * pop(T, tm, .3)), AMA, -4, f=D.F_ANTON, borde=True)
     if T < tm - .3: return zoomcam(c, T, 0, 1.0, 1.06, 2.0, W / 2, 760)
     return zoomcam(c, T, tm - .3, 1.25, 1.32, 2.0, W / 2, 700)
@@ -167,7 +167,7 @@ def sc_video_nuevo(T):
 def sc_mas_videos(T):
     """'Si nadie comenta… ¿ya no hay más videos?': Mateo llorando abrazado a Rex."""
     t0 = S("L03") - .15; c = pizarra()
-    mateo(c, "llora", W / 2, 780, 1.3, T, "L03"); lagrimas(c, W / 2, 780, 1.3, T)
+    mateo(c, "llora", W / 2, 780, 1.3, T, "L03")
     paste_rot(c, DINO, 770, 1220 + 6 * math.sin(T * 3), .5, -10 + 4 * math.sin(T * 2.4))
     tv = WT("L03", "videos?") - .2
     if T >= tv: rotulo(c, "¿YA NO HAY MÁS VIDEOS?", W / 2, 300, 56, CREMA, OL, 3, k=pop(T, tv, .3))
@@ -181,9 +181,9 @@ def sc_sin(T):
     if k > 0: D.calendario(d, 200, 470, 1.4 * k, 30)
     tg = WT("L04", "gustando.") - .3
     if T >= WT("L04", "videos…") - .25:
-        tiza(c, "SIN COMENTARIOS", 640, 380, int(70 * pop(T, WT("L04", "videos…") - .25, .3)), TIZA, -3, f=D.F_BAL, borde=True)
+        tiza(c, "SIN COMENTARIOS", 640, 380, int(84 * pop(T, WT("L04", "videos…") - .25, .3)), TIZA, -3, f=D.F_BAL, borde=True)
         tiza(c, "NO HAY DÍA 2", 640, 480, int(80 * pop(T, WT("L04", "videos…") - .1, .3)), ROJO, -3, f=D.F_ANTON, borde=True)
-    oscurecer(c, (8, 12, 30), 90 * ease(u_(T, tg, 1.0)))
+    D.oscurecer(c, (8, 12, 30), 90 * ease(u_(T, tg, 1.0)))
     return zoomcam(c, T, t0, 1.0, 1.1, 4.5, W / 2, 800)
 
 def sc_porfavor(T):
