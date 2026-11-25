@@ -514,7 +514,7 @@ def suelo(T, t0):
 
 @esc(WI("J01", 6) - .1)
 def nunca1(T, t0):
-    c = bg("bg_cocina", T, t0, 1.5, 1.56, 3, .5, .42); mateo(c, "enojado", 540, 700, 1.4 + .06 * u_(T, t0, 2), T, blink=False); brazos(c, 540, 700, 1.4)
+    c = bg("bg_cocina", T, t0, 1.5, 1.56, 3, .5, .42); mateo(c, "enojado_x", 540, 700, 1.4 + .06 * u_(T, t0, 2), T, blink=False)
     k = pop(T, t0 + .05, .2)
     if k > 0: tiza(c, "¡NUNCA!", 560, 360, 150 * k, AMA, -5, f=F_BAL, stroke=3, borde=True)
     return c
@@ -546,9 +546,15 @@ def o_repite(T, t0):
 
 @esc(S("J03") - .1)
 def eligieron(T, t0):
-    c = pizarra(); k = pop(T, t0, .25)
-    tiza(c, "USTEDES ELIGIERON", 470, 400, 80 * k, AMA, -2, f=F_BAL)
-    tarjeta(c, 470, 830, 1.1 * k * (1 + .03 * math.sin((T - t0) * 8)), "NUNCA", MORA, "nunca", -3, sub="NO COMPARARLO")
+    """Lo que eligió el público, con Mateo en pantalla (sin tarjeta)."""
+    c = pizarra(); mateo(c, "neutral", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.08 + .03 * u_(T, t0, 2.5), T)
+    k = pop(T, t0 + .05, .22); tiza(c, "USTEDES", 750, 470, 100 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("J03", 2) - .05, .22)
+    if k > 0: tiza(c, "ELIGIERON:", 750, 590, 100 * k, AMA, -2, f=F_BAL)
+    k = pop(T, WI("J03", 3) - .05, .2)
+    if k > 0: rotulo(c, "NO COMPARARLO", 775, 760, 54, CREMA, OL, -3, k=k)
+    k = pop(T, WI("J03", 5) - .05, .2)
+    if k > 0: rotulo(c, "NUNCA", 750, 900, 120, ROJO, CREMA, -5, k=k)
     return c
 
 def _com_y():
@@ -713,18 +719,17 @@ T_BR = WI("J10", 4) - .1
 def se_cruza(T, t0):
     """El siguiente conflicto entra mientras aún celebra: se cruza de brazos."""
     c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); tb = WI("J10", 8) - .1
-    mateo(c, "feliz" if T < tb else "neutral", 540, 640, 1.3, T, blink=False); manchas(c, 540, 640, 1.3)
-    if T >= tb: brazos(c, 540, 640 + 40 * (1 - ease((T - tb) / .2)), 1.3)
+    mateo(c, "feliz" if T < tb else "neutral_x", 540, 720, 1.3, T, blink=False); manchas(c, 540, 720, 1.3)
     return c
 
 @esc(WI("J10", 8) - .1, True)
 def se_cruza2(T, t0):
-    c = bg("bg_cocina", T, t0, 1.6, 1.66, 3, .5, .42); mateo(c, "neutral", 540, 600, 1.75, T, blink=False); manchas(c, 540, 600, 1.75); brazos(c, 540, 600 + 60 * (1 - ease((T - t0) / .2)), 1.75)
+    c = bg("bg_cocina", T, t0, 1.6, 1.66, 3, .5, .42); mateo(c, "neutral_x", 540, 740, 1.5 + .08 * ease((T - t0) / .25), T, blink=False); manchas(c, 540, 740, 1.5)
     return c
 
 @esc(S("J11") - .2)
 def que_me_das(T, t0):
-    c = bg("bg_cocina", T, t0, 1.5, 1.56, 3, .5, .42); mateo(c, "neutral", 540, 720, 1.55 + .06 * u_(T, t0, 2), T, "J11", blink=False); manchas(c, 540, 720, 1.55); brazos(c, 540, 720, 1.55)
+    c = bg("bg_cocina", T, t0, 1.5, 1.56, 3, .5, .42); mateo(c, "neutral_x", 540, 760, 1.42 + .06 * u_(T, t0, 2), T, "J11", blink=False); manchas(c, 540, 760, 1.42)
     return c
 
 @esc(WI("J11", 3) - .08)
