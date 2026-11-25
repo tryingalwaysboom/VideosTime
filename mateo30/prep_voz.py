@@ -22,12 +22,15 @@ offs = {}
 for lid, v, *_ in LINEAS:
     src = os.path.join(SRC, lid + ".mp3")
     off = max(0.0, lead_silence(src) - .03); tp = TEMPO[v]; pt = PITCH.get(v)
+    if EP == "2" and lid == "H09": off = 1.80   # se corta "No es una doble u": Mateo aún no conoce las letras
     pf = f"asetrate={int(44100 * pt)},aresample=44100,atempo={1 / pt:.4f}," if pt else ""
     af = (f"aresample=44100,atrim=start={off:.3f},asetpts=PTS-STARTPTS," + pf +
           f"areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,atempo={tp}")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-af", af, "-ar", "44100", "-ac", "1", os.path.join(DST, lid + ".wav")], check=True)
     offs[lid] = {"off": off, "tempo": tp}
     j = os.path.join(SRC, lid + ".json")
-    if os.path.exists(j): shutil.copy(j, os.path.join(DST, lid + ".json"))
+    if os.path.exists(j):
+        ws = [w for w in json.load(open(j, encoding="utf-8")) if w["inicio"] >= off - .02]
+        json.dump(ws, open(os.path.join(DST, lid + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
 json.dump(offs, open(os.path.join(DST, "offsets.json"), "w"))
 print("ok", len(offs))

@@ -10,7 +10,7 @@ LINEAS = [
  ("H06", "N", "Así que hoy empiezan. Primera letra: la eme.", "Así que hoy *empiezan.* Primera letra: la *M.*"),
  ("H07", "N", "Y a las cinco viene su primo.", "Y a las *5* viene su *primo.*"),
  ("H08", "N", "Mateo agarra la crayola… y la eme le sale patas arriba.", "Mateo agarra la *crayola…* y la M le sale *patas* *arriba.*"),
- ("H09", "K", "[stubborn] No es una doble u. Es una eme dormida.", "No es una *W.* Es una M *dormida.*"),
+ ("H09", "K", "[stubborn] No es una doble u. Es una eme dormida.", "Es una M *dormida.*"),  # en el montaje solo suena "Es una eme dormida"
  ("H10", "N", "Entonces le enseñas el truco: la eme son dos montañas.", "Entonces le enseñas el *truco:* la M son *dos* *montañas.*"),
  ("H11", "K", "[concentrating, slowly] Sube… baja… sube… baja.", "*Sube…* *baja…* *sube…* *baja.*"),
  ("H12", "N", "[warm, proud] Y ahí está. Su primera eme.", "Y ahí *está.* Su primera *M.*"),

@@ -27,7 +27,7 @@ DIAS_FALTAN = 29; LETRAS_ON = ""          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-R.GAP.update({"H02": .12, "H03": .2, "H04": .2, "H05": .25, "H06": .25, "H07": .15, "H08": .25, "H09": .25, "H10": .25, "H11": .2,
+R.GAP.update({"H02": .12, "H03": .2, "H04": .2, "H05": .25, "H06": .25, "H07": .15, "H08": .25, "H09": .25, "H10": .6, "H11": .2,
               "H12": .25, "H13": .45, "H14": .3, "H15": .3, "H16": .35, "H17": .5, "H18": .45, "H19": .45, "H20": .4, "H21": .25})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}      # la voz arranca en el fotograma 0
@@ -264,6 +264,7 @@ def refri_img():
     d.ellipse((560, 990, 620, 1050), fill=(80, 170, 110), outline=OL, width=5)
     return im
 # ================================================================ DÍA 2
+R.scaled = lru_cache(12)(R.scaled.__wrapped__)   # los zooms animados no deben llenar la memoria de capas escaladas
 def WI(lid, i):
     cap = [x for x in LINEAS if x[0] == lid][0][3].split(); return R.word_times(lid, cap)[i][0]
 DJ = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"; PB = "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf"
@@ -282,7 +283,7 @@ def _barra_img(n, on):
         d.text(k((x + 24, 68)), ch, font=F(F_BAL, 38), fill=(255, 255, 255, 255) if ok else (128, 136, 160, 255), anchor="mm")
     d.line(k((416, 26, 416, 82)), fill=(255, 255, 255, 60), width=2 * K)
     d.text(k((526, 42)), "o repite", font=F(F_HAND, 40), fill=(255, 209, 71), anchor="mm"); d.text(k((526, 74)), "el curso", font=F(F_HAND, 40), fill=(255, 209, 71), anchor="mm")
-    im = im.resize((w, h), Image.LANCZOS); pad = 24; o = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
+    w, h = int(w * 1.2), int(h * 1.2); im = im.resize((w, h), Image.LANCZOS); pad = 24; o = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
     a = Image.new("L", o.size, 0); a.paste(im.split()[3].point(lambda v: v * 70 // 255), (pad, pad + 7)); a = a.filter(ImageFilter.GaussianBlur(9))
     o.paste((0, 0, 0, 255), (0, 0), a); o.alpha_composite(im, (pad, pad)); return o
 IMAN = [(226, 72, 59), (245, 166, 35), (60, 160, 90), (63, 127, 208), (150, 90, 200)]
@@ -297,7 +298,7 @@ def draw_hud(c, T):
 # ---------------------------------------------------------------- subtítulos palabra a palabra
 T_FINAL = S("H20") - .25
 def draw_caption(c, T):
-    fin = T >= T_FINAL; cy, cx, maxw = (1110, 470, 800) if fin else (1372, 540, 900)
+    fin = T >= T_FINAL; cy, cx, maxw = (1110, 478, 800) if fin else (1372, 540, 900)
     for idx, (t0, t1, g, who, lid) in enumerate(CH):
         nxt0 = CH[idx + 1][0] if idx + 1 < len(CH) else 1e9
         if not (t0 - .04 <= T < t1 + .3) or T >= nxt0 - .04: continue
@@ -341,19 +342,21 @@ def _poli(pts, n=9, seed=1, j=2.2):
     for (a, b) in zip(pts, pts[1:]):
         for k in range(n): out.append((a[0] + (b[0] - a[0]) * k / n + r.uniform(-j, j), a[1] + (b[1] - a[1]) * k / n + r.uniform(-j, j)))
     out.append(pts[-1]); return out
-W_PTS = _poli([(112, 752), (146, 834), (182, 772), (216, 836), (254, 750)], seed=4)
-M_STK = [_poli([(302, 836), (305, 750)], seed=5), _poli([(305, 750), (371, 812)], seed=6), _poli([(371, 812), (437, 748)], seed=7), _poli([(437, 748), (441, 838)], seed=8)]
-M_PTS = [p for s_ in M_STK for p in s_]
-M3_PTS = _poli([(494, 836), (497, 752), (533, 810), (569, 754), (605, 810), (641, 750), (645, 836)], seed=9)
+W_PTS = _poli([(204, 662), (220, 727), (237, 678), (254, 729), (272, 660)], 9, 4, 1.4)                      # sobre la 1.ª M punteada… al revés
+M_STK = [_poli([(301, 722), (301, 666)], 9, 5, .8), _poli([(301, 666), (328, 704)], 9, 6, .8), _poli([(328, 704), (355, 666)], 9, 7, .8), _poli([(355, 666), (355, 722)], 9, 8, .8)]
+M_PTS = [p for s_ in M_STK for p in s_]                                                                       # 2.ª M punteada, siguiendo los puntos
+MP3_PTS = _poli([(392, 722), (392, 666), (418, 704), (445, 666), (445, 722)], 9, 11, 1.0)                     # 3.ª M punteada
+ML_PTS = _poli([(494, 727), (497, 661), (528, 708), (559, 659), (563, 729)], 9, 12, 1.6)                      # ya sin puntos
+M3_PTS = _poli([(606, 727), (609, 663), (632, 706), (655, 664), (678, 706), (701, 661), (705, 728)], 9, 9, 1.6)   # sin puntos… con tres montañas
 def parcial(pts, u): return pts[:max(2, int(1 + (len(pts) - 1) * clamp(u)))] if u > 0 else []
-def cray(c, tr, s, pts, col=VERDE, w=9.5):
+def cray(c, tr, s, pts, col=VERDE, w=6.5):
     if len(pts) >= 2: crayon(c, [tr(p) for p in pts], max(6, w * s), col)
 
 @lru_cache(None)
 def hoja_mateo(n=2):
-    """Recorte de su hoja (renglones de la M) con lo que lleva escrito: W, M y, si n=3, otra M."""
-    box = (60, 600, 720, 880); im = Image.open(os.path.join(LIB, "p022.png")).convert("RGBA").crop(box); d = ImageDraw.Draw(im)
-    for pts in ([W_PTS, M_PTS, M3_PTS][:n]): d.line([(x - box[0], y - box[1]) for x, y in pts], fill=VERDE + (255,), width=10, joint="curve")
+    """Recorte de su hoja (renglones de la M) con lo que lleva escrito."""
+    box = (70, 540, 760, 770); im = Image.open(os.path.join(LIB, "p022.png")).convert("RGBA").crop(box); d = ImageDraw.Draw(im)
+    for pts in ([W_PTS, M_PTS, MP3_PTS, ML_PTS, M3_PTS][:2 if n == 2 else 5]): d.line([(x - box[0], y - box[1]) for x, y in pts], fill=VERDE + (255,), width=7, joint="curve")
     d.rectangle((0, 0, im.width - 1, im.height - 1), outline=(214, 190, 150, 255), width=5); return im
 
 @lru_cache(1)
@@ -401,6 +404,9 @@ def chispas(c, cx, cy, T, t0, n=7, R_=300, seed=2):
     for i in range(n):
         a = r.uniform(0, 6.28); rr = R_ * r.uniform(.55, 1); k = pop(T, t0 + i * .06, .25)
         if k > 0: tiza(c, "✦", cx + rr * math.cos(a), cy + rr * math.sin(a) * .7, (60 + 50 * r.random()) * k * (1 + .15 * math.sin(T * 9 + i)), AMA, 0, f=DJ, stroke=2)
+
+def mano(c, tip, T, s=.62, capa="mano_crayola"):
+    x, y = tip; put(c, capa, x + 745.5 * s + 1.4 * math.sin(T * 31), y + 75 * s + 1.4 * math.cos(T * 27), s)
 
 SC = []
 def esc(t0, suave=False):
@@ -527,28 +533,25 @@ def agarra(T, t0):
 T_W0, T_W1 = WI("H08", 5) - .05, WI("H08", 9) + .1
 @esc(WI("H08", 4) - .1)
 def escribeW(T, t0):
-    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 2.1, 240, 795, 470, 900); u = u_(T, T_W0, T_W1 - T_W0)
+    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 3.8, 238, 694, 500, 900); u = u_(T, T_W0, T_W1 - T_W0)
     pts = parcial(W_PTS, u); cray(c, tr, s, pts)
     tip = tr(pts[-1]) if pts else (tr(W_PTS[0])[0] - 20, tr(W_PTS[0])[1] - 80 * (1 - u_(T, t0, T_W0 - t0)))
-    mano(c, tip, T if 0 < u < 1 else 0, .7); return c
+    mano(c, tip, T if 0 < u < 1 else 0, .8); return c
 
 @esc(WI("H08", 9) - .08)
 def patas(T, t0):
-    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 3.0 + .3 * u_(T, t0, 2), 183, 792, 540, 880); cray(c, tr, s, W_PTS)
-    a, b = tr((92, 730)), tr((274, 856)); lapiz_rojo(c, (a[0], a[1], b[0], b[1]), u_(T, t0 + .12, .35), 15, 5)
+    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 4.6, 238, 694, 540, 880); cray(c, tr, s, W_PTS)
+    a, b = tr((186, 644)), tr((290, 744)); lapiz_rojo(c, (a[0], a[1], b[0], b[1]), u_(T, t0 + .12, .35), 15, 5)
     k = pop(T, WI("H08", 10), .22)
-    if k > 0: tiza(c, "¿W?", 800, 560, 190 * k, ROJO, 10, f=F_BAL, stroke=3, borde=True)
-    return c
+    if k > 0: tiza(c, "?", 850, 520, 260 * k, ROJO, 10, f=F_BAL, stroke=3, borde=True)
+    return view(c, 540, 880, 1 + .08 * u_(T, t0, 2))
 
 @esc(S("H09") - .2)
 def terco(T, t0):
     c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45)
-    mateo(c, "travieso", 540 + 10 * math.sin((T - t0) * 9) * (1 - u_(T, t0, .8)), 640, 1.35, T, "H09")
-    k = pop(T, t0 + .15, .2)
-    if k > 0: tiza(c, "¡NO!", 830, 400, 150 * k, AMA, 10, f=F_BAL, stroke=2, borde=True)
-    return c
+    mateo(c, "neutral", 540 + 10 * math.sin((T - t0) * 9) * (1 - u_(T, t0, .8)), 640, 1.35 + .1 * u_(T, t0, 1.5), T, "H09"); return c
 
-@esc(WI("H09", 4) - .1)
+@esc(WI("H09", 2) - .1)
 def dormida(T, t0):
     c = pizarra(); bob = 12 * math.sin((T - t0) * 2.4)
     tiza(c, "M", 540, 860 + bob, 640, VERDE, 180 + 3 * math.sin((T - t0) * 2.4), f=F_AND, stroke=4)
@@ -605,16 +608,16 @@ def _trazos(c, tr, s, T, hasta=4):
     return tip
 @esc(S("H11") - .2)
 def trazaM(T, t0):
-    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 2.4, 330, 795, 500, 900); cray(c, tr, s, W_PTS)
+    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 4.2, 318, 694, 470, 900); cray(c, tr, s, W_PTS)
     tip = _trazos(c, tr, s, T) or (tr(M_STK[0][0])[0], tr(M_STK[0][0])[1] - 60 * (1 - u_(T, t0, .2)))
     for i, (a, tx) in enumerate(((0, "↑"),)):
         k = pop(T, T_M[i], .2)
         if k > 0 and T < T_M[i] + .7: tiza(c, tx, 860, 560, 220 * k, AMA, 0, f=DJ, stroke=3, borde=True)
-    mano(c, tip, T, .72); return c
+    mano(c, tip, T, .8); return c
 
 @esc(WI("H11", 1) - .1, True)
 def trazaM_b(T, t0):
-    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 2.9 + .15 * u_(T, t0, 1.5), 338, 792, 500, 900); cray(c, tr, s, W_PTS)
+    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 4.8, 326, 694, 480, 900); cray(c, tr, s, W_PTS)
     tip = _trazos(c, tr, s, T); mano(c, tip, T if T < T_M[1] + .5 else 0, .8)
     k = pop(T, T_M[1], .2)
     if k > 0: tiza(c, "↓", 860, 520, 220 * k, AMA, 0, f=DJ, stroke=3, borde=True)
@@ -629,7 +632,7 @@ def cara_m(T, t0):
 
 @esc(WI("H11", 3) - .1)
 def trazaM2(T, t0):
-    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 3.1, 372, 795, 520, 900); cray(c, tr, s, W_PTS)
+    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 5.0, 338, 694, 480, 900); cray(c, tr, s, W_PTS)
     tip = _trazos(c, tr, s, T); mano(c, tip, T if T < T_M[3] + .55 else 0, .8)
     k = pop(T, T_M[3], .2)
     if k > 0: tiza(c, "↓", 860, 520, 220 * k, AMA, 0, f=DJ, stroke=3, borde=True)
@@ -638,14 +641,14 @@ def trazaM2(T, t0):
 @esc(S("H12") + .2)
 def ahi(T, t0):
     """Pago del gancho: su primera M, bien hecha."""
-    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 2.7 + .35 * u_(T, t0, 2.5), 372, 792, 540, 880); cray(c, tr, s, W_PTS); cray(c, tr, s, M_PTS)
-    chispas(c, 540, 880, T, t0 + .1, 8, 360)
+    c = _mesa(T, t0, 1.1); tr, s = pagM(c, 4.4, 300, 694, 540, 880); cray(c, tr, s, W_PTS); cray(c, tr, s, M_PTS)
+    c = view(c, 660, 880, 1 + .14 * u_(T, t0, 2.5)); chispas(c, 660, 880, T, t0 + .1, 8, 330)
     return c
 
 @esc(WI("H12", 3) - .1)
 def orgullo(T, t0):
     c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); jump = 28 * abs(math.sin((T - t0) * 7)) * (1 - u_(T, t0, 1.3))
-    mateo(c, "feliz", 540, 600 - jump, 1.35, T); paste_rot(c, hoja_mateo(2), 540, 1150 - jump, .78, -5); manos(c, 540, 1150 - jump, 290, 56)
+    mateo(c, "feliz", 540, 600 - jump, 1.35, T); paste_rot(c, hoja_mateo(2), 540, 1150 - jump, 1.0, -5); manos(c, 540, 1150 - jump, 370, 56)
     k = pop(T, t0 + .2, .22)
     if k > 0: tiza(c, "¡MI M!", 820, 400, 120 * k, AMA, 10, f=F_BAL, stroke=2, borde=True)
     return c
@@ -695,7 +698,7 @@ def _nombre(c, T, cy=900, upto=None):
 @esc(S("H15") - .2)
 def tomas_escribe(T, t0):
     c = _mesa(T, t0, 1.05); n = _nombre(c, T); u = clamp((T - T_T0) / T_TD); x = LX[0] - 60 + (LX[4] + 80 - LX[0]) * u
-    put(c, "mano_tomas", x + 270 * .66 + 2 * math.sin(T * 40), 930 + 26 * math.sin(T * 26) * (1 if 0 < u < 1 else 0) + 78 * .66, .66); return c
+    mano(c, (x, 930 + 60 * math.sin(T * 26) * (1 if 0 < u < 1 else 0)), T, .66, "mano_tomas"); return c
 
 @esc(WI("H15", 5) - .1)
 def cinco(T, t0):
@@ -718,9 +721,9 @@ def crono(T, t0):
 @esc(S("H16") - .2)
 def su_m(T, t0):
     """Su renglón: la M dormida, su primera M… y una tercera con tres montañas (el error escondido, nadie lo dice)."""
-    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 1.75 + .12 * u_(T, t0, 2), 390, 780, 540, 900)
-    for p in (W_PTS, M_PTS, M3_PTS): cray(c, tr, s, p)
-    return c
+    c = _mesa(T, t0, 1.05); tr, s = pagM(c, 1.7, 452, 694, 540, 900)
+    for p in (W_PTS, M_PTS, MP3_PTS, ML_PTS, M3_PTS): cray(c, tr, s, p)
+    return view(c, 540, 900, 1 + .1 * u_(T, t0, 2.2))
 
 @esc(WI("H16", 4) - .1)
 def su_nombre(T, t0):
@@ -731,7 +734,7 @@ def su_nombre(T, t0):
 def esconde(T, t0):
     c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); u = ease((T - (WI("H16", 10) - .05)) / .7)
     mateo(c, "triste", 540, 640, 1.3, T); y = 1140 + 700 * u
-    paste_rot(c, hoja_mateo(3), 540, y, .78, -5 - 20 * u); manos(c, 540, y, 290, 56)
+    paste_rot(c, hoja_mateo(3), 540, y, 1.0, -5 - 20 * u); manos(c, 540, y, 370, 56)
     d = ImageDraw.Draw(c); d.rectangle((0, 1560, W, H), fill=MADERA); d.line((0, 1560, W, 1560), fill=OL, width=8)
     return c
 
@@ -743,7 +746,7 @@ def bajo_mesa(T, t0):
     for x in (360, 600): d.rounded_rectangle((x, 1380, x + 130, H), 40, fill=(52, 70, 150), outline=OL, width=7)
     g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((90, 480, 990, 1320), fill=(255, 226, 160, 70)); c.alpha_composite(g.filter(ImageFilter.GaussianBlur(60)))
     u = ease((T - t0) / .3); y = 900 - 500 * (1 - u); wob = 2 * math.sin((T - t0) * 14)
-    sombra(c, (130, y - 180, 950, y + 180), 10, 140, 18); paste_rot(c, hoja_mateo(3), 540, y, 1.22, -7 + wob); manos(c, 540, y + 20, 430, 64)
+    sombra(c, (130, y - 180, 950, y + 180), 10, 140, 18); paste_rot(c, hoja_mateo(3), 540, y, 1.25, -7 + wob); manos(c, 540, y + 20, 450, 64)
     return view(c, 540, 900, 1 + .1 * u_(T, t0, 2.5))
 
 @esc(S("H17") - .4)
@@ -798,7 +801,7 @@ def sobre(T, t0):
 def _mitades():
     A2 = bg("bg_cocina", 0, 0, 1.3, 1.3, 1, .5, .45); A2.alpha_composite(Image.new("RGBA", (W, H), (60, 150, 90, 70)))
     B2 = bg("bg_cuarto", 0, 0, 1.3, 1.3, 1, .5, .5); B2.alpha_composite(Image.new("RGBA", (W, H), (130, 90, 190, 70)))
-    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon([(0, 0), (560, 0), (440, H), (0, H)], fill=255); return A2, B2, m
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon([(0, 0), (512, 0), (428, H), (0, H)], fill=255); return A2, B2, m
 T_A, T_B, T_C = WI("H20", 0) - .05, WI("H20", 11) - .05, S("H21") - .05
 @esc(S("H20") - .25)
 def final(T, t0):
@@ -806,14 +809,14 @@ def final(T, t0):
     A2, B2, m = _mitades(); a = A2.copy(); b = B2.copy()
     mateo(a, "triste", 245, 1490, .92, T, blink=False); mateo(b, "neutral", 720 + 4 * math.sin(T * 3), 1490, .92, T, blink=False)
     if T < T_B: b.alpha_composite(Image.new("RGBA", (W, H), (10, 14, 40, int(150 * (1 - u_(T, T_B - .2, .2))))))
-    c = b; c.paste(a, (0, 0), m); d = ImageDraw.Draw(c); d.line((560, 0, 440, H), fill=CREMA, width=16)
+    c = b; c.paste(a, (0, 0), m); d = ImageDraw.Draw(c); d.line((512, 0, 428, H), fill=CREMA, width=16)
     pa = 1 + .07 * math.sin((T - T_C) * 10) if WI("H21", 1) - .08 <= T < WI("H21", 2) else 1; pb = 1 + .07 * math.sin((T - T_C) * 10) if T >= WI("H21", 3) - .08 else 1
-    tarjeta(c, 235, 660, .74 * pop(T, T_A, .3) * pa, "COMPARAR", (86, 176, 110), "comparar", 3)
-    tarjeta(c, 690, 660, .74 * pop(T, T_B, .3) * pb, "NUNCA", (150, 110, 200), "nunca", -3)
-    dos_lineas(c, 235, 950, "aprende mirando", "a Tomás", 2, pop(T, WI("H20", 3) - .05, .25)); dos_lineas(c, 690, 950, "a su ritmo,", "sin presión", -2, pop(T, WI("H20", 15) - .05, .25))
+    tarjeta(c, 247, 660, .74 * pop(T, T_A, .3) * pa, "COMPARAR", (86, 176, 110), "comparar", 3)
+    tarjeta(c, 719, 660, .74 * pop(T, T_B, .3) * pb, "NUNCA", (150, 110, 200), "nunca", -3)
+    dos_lineas(c, 243, 950, "aprende mirando", "a Tomás", 2, pop(T, WI("H20", 3) - .05, .25)); dos_lineas(c, 715, 950, "a su ritmo,", "sin presión", -2, pop(T, WI("H20", 15) - .05, .25))
     kv = pop(T, T_B + .1, .25)
     if kv > 0:
-        r = 65 * kv; d = ImageDraw.Draw(c); d.ellipse((463 - r, 659 - r, 463 + r, 659 + r), fill=AMA, outline=OL, width=8); d.text((463, 657), "vs", font=font(F_BAL, 78 * kv), fill=OL, anchor="mm")
+        r = 65 * kv; d = ImageDraw.Draw(c); d.ellipse((483 - r, 659 - r, 483 + r, 659 + r), fill=AMA, outline=OL, width=8); d.text((483, 657), "vs", font=font(F_BAL, 78 * kv), fill=OL, anchor="mm")
     return c
 
 SC.sort(key=lambda x: x[0])
