@@ -17,7 +17,7 @@ def efectos():
     e = [(g("lapiz", [(st["no_sale"] + .15, st["no_sale"] + .5), (WI("J12", 4), WI("J12", 4) + .3)]), 0, -5),
          (g("crayola", [(V.T_E0, V.T_E0 + 1.1), (st["explota"] + .05, st["explota"] + .5)]), 0, -3),
          (g("borrar", [(t, t + .45) for t in V.T_D] + [(st["dos"] + .05, st["dos"] + .55)]), 0, -6),
-         (sx("mochila"), st["suelo"] + .3, -9), (sx("brillo"), st["comentarios"] + 1.0, -10), (sx("brillo"), st["una"] + .1, -6),
+         (sx("whoosh"), .12, -9), (sx("mochila"), st["suelo"] + .3, -9), (sx("brillo"), st["comentarios"] + 1.0, -10), (sx("brillo"), st["una"] + .1, -6),
          (sx("reloj"), st["tacha"], -12), (sx("brillo"), V.T_A, -8), (sx("brillo"), V.T_B, -8), (sx("brillo"), V.T_TU, -10)]
     for t, fn in SCENES[1:]:
         if t not in SUAVES: e.append((sx("whoosh"), t - .05, -12))

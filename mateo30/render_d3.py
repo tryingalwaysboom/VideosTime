@@ -489,16 +489,54 @@ def volando(c, x, y, rot, s=.6):
     for i in range(3): d.line((x + 90 + i * 50, y - 60 + i * 44, x + 250 + i * 50, y - 130 + i * 44), fill=TIZA, width=9)
     put(c, "crayola", x, y, s, rot=rot)
 
+BATA_ = (63, 127, 208); CREMA_ = (255, 253, 244)
+def _ang(T):
+    """Ángulos (brazo, antebrazo) del lanzamiento: se echa atrás y latiga hacia delante."""
+    if T < .16: u = ease(T / .16); return -40 - 12 * u, -80 - 18 * u
+    u = clamp((T - .16) / .13); u = 1 - (1 - u) ** 3; r = 5 * math.exp(-(T - .29) * 9) * math.cos((T - .29) * 26) if T > .29 else 0
+    return -52 + 66 * u + r, -98 + 96 * u + r * 1.6
+def brazo_tira(c, ox, oy, a1, a2, s, con_crayola):
+    """Brazo que lanza, dibujado a 2x para que el borde salga limpio. Devuelve la posición de la mano."""
+    K = 2; lay = Image.new("RGBA", (W * K, H * K), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    P = lambda x, y: (x * K, y * K); w = 100 * s
+    ex, ey = ox + 150 * s * math.cos(math.radians(a1)), oy + 150 * s * math.sin(math.radians(a1))
+    ux, uy = math.cos(math.radians(a2)), math.sin(math.radians(a2)); L = 150 * s
+    hx, hy = ex + L * ux, ey + L * uy; mx, my = hx + 36 * s * ux, hy + 36 * s * uy
+    def seg(a, b, col, ww, cap=True):
+        d.line(P(*a) + P(*b), fill=col, width=int(ww * K))
+        if cap:
+            for q in (a, b): d.ellipse((q[0] * K - ww * K / 2, q[1] * K - ww * K / 2, q[0] * K + ww * K / 2, q[1] * K + ww * K / 2), fill=col)
+    for a, b in (((ox, oy), (ex, ey)), ((ex, ey), (hx, hy))): seg(a, b, OL, w + 14 * s)
+    d.ellipse((mx * K - 53 * s * K, my * K - 51 * s * K, mx * K + 53 * s * K, my * K + 51 * s * K), fill=OL)
+    for a, b in (((ox, oy), (ex, ey)), ((ex, ey), (hx, hy))): seg(a, b, BATA_, w)
+    q0 = (hx - 62 * s * ux, hy - 62 * s * uy); seg(q0, (hx, hy), OL, w + 14 * s, False); seg((q0[0] + 6 * s * ux, q0[1] + 6 * s * uy), (hx - 6 * s * ux, hy - 6 * s * uy), CREMA_, w, False)
+    d.ellipse((mx * K - 46 * s * K, my * K - 44 * s * K, mx * K + 46 * s * K, my * K + 44 * s * K), fill=PIEL)
+    c.alpha_composite(lay.resize((W, H), Image.LANCZOS))
+    if con_crayola: put(c, "crayola", mx + 30 * s * ux, my + 30 * s * uy, .62, rot=-a2)
+    return mx, my
+
+T_SUELTA = .215
 @esc(0)
 def gancho(T, t0):
-    """Primer fotograma: Mateo enojado, la crayola en el aire y el problema escrito."""
-    c = bg("bg_cocina", T, t0, 1.3, 1.4, 3, .5, .45)
-    mateo(c, "enojado", 330 + 6 * math.sin(T * 19) * (1 - u_(T, 0, .7)), 860, 1.15 + .05 * u_(T, 0, 2), T, blink=False)
-    u = u_(T, 0, 1.1); volando(c, 640 + 230 * u, 940 - 420 * math.sin(PI_ * (.25 + .75 * u)) + 200 * u, -40 + 520 * u, .62)
+    """Primer fotograma: Mateo enojado con la crayola en alto; la lanza y sale volando."""
+    c = bg("bg_cocina", T, t0, 1.3, 1.4, 3, .5, .45); s = 1.08 + .05 * u_(T, 0, 2)
+    lean = -14 * ease(T / .16) + 44 * ease((T - .16) / .14) if T < .5 else 30
+    hx = 265 + lean + 6 * math.sin(T * 19) * (1 - u_(T, .3, .7)); hy = 860
+    mateo(c, "enojado_tira", hx, hy, s, T, blink=False)
+    a1, a2 = _ang(T); m = brazo_tira(c, hx + 224 * s, hy + 372 * s, a1, a2, s, T < T_SUELTA)
+    if T >= T_SUELTA:
+        a1r, a2r = _ang(T_SUELTA); sr = 1.08; x0 = 265 + 10 + 224 * sr + 150 * sr * math.cos(math.radians(a1r)) + 216 * sr * math.cos(math.radians(a2r))
+        y0 = 860 + 372 * sr + 150 * sr * math.sin(math.radians(a1r)) + 216 * sr * math.sin(math.radians(a2r))
+        u = (T - T_SUELTA) / .75; x = x0 + 760 * u; y = y0 - 300 * u + 420 * u * u
+        d = ImageDraw.Draw(c)
+        for i in range(4 if x < 1200 else 0):
+            k = clamp(u * 5) * (1 - .18 * i); yy = y - 46 + i * 30
+            d.line((x - 100 - 190 * k, yy + 110 * k, x - 100, yy + 30), fill=OL, width=7)
+        put(c, "crayola", x, y, .62, rot=-40 - 900 * u)
     p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22)
     rotulo(c, "TIRÓ", 420, 250, 132, CREMA, OL, -4, k=p); rotulo(c, "LA CRAYOLA", 520, 410, 112, ROJO, CREMA, -4, k=p)
     k = pop(T, .55, .25)
-    if k > 0: rotulo(c, "GANÓ: NUNCA", 300, 1262, 46, AMA, OL, -3, k=k)
+    if k > 0: rotulo(c, "GANÓ: NUNCA", 280, 1240, 46, AMA, OL, -3, k=k)
     return c
 
 @esc(WI("J01", 3) - .1)

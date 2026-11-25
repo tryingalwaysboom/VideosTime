@@ -3,11 +3,12 @@ import os, re
 from playwright.sync_api import sync_playwright
 import art30 as B
 A = B.A; cel = B.cel; OL = B.OL
-def cuerpo_x():
+def cuerpo_x(brazos=True):
     b = cel('<path d="M150 1900 L160 900 Q170 760 300 720 Q400 700 500 720 Q630 760 640 900 L650 1900Z"/>', B.BATA, B.BATAS, B.BATAH, -46, -8, 8)
     b += f'<path d="M400 760 L400 1900" stroke="{B.BATAS}" stroke-width="8"/>'
     for y in (1330, 1510, 1690): b += f'<circle cx="400" cy="{y}" r="15" fill="{B.CREMA}" stroke="{OL}" stroke-width="5"/>'
     b += cel('<path d="M290 722 Q300 800 392 800 L400 742 L408 800 Q500 800 510 722 Q460 700 400 704 Q340 700 290 722Z"/>', B.CREMA, "#d9cfbd", None, -6, -4, 6)
+    if not brazos: return b
     # brazos: del hombro al codo
     b += cel('<path d="M172 800 Q96 900 112 1050 L214 1066 Q204 930 232 860Z"/>', B.BATA, B.BATAS, None, 10, 0, 7)
     b += cel('<path d="M628 800 Q704 900 688 1050 L586 1066 Q596 930 568 860Z"/>', B.BATA, B.BATAS, None, -10, 0, 7)
@@ -23,7 +24,14 @@ def cuerpo_x():
 def mateo_x(kind, hablando=False):
     h = A._mateo_cabeza() + A._cejas(kind) + A._ojos(kind) + ("" if hablando else A._boca(kind))
     return B.svg(800, 1900, cuerpo_x() + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>')
-L = {"mateo_enojado_x": mateo_x("enojado"), "mateo_neutral_x": mateo_x("neutral"), "mateo_neutral_x_hab": mateo_x("neutral", True)}
+def mateo_tira():
+    """Enojado, con su brazo izquierdo colgando y sin el derecho (el que lanza se anima en el render)."""
+    b = cuerpo_x(False)
+    b += cel('<path d="M172 800 Q84 900 92 1250 L196 1250 Q204 930 232 860Z"/>', B.BATA, B.BATAS, None, 10, 0, 7)
+    b += f'<rect x="88" y="1236" width="112" height="52" rx="10" fill="{B.CREMA}" stroke="{OL}" stroke-width="7"/><ellipse cx="144" cy="1326" rx="46" ry="44" fill="{B.SK}" stroke="{OL}" stroke-width="7"/>'
+    h = A._mateo_cabeza() + A._cejas("enojado") + A._ojos("enojado") + A._boca("enojado")
+    return B.svg(800, 1900, b + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>')
+L = {"mateo_enojado_x": mateo_x("enojado"), "mateo_neutral_x": mateo_x("neutral"), "mateo_neutral_x_hab": mateo_x("neutral", True), "mateo_enojado_tira": mateo_tira()}
 with sync_playwright() as p:
     br = p.chromium.launch(channel="chrome")
     for name, s in L.items():
