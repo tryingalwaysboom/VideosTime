@@ -340,42 +340,6 @@ def enojado(T, t0):
     c, tr = vista("bg_sala", 300, 900, 2.2); c = borroso(c, 10, 60); mateo(c, "timido", 500, 700, 1.4 + .06 * u_(T, t0, 2), T, "L14", blink=False)
     return c
 
-# ---------------------------------------------------------------- 6 · la escuela y el sobre
-@esc(S("L15") - .4)
-def mientras(T, t0):
-    c = pizarra(); tiza(c, "MIENTRAS", 500, 780, 190 * pop(T, t0 + .05, .25), AMA, -4, f=F_BAL)
-    if T >= t0 + .22: tiza(c, "TANTO…", 500, 990, 190 * pop(T, t0 + .22, .25), TIZA, -4, f=F_BAL)
-    return c
-
-@esc(WI("L15", 2) - .05)
-def escuela(T, t0): return bg("bg_escuela", T, t0, 1.05, 1.3, 2.2, .5, .45)
-
-@esc(WI("L15", 4) - .1)
-def tacha(T, t0):
-    c = pizarra(); d = ImageDraw.Draw(c); x0, y0, cw, ch_ = 70, 440, 136, 136
-    sombra(c, (x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 + 5 * ch_ + 26), 18, 110, 14)
-    d.rounded_rectangle((x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 + 5 * ch_ + 26), 18, fill=CREMA, outline=OL, width=8)
-    d.rounded_rectangle((x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 - 14), 18, fill=ROJO, outline=OL, width=8); d.text((x0 + 3 * cw, y0 - 62), "30 DÍAS · MATEO", font=font(F_BAL, 58), fill=CREMA, anchor="mm")
-    for i in range(30):
-        x, y = x0 + (i % 6) * cw, y0 + (i // 6) * ch_; d.rectangle((x + 6, y + 6, x + cw - 6, y + ch_ - 6), outline=(190, 186, 170), width=4)
-        d.text((x + cw / 2, y + ch_ / 2), str(i + 1), font=font(F_ANTON, 58), fill=OL if i > 2 else (150, 150, 160), anchor="mm")
-    tx = WI("L15", 4) - .02
-    for n in range(3):
-        a = (x0 + n * cw + 18, y0 + 18); b = (x0 + (n + 1) * cw - 18, y0 + ch_ - 18)
-        for j, (p, q) in enumerate(((a, b), ((b[0], a[1]), (a[0], b[1])))):
-            u = 1 if n < 2 else u_(T, tx + j * .16, .14)
-            if u > 0: d.line((p[0], p[1], p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u), fill=ROJO, width=18)
-    return view(c, 480, 800, 1 + .05 * u_(T, t0, 2.5))
-
-@esc(WI("L15", 8) - .1)
-def sobre(T, t0):
-    c = bg("bg_cocina", T, t0, 1.4, 1.5, 3, .7, .3); oscurecer(c, (10, 14, 40), 120); z = .95 + .1 * u_(T, t0, 2.5)
-    g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((0, 420, 960, 1300), fill=(255, 226, 150, 110)); c.alpha_composite(g.filter(ImageFilter.GaussianBlur(70)))
-    sombra(c, (480 - 410 * z, 860 - 270 * z, 480 + 410 * z, 860 + 270 * z), 20, 130, 20); paste_rot(c, sobre_img(), 480, 860, z, -3 + 1.5 * math.sin((T - t0) * 3))
-    k = pop(T, WI("L15", 12) - .05, .22)
-    if k > 0: rotulo(c, "CERRADO", 640, 1140, 78, ROJO, CREMA, -8, k=k)
-    return c
-
 # ---------------------------------------------------------------- 7 · el dilema
 @lru_cache(1)
 def _mitades():
@@ -383,7 +347,7 @@ def _mitades():
     B2, _ = sofa(540, 1000, 1.25); B2.alpha_composite(Image.new("RGBA", (W, H), VERDE_C + (60,)))
     m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon([(0, 0), (512, 0), (428, H), (0, H)], fill=255); return A2, B2, m
 T_A, T_B, T_C = WI("L16", 0) - .05, WI("L16", 6) - .05, S("L17") - .05
-T_TU = WI("L17", 4) - .08
+T_TU = E("L17") + 1
 @esc(S("L16") - .25)
 def final(T, t0):
     """Pantalla partida: cada opción con su consecuencia. Sin "mañana": las tarjetas dicen "¿EN EL DÍA 5?"."""

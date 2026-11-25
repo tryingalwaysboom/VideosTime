@@ -1,6 +1,7 @@
 # Temporada "Mateo: 30 días para no repetir" · DÍA 4 — La M en el sofá (ganó PREMIO). Guía: https://claude.ai/artifact/XNsi3CzRUyQwBaGKDFBZBU
 # Voces (eleven_v4): N = mamá narradora (Lily), K = Mateo (Daniela). Nunca "mañana": "en el próximo video".
 # Sin la frase "tiene N días… o repite el curso" (se repetía en todos los vídeos): la meta vive solo en la barra de arriba.
+# Sin la maestra/el sobre (solo de lejos en lejos) y sin "tu comentario puede salir". Sin relleno: dura lo que dura la historia.
 # Gancho: una sola idea y pregunta abierta (¿qué hará papá?) que no se resuelve hasta el final.
 VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4"}
 LINEAS = [
@@ -17,7 +18,6 @@ LINEAS = [
  ("L12", "N", "[tense] Y justo ahí… se abre la puerta.", "Y justo ahí… se abre la *puerta.*"),
  ("L13", "N", "Papá mira el sofá. Mira a Mateo. Y no dice nada.", "Papá mira el *sofá.* Mira a *Mateo.* Y no dice *nada.*"),
  ("L14", "K", "[small, worried] ¿Papá… está enojado?", "¿Papá… está *enojado?*"),
- ("L15", "N", "Mientras tanto, la maestra tacha el tercer día. Y el sobre sigue cerrado.", "Mientras tanto, la maestra *tacha* el tercer día. Y el sobre sigue *cerrado.*"),
  ("L16", "N", "¿Lo castigas por rayar el sofá? ¿O celebras su primera eme perfecta?", "¿Lo *castigas* por rayar el sofá? ¿O *celebras* su primera M *perfecta?*"),
- ("L17", "N", "Comenta castigo, o celebrar. Tu comentario puede salir en el próximo video.", "Comenta *CASTIGO,* o *CELEBRAR.* Tu *comentario* puede salir en el próximo video."),
+ ("L17", "N", "Comenta castigo, o celebrar.", "Comenta *CASTIGO,* o *CELEBRAR.*"),
 ]
