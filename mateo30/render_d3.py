@@ -669,9 +669,11 @@ def grito2(T, t0):
 
 @esc(E("J06") + .12)
 def silencio(T, t0):
-    """Un respiro: la hoja sola en la mesa."""
-    c = _mesa(T, t0, 1.0); paste_rot(c, hoja_mateo(2), 520, 900, 1.15, -9); put(c, "crayola", 760, 1260, .6, rot=24)
-    return view(c, 540, 900, 1.1 - .08 * u_(T, t0, 1.2))
+    """Un respiro: Mateo callado, con la mirada baja (sin repetir la hoja)."""
+    c = bg("bg_cocina", T, t0, 1.4, 1.46, 3, .5, .42); mateo(c, "triste", 540, 740, 1.25, T, blink=False)
+    k = pop(T, t0 + .25, .25)
+    if k > 0: tiza(c, "…", 800, 430, 170 * k, TIZA, 0, f=F_BAL, stroke=3, borde=True)
+    return view(c, 540, 760, 1.0 + .07 * u_(T, t0, 1.1))
 
 @esc(S("J07") - .2)
 def cambias(T, t0):
@@ -772,12 +774,11 @@ def que_me_das(T, t0):
 
 @esc(WI("J11", 3) - .08)
 def la_mano(T, t0):
-    c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); mateo(c, "feliz", 400, 640, 1.2, T, "J11", blink=False); manchas(c, 400, 640, 1.2)
-    u = ease((T - t0) / .25); d = ImageDraw.Draw(c); x, y = 700, 1180 - 60 * u
-    d.line([(520, 1330), (x, y)], fill=OL, width=126); d.line([(520, 1330), (x, y)], fill=(63, 127, 208), width=110)
-    d.ellipse((x - 100, y - 78, x + 100, y + 78), fill=PIEL, outline=OL, width=7)
+    c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); hx, hy, sc = 330, 640, 1.2
+    mateo(c, "feliz_tira", hx, hy, sc, T, "J11", blink=False); manchas(c, hx, hy, sc)
+    u = ease((T - t0) / .25); x, y = brazo_tira(c, hx + 224 * sc, hy + 372 * sc, 75 - 35 * u, 10 - 80 * u + 3 * math.sin(T * 9), sc, False)
     k = pop(T, t0 + .25, .2)
-    if k > 0: tiza(c, "?", x + 10, y - 190 - 10 * math.sin(T * 8), 200 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
+    if k > 0: tiza(c, "?", x + 6, y - 170 - 10 * math.sin(T * 8), 190 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
     return c
 
 @esc(S("J12") - .4)
@@ -828,11 +829,13 @@ def final(T, t0):
     A2, B2, m = _mitades(); a = A2.copy(); b = B2.copy()
     mateo(a, "feliz", 245, 1490, .92, T, blink=False); mateo(b, "neutral", 720 + 4 * math.sin(T * 3), 1490, .92, T, blink=False)
     if T < T_B: b.alpha_composite(Image.new("RGBA", (W, H), (10, 14, 40, int(150 * (1 - u_(T, T_B - .2, .2))))))
+    ka = u_(T, T_B, .2) * (1 - u_(T, T_C - .2, .2))      # mientras se habla de la B, la A queda en oscuro
     c = b; c.paste(a, (0, 0), m); d = ImageDraw.Draw(c); d.line((512, 0, 428, H), fill=CREMA, width=16)
     pa = 1 + .07 * math.sin((T - T_C) * 10) if WI("J14", 1) - .08 <= T < WI("J14", 2) else 1; pb = 1 + .07 * math.sin((T - T_C) * 10) if WI("J14", 3) - .08 <= T < T_TU else 1
     tarjeta(c, 247, 660, .74 * pop(T, T_A, .3) * pa, "PREMIO", NAR, "premio", 3, sub="¿EN EL DÍA 4?")
     tarjeta(c, 719, 660, .74 * pop(T, T_B, .3) * pb, "SIN PREMIO", MORA, "sinpremio", -3, sub="¿EN EL DÍA 4?")
     dos_lineas(c, 243, 950, "escribe por", "el dulce", 2, pop(T, WI("J13", 3) - .05, .25)); dos_lineas(c, 715, 950, "escribe porque", "él quiere", -2, pop(T, WI("J13", 14) - .05, .25))
+    if ka > 0: c.paste(Image.alpha_composite(c, Image.new("RGBA", (W, H), (10, 14, 40, int(150 * ka)))), (0, 0), m); d = ImageDraw.Draw(c); d.line((512, 0, 428, H), fill=CREMA, width=16)
     kv = pop(T, T_B + .1, .25)
     if kv > 0:
         r = 65 * kv; d = ImageDraw.Draw(c); d.ellipse((483 - r, 659 - r, 483 + r, 659 + r), fill=AMA, outline=OL, width=8); d.text((483, 657), "vs", font=font(F_BAL, 78 * kv), fill=OL, anchor="mm")

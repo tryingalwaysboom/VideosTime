@@ -31,7 +31,7 @@ def mateo_tira():
     b += f'<rect x="88" y="1236" width="112" height="52" rx="10" fill="{B.CREMA}" stroke="{OL}" stroke-width="7"/><ellipse cx="144" cy="1326" rx="46" ry="44" fill="{B.SK}" stroke="{OL}" stroke-width="7"/>'
     h = A._mateo_cabeza() + A._cejas("enojado") + A._ojos("enojado") + A._boca("enojado")
     return B.svg(800, 1900, b + f'<g transform="translate(400,700) scale(1.18) translate(-400,-640)">{h}</g>')
-L = {"mateo_enojado_x": mateo_x("enojado"), "mateo_neutral_x": mateo_x("neutral"), "mateo_neutral_x_hab": mateo_x("neutral", True), "mateo_enojado_tira": mateo_tira()}
+L = {"mateo_enojado_x": mateo_x("enojado"), "mateo_neutral_x": mateo_x("neutral"), "mateo_neutral_x_hab": mateo_x("neutral", True), "mateo_enojado_tira": B.mateo("enojado", False, brazo_der=False), "mateo_feliz_tira": B.mateo("feliz", False, brazo_der=False), "mateo_feliz_tira_hab": B.mateo("feliz", True, brazo_der=False)}
 with sync_playwright() as p:
     br = p.chromium.launch(channel="chrome")
     for name, s in L.items():
