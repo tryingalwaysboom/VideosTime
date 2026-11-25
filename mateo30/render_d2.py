@@ -469,13 +469,26 @@ def o_repite(T, t0):
     if k3 > 0: tiza(c, "EL CURSO", 540, 1060, 150 * k3, TIZA, -3, f=F_BAL)
     return c
 
+@lru_cache(None)
+def _coment(i, w=730):
+    """Comentario real del Día 1 (captura), recortado a su contenido, con esquinas redondas."""
+    im = Image.open(os.path.join(HERE, "coment_d2", f"c{i}.jpg")).convert("RGB"); g = im.convert("L").point(lambda v: 255 if v < 244 else 0); bb = g.getbbox()
+    im = im.crop((max(0, bb[0] - 26), max(0, bb[1] - 22), min(im.width, bb[2] + 26), min(im.height, bb[3] + 22))); full = Image.new("RGB", (1080, im.height), (255, 255, 255)); full.paste(im, (0, 0))
+    full = full.resize((w, int(w * full.height / 1080)), Image.LANCZOS).convert("RGBA")
+    m = Image.new("L", full.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, full.width - 1, full.height - 1), 26, fill=255); full.putalpha(m); return full
+
 @esc(WI("H03", 11) - .1)
 def eligieron(T, t0):
-    c = pizarra(); k = pop(T, t0, .28)
-    tiza(c, "USTEDES ELIGIERON", 540, 400, 92 * k, TIZA, -2, f=F_BAL)
-    tarjeta(c, 540, 830, 1.12 * k * (1 + .03 * math.sin((T - t0) * 8)), "SECRETO", (150, 110, 200), "secreto", -3, sub="GANÓ EL VOTO")
+    """Los comentarios reales de quienes votaron: se apilan uno a uno y encima cae el sello."""
+    c = pizarra(); tiza(c, "USTEDES ELIGIERON", 470, 338, 74 * pop(T, t0, .25), AMA, -2, f=F_BAL)
+    dur = max(.9, WI("H03", 16) - t0 - .1)
+    for i in range(6):
+        ti = t0 + .05 + dur * i / 6; k = pop(T, ti, .2)
+        if k <= 0: continue
+        im = _coment(i + 1); cx = 470 + (22 if i % 2 else -22); cy = 496 + i * 121 + 40 * (1 - ease((T - ti) / .2)); r = (-2.5, 2, -1.5, 2.5, -2, 1.5)[i]
+        sombra(c, (cx - im.width / 2, cy - im.height / 2, cx + im.width / 2, cy + im.height / 2), 26, 120, 14); paste_rot(c, im, cx, cy, k, r)
     ks = pop(T, WI("H03", 16) - .05, .2)
-    if ks > 0: rotulo(c, "✔ GANÓ", 800, 560, 84, ROJO, CREMA, 12, f=DJ, k=ks)
+    if ks > 0: rotulo(c, "✔ GANÓ: SECRETO", 470, 1246, 58, ROJO, CREMA, -3, f=DJ, k=ks)
     return c
 
 @esc(S("H04") - .15)
