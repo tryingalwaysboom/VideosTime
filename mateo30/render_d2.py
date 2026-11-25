@@ -424,8 +424,10 @@ def gancho(T, t0):
     t = Image.new("RGBA", (300, 300), (0, 0, 0, 0)); ImageDraw.Draw(t).text((150, 150), "M", font=font(F_AND, 230), fill=VERDE + (255,), anchor="mm")
     h.alpha_composite(t.rotate(187, resample=Image.BICUBIC), (610, 860)); c.alpha_composite(h)
     lapiz_rojo(c, (600, 850, 920, 1170), u_(T, .1, .45), 14)
+    p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22)          # el problema, escrito desde el fotograma 0
+    rotulo(c, "LE SALIÓ", 500, 250, 118, CREMA, OL, -4, k=p); rotulo(c, "AL REVÉS", 560, 410, 132, ROJO, CREMA, -4, k=p)
     k = pop(T, .5, .25)
-    if k > 0: rotulo(c, "GANÓ: SECRETO", 330, 250, 62, AMA, OL, -4, k=k)
+    if k > 0: rotulo(c, "GANÓ: SECRETO", 300, 1262, 46, AMA, OL, -3, k=k)
     return c
 
 @esc(WI("H01", 7) - .1)
@@ -448,25 +450,27 @@ def primo_flash(T, t0):
 
 @esc(S("H03") - .15)
 def faltan(T, t0):
-    """El objetivo completo, dicho y escrito antes del segundo 8: 29 días para escribir su nombre… o repite el curso."""
-    c = pizarra(); tn = WI("H03", 1) - .08; k = pop(T, tn, .25)
-    if k > 0: tiza(c, "29", 540, 600, 430 * k * (1 + .03 * math.sin((T - t0) * 9)), AMA, 0, f=F_ANTON)
+    """El objetivo completo, dicho y escrito antes del segundo 8, con Mateo en pantalla."""
+    c = pizarra(); mateo(c, "timido", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.05 + .03 * u_(T, t0, 2.5), T)
+    tn = WI("H03", 1) - .08; k = pop(T, tn, .25)
+    if k > 0: tiza(c, "29", 770, 480, 330 * k * (1 + .03 * math.sin((T - t0) * 9)), AMA, 0, f=F_ANTON)
     k = pop(T, WI("H03", 2) - .05, .22)
-    if k > 0: tiza(c, "DÍAS", 540, 860, 170 * k, TIZA, -2, f=F_BAL)
+    if k > 0: tiza(c, "DÍAS", 770, 700, 130 * k, TIZA, -2, f=F_BAL)
     k = pop(T, WI("H03", 3) - .05, .22)
-    if k > 0: tiza(c, "para escribir", 540, 1030, 104 * k, TIZA, -2, f=F_BAL)
+    if k > 0: tiza(c, "para escribir", 770, 830, 72 * k, TIZA, -2, f=F_BAL)
     k = pop(T, WI("H03", 5) - .05, .22)
-    if k > 0: tiza(c, "SU NOMBRE", 540, 1160, 130 * k, AMA, -2, f=F_BAL)
+    if k > 0: tiza(c, "SU NOMBRE", 750, 925, 84 * k, AMA, -2, f=F_BAL)
     return c
 
 @esc(WI("H03", 7) - .1)
 def o_repite(T, t0):
-    c = pizarra(); k = pop(T, t0 + .03, .22)
-    tiza(c, "…o", 540, 560, 170 * k, TIZA, -3, f=F_BAL)
-    k2 = pop(T, WI("H03", 8) - .05, .2)
-    if k2 > 0: rotulo(c, "REPITE", 540, 800, 190, ROJO, CREMA, -5, k=k2)
+    c = pizarra(); tr_ = WI("H03", 8) - .05
+    mateo(c, "neutral" if T < tr_ else "susto", 270 + (9 * math.sin(T * 40) * math.exp(-(T - tr_) * 5) if T >= tr_ else 0), 720, 1.1 + (.08 * ease((T - tr_) / .2) if T >= tr_ else 0), T, blink=False)
+    tiza(c, "…o", 760, 470, 150 * pop(T, t0 + .03, .22), TIZA, -3, f=F_BAL)
+    k2 = pop(T, tr_, .2)
+    if k2 > 0: rotulo(c, "REPITE", 750, 670, 128, ROJO, CREMA, -5, k=k2)
     k3 = pop(T, WI("H03", 9) - .05, .2)
-    if k3 > 0: tiza(c, "EL CURSO", 540, 1060, 150 * k3, TIZA, -3, f=F_BAL)
+    if k3 > 0: tiza(c, "EL CURSO", 750, 850, 96 * k3, TIZA, -3, f=F_BAL)
     return c
 
 @lru_cache(None)
