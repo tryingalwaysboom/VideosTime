@@ -17,7 +17,7 @@ def efectos():
     t_rev = WI("H01", 11) - .05; t_nota = WI("H04", 4) + .1; t_pat = WI("H08", 9) + .04; t_x = WI("H17", 7) - .05
     e = [(g("lapiz", [(.1, .55), (t_rev, t_rev + .3), (t_nota, t_nota + .4), (t_pat, t_pat + .35), (t_x, t_x + .3)]), 0, -5),
          (g("crayola", [(V.T_W0, V.T_W1)] + [(t, t + .45) for t in V.T_M] + [(V.T_T0, V.T_T0 + V.T_TD)]), 0, -3),
-         (sx("brillo"), WI("H03", 11) - .05, -9), (sx("mochila"), S("H04") - .1, -10), (sx("reloj"), S("H07") - .1, -11),
+         (sx("brillo"), WI("H03", 16) - .05, -9), (sx("mochila"), S("H04") - .1, -10), (sx("reloj"), S("H07") - .1, -11),
          (sx("brillo"), S("H12") + .3, -6), (sx("timbre"), WI("H13", 3) - .08, -8), (sx("brillo"), WI("H16", 4), -10),
          (sx("piano"), S("H18") - .3, -10), (sx("reloj"), S("H19") - .2, -12), (sx("brillo"), V.T_A, -8), (sx("brillo"), V.T_B, -8)]
     for t, fn in SCENES[1:]:

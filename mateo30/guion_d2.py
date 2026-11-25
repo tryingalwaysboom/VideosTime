@@ -4,7 +4,7 @@ VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4", "P": "Lb6lk8B
 LINEAS = [
  ("H01", "N", "[tense] Tu hijo tenía que escribir una M… y le salió al revés.", "Tu hijo tenía que escribir una *M…* y le salió al *revés.*"),
  ("H02", "N", "Y entonces llegó su primo.", "Y entonces llegó su *primo.*"),
- ("H03", "N", "Faltan veintinueve días para el examen. Y ustedes eligieron guardar el secreto.", "Faltan *29* *días* para el examen. Y ustedes eligieron guardar el *secreto.*"),
+ ("H03", "N", "Tiene veintinueve días para escribir su nombre… o repite el curso. Y ustedes eligieron guardar el secreto.", "Tiene *29* *días* para escribir su *nombre…* o *repite* el curso. Y ustedes eligieron guardar el *secreto.*"),
  ("H04", "N", "Pero Mateo encontró la nota en su mochila.", "Pero Mateo *encontró* la nota en su *mochila.*"),
  ("H05", "K", "[hurt] Mami… ¿por qué no me dijiste?", "Mami… ¿por qué no me *dijiste?*"),
  ("H06", "N", "Así que hoy empiezan. Primera letra: la eme.", "Así que hoy *empiezan.* Primera letra: la *M.*"),

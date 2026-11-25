@@ -27,7 +27,7 @@ DIAS_FALTAN = 29; LETRAS_ON = ""          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-R.GAP.update({"H02": .12, "H03": .2, "H04": .2, "H05": .25, "H06": .25, "H07": .15, "H08": .25, "H09": .25, "H10": .6, "H11": .2,
+R.GAP.update({"H02": .12, "H03": .2, "H04": .12, "H05": .2, "H06": .15, "H07": .12, "H08": .15, "H09": .2, "H10": .5, "H11": .2,
               "H12": .25, "H13": .45, "H14": .3, "H15": .3, "H16": .35, "H17": .5, "H18": .45, "H19": .45, "H20": .4, "H21": .25})
 R.TL, R.TOTAL = R.timeline()
 R.TL = {k: (a - .1, b - .1) for k, (a, b) in R.TL.items()}      # la voz arranca en el fotograma 0
@@ -448,20 +448,33 @@ def primo_flash(T, t0):
 
 @esc(S("H03") - .15)
 def faltan(T, t0):
-    c = pizarra(); tn = WI("H03", 1) - .08; u = ease((T - tn) / .25)
-    tiza(c, "FALTAN", 540, 520, 170 * pop(T, t0 + .05, .22), TIZA, -2, f=F_BAL)
-    if u < 1: tiza(c, "30", 540, 830 - 260 * u, 480, TIZA, 0, f=F_ANTON, alpha=int(255 * (1 - u)))
-    if u > 0: tiza(c, "29", 540, 1090 - 260 * u, 480 * (1 + .08 * math.exp(-(T - tn - .25) * 8) if T > tn + .25 else 1), AMA, 0, f=F_ANTON, alpha=int(255 * u))
+    """El objetivo completo, dicho y escrito antes del segundo 8: 29 días para escribir su nombre… o repite el curso."""
+    c = pizarra(); tn = WI("H03", 1) - .08; k = pop(T, tn, .25)
+    if k > 0: tiza(c, "29", 540, 600, 430 * k * (1 + .03 * math.sin((T - t0) * 9)), AMA, 0, f=F_ANTON)
     k = pop(T, WI("H03", 2) - .05, .22)
-    if k > 0: tiza(c, "DÍAS", 540, 1140, 180 * k, TIZA, -2, f=F_BAL)
+    if k > 0: tiza(c, "DÍAS", 540, 860, 170 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("H03", 3) - .05, .22)
+    if k > 0: tiza(c, "para escribir", 540, 1030, 104 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("H03", 5) - .05, .22)
+    if k > 0: tiza(c, "SU NOMBRE", 540, 1160, 130 * k, AMA, -2, f=F_BAL)
     return c
 
-@esc(WI("H03", 6) - .1)
+@esc(WI("H03", 7) - .1)
+def o_repite(T, t0):
+    c = pizarra(); k = pop(T, t0 + .03, .22)
+    tiza(c, "…o", 540, 560, 170 * k, TIZA, -3, f=F_BAL)
+    k2 = pop(T, WI("H03", 8) - .05, .2)
+    if k2 > 0: rotulo(c, "REPITE", 540, 800, 190, ROJO, CREMA, -5, k=k2)
+    k3 = pop(T, WI("H03", 9) - .05, .2)
+    if k3 > 0: tiza(c, "EL CURSO", 540, 1060, 150 * k3, TIZA, -3, f=F_BAL)
+    return c
+
+@esc(WI("H03", 11) - .1)
 def eligieron(T, t0):
     c = pizarra(); k = pop(T, t0, .28)
     tiza(c, "USTEDES ELIGIERON", 540, 400, 92 * k, TIZA, -2, f=F_BAL)
     tarjeta(c, 540, 830, 1.12 * k * (1 + .03 * math.sin((T - t0) * 8)), "SECRETO", (150, 110, 200), "secreto", -3, sub="GANÓ EL VOTO")
-    ks = pop(T, WI("H03", 11) - .05, .2)
+    ks = pop(T, WI("H03", 16) - .05, .2)
     if ks > 0: rotulo(c, "✔ GANÓ", 800, 560, 84, ROJO, CREMA, 12, f=DJ, k=ks)
     return c
 
@@ -821,7 +834,7 @@ def final(T, t0):
 
 SC.sort(key=lambda x: x[0])
 SCENES = [(t, f) for t, f, s_ in SC]; SUAVES = {t for t, f, s_ in SC if s_}
-IMPACTS = [WI("H01", 11), WI("H04", 4) + .15, WI("H08", 10), WI("H13", 3), WI("H16", 13) + .2]
+IMPACTS = [WI("H01", 11), WI("H03", 8), WI("H04", 4) + .15, WI("H08", 10), WI("H13", 3), WI("H16", 13) + .2]
 
 def hblur(im, k):
     if k < 2: return im
