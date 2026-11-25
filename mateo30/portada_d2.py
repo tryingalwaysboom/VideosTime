@@ -1,26 +1,28 @@
-"""Portada del Día 2 (misma plantilla de la temporada): pizarra verde, hoja de calendario DÍA N, cara de Mateo con emoción,
-UN objeto enorme con el error en círculo rojo, título de 2 líneas en tiza y las letras M-A-T-E-O.
+"""Portada del Día 2 — plantilla nueva de la temporada (opción D):
+número del día GIGANTE a la izquierda, UN objeto grande con el error en círculo rojo a la derecha, Mateo asomado bajo el número,
+título de 2 líneas y M-A-T-E-O sobre una franja del COLOR DEL DÍA (rota cada día para que ninguna portada se parezca a la anterior).
 Todo dentro de la zona central 3:4 (x 90-990, y 300-1620): es lo que TikTok deja ver en la cuadrícula del perfil."""
-import os
+import os, sys
 from render_d2 import *
-def main():
-    c = pizarra(); d = ImageDraw.Draw(c)
-    d.rounded_rectangle((110, 340, 330, 590), 26, fill=CREMA, outline=OL, width=8)
-    d.rounded_rectangle((110, 340, 330, 416), 26, fill=ROJO, outline=OL, width=8); d.rectangle((116, 390, 324, 416), fill=ROJO)
-    d.text((220, 380), "DÍA", font=font(F_BAL, 54), fill=CREMA, anchor="mm"); d.text((220, 508), "2", font=font(F_ANTON, 150), fill=OL, anchor="mm")
-    cx, cy, rot = 690, 660, 5; lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); h = hoja_img().resize((620, 520), Image.LANCZOS)
-    lay.alpha_composite(h, (cx - 310, cy - 260)); ImageDraw.Draw(lay).rectangle((cx - 310, cy - 260, cx + 309, cy + 259), outline=OL + (255,), width=7)
-    t = Image.new("RGBA", (460, 460), (0, 0, 0, 0)); ImageDraw.Draw(t).text((230, 230), "M", font=font(F_AND, 360), fill=VERDE + (255,), anchor="mm")
-    t = t.rotate(184, resample=Image.BICUBIC); lay.alpha_composite(t, (cx - 230, cy - 240)); lapiz_rojo(lay, (cx - 250, cy - 215, cx + 250, cy + 225), 1, 16)
-    sombra(c, (cx - 310, cy - 260, cx + 310, cy + 260), 10, 120, 18); c.alpha_composite(lay.rotate(rot, center=(cx, cy), resample=Image.BICUBIC))
-    mateo(c, "susto", 290, 905, .8, 0, blink=False)
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
-    dl.rectangle((0, 1080, W, H), fill=PIZ2 + (255,)); dl.line((0, 1080, W, 1080), fill=(214, 190, 150, 255), width=8); c.alpha_composite(lay)
-    tiza(c, "Escribió su primera M…", 540, 1175, 80, TIZA, 0, f=F_BAL)
-    tiza(c, "¡y le salió AL REVÉS!", 540, 1290, 88, AMA, 0, f=F_BAL)
-    d = ImageDraw.Draw(c)
+COLORES = [(226, 72, 59), (126, 87, 194), (52, 110, 200), (238, 124, 40), (40, 150, 140), (214, 72, 140)]   # día 1, 2, 3… (se repite)
+def hoja_error(c, cx, cy, w, rot):
+    h = int(w * .8); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); im = hoja_img().resize((w, h), Image.LANCZOS)
+    lay.alpha_composite(im, (cx - w // 2, cy - h // 2)); ImageDraw.Draw(lay).rectangle((cx - w // 2, cy - h // 2, cx + w // 2 - 1, cy + h // 2 - 1), outline=OL + (255,), width=7)
+    s = int(h * .86); t = Image.new("RGBA", (s, s), (0, 0, 0, 0)); ImageDraw.Draw(t).text((s / 2, s / 2), "M", font=font(F_AND, s * .78), fill=VERDE + (255,), anchor="mm")
+    t = t.rotate(184, resample=Image.BICUBIC); lay.alpha_composite(t, (cx - s // 2, cy - s // 2 + int(h * .03)))
+    lapiz_rojo(lay, (cx - w * .4, cy - h * .42, cx + w * .4, cy + h * .44), 1, 16)
+    sombra(c, (cx - w // 2, cy - h // 2, cx + w // 2, cy + h // 2), 10, 120, 18); c.alpha_composite(lay.rotate(rot, center=(cx, cy), resample=Image.BICUBIC))
+def base(dia, objeto, emocion, l1, l2):
+    col = COLORES[(dia - 1) % len(COLORES)]; c = pizarra(); c.alpha_composite(Image.new("RGBA", (W, H), col + (120,))); objeto(c)
+    d = ImageDraw.Draw(c); d.text((235, 372), "DÍA", font=font(F_BAL, 104), fill=CREMA, anchor="mm", stroke_width=8, stroke_fill=OL)
+    d.text((235, 640), str(dia), font=font(F_ANTON, 470 if dia < 10 else 330), fill=AMA, anchor="mm", stroke_width=13, stroke_fill=OL)
+    mateo(c, emocion, 300, 1030, .6, 0, blink=False)
+    d = ImageDraw.Draw(c); d.rectangle((0, 1130, W, H), fill=col); d.line((0, 1130, W, 1130), fill=OL, width=9)
+    d.text((540, 1225), l1, font=font(F_BAL, 80), fill=CREMA, anchor="mm", stroke_width=7, stroke_fill=OL)
+    d.text((540, 1343), l2, font=font(F_BAL, 92), fill=AMA, anchor="mm", stroke_width=8, stroke_fill=OL)
     for i, ch in enumerate("MATEO"):
         x = 540 + (i - 2) * 141; r = 60
-        d.rounded_rectangle((x - r, 1470 - r, x + r, 1470 + r), 20, fill=(58, 92, 80), outline=OL, width=7); d.text((x, 1472), ch, font=font(F_BAL, 88), fill=(196, 208, 202), anchor="mm")
-    c.convert("RGB").save(os.path.join(HERE, "portada_mateo_dia2_9x16.jpg"), quality=93)
-main()
+        d.rounded_rectangle((x - r, 1490 - r, x + r, 1490 + r), 20, fill=CREMA, outline=OL, width=7); d.text((x, 1492), ch, font=font(F_BAL, 88), fill=OL, anchor="mm")
+    return c
+if __name__ == "__main__":
+    base(2, lambda c: hoja_error(c, 650, 660, 640, -3), "susto", "Escribió su primera M…", "¡y le salió AL REVÉS!").convert("RGB").save(os.path.join(HERE, "portada_mateo_dia2_9x16.jpg"), quality=93)
