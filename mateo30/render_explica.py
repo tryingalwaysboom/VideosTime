@@ -171,7 +171,7 @@ def sc_empieza(T):
 def sc_una(T):
     """'A partir de hoy, en esta cuenta solo habrá una historia.'"""
     t0 = S("X01") - .15; c = pizarra()
-    k = pop(T, WT("X01", "solo") - .2, .3)
+    k = pop(T, t0 + .15, .3)
     if k > 0: tiza(c, "1", W / 2, 760, int(560 * k), AMA, -4, f=D.F_ANTON, borde=True)
     rotulo(c, "SOLO UNA HISTORIA", W / 2, 1140, 64, CREMA, OL, 2, k=pop(T, WT("X01", "historia.") - .25, .3))
     rotulo(c, "DESDE HOY", W / 2, 330, 70, ROJO, CREMA, -3, k=pop(T, t0 + .1, .3))
