@@ -139,7 +139,7 @@ def check(c, txt, y, T, t0):
         pts = [p1, (p1[0] + (p2[0] - p1[0]) * min(1, u * 2), p1[1] + (p2[1] - p1[1]) * min(1, u * 2))]
         if u > .5: pts.append((p2[0] + (p3[0] - p2[0]) * (u - .5) * 2, p2[1] + (p3[1] - p2[1]) * (u - .5) * 2))
         d.line(pts, fill=(60, 170, 90), width=16, joint="curve")
-    tiza(c, txt, 260, y, int(78 * k), TIZA, 0, f=D.F_BAL, anchor="lm")
+    tiza(c, txt, 260, y, int(96 * k), TIZA, 0, f=D.F_BAL, anchor="lm")
 
 def sc_ojo(T):
     """'¡Ojo! Esto no es otro capítulo de la serie de antes: es una serie nueva.'"""
@@ -171,7 +171,7 @@ def sc_empieza(T):
 def sc_una(T):
     """'A partir de hoy, en esta cuenta solo habrá una historia.'"""
     t0 = S("X01") - .15; c = pizarra()
-    k = pop(T, WT("X01", "una") - .2, .3)
+    k = pop(T, WT("X01", "solo") - .2, .3)
     if k > 0: tiza(c, "1", W / 2, 760, int(560 * k), AMA, -4, f=D.F_ANTON, borde=True)
     rotulo(c, "SOLO UNA HISTORIA", W / 2, 1140, 64, CREMA, OL, 2, k=pop(T, WT("X01", "historia.") - .25, .3))
     rotulo(c, "DESDE HOY", W / 2, 330, 70, ROJO, CREMA, -3, k=pop(T, t0 + .1, .3))
@@ -210,11 +210,12 @@ def sc_comenta(T):
     """'El día 1 ya está en el perfil. Entra y déjale un comentario.': flecha a la portada del Día 1."""
     t0 = S("Y04") - .15
     c, to = grid_view(T, t0, 1.0, pop(T, WT("Y04", "perfil.") - .25, .3))
-    rotulo(c, "DÍA 1 · YA EN EL PERFIL", W / 2, 230, 58, AMA, OL, -2, k=pop(T, t0, .3))
+    tc = WT("Y04", "comentario.") - .3
+    if T < tc: rotulo(c, "DÍA 1 · YA EN EL PERFIL", W / 2, 230, 58, AMA, OL, -2, k=pop(T, t0, .3))
     a, b = to(178, 0); flecha(c, a, b - 20, T, pop(T, WT("Y04", "perfil.") - .25, .3))
     tc = WT("Y04", "comentario.") - .3
     if T >= tc:
-        rotulo(c, "¡DÉJALE UN COMENTARIO!", W / 2, 1300, 54, ROJO, CREMA, 2, k=pop(T, tc, .3))
+        rotulo(c, "¡DÉJALE UN COMENTARIO!", W / 2, 230, 58, ROJO, CREMA, -2, k=pop(T, tc, .3))
         burbuja(c, 620, 640, 1.0, pop(T, tc + .1, .3))
     return zoomcam(c, T, t0, 1.0, 1.1, 4.0, 360, 860)
 
@@ -232,7 +233,7 @@ def sc_leo(T):
 
 SCENES = [(0, sc_ojo), (S("Y02") - .15, sc_empieza), (S("X01") - .15, sc_una), (S("X02") - .12, sc_mia), (S("Y03") - .15, sc_promesa),
           (S("X04") - .1, sc_solito), (S("Y04") - .15, sc_comenta), (S("Y05") - .15, sc_leo)]
-IMPACTS = [WT("Y01", "serie", 2) - .15, WT("X01", "una") - .2, WT("Y04", "perfil.") - .25]
+IMPACTS = [WT("Y01", "serie", 2) - .15, WT("X01", "solo") - .2, WT("Y04", "perfil.") - .25]
 
 TW = .18
 def frame(T):
@@ -264,7 +265,7 @@ def video(out):
         flt.append(f"[{i}:a]aresample=48000,afade=t=in:d=0.012,adelay={ms}|{ms},apad[a{i}]")
     n = len(TL)
     efx = [(sx("timbre"), 0, -15), (sx("resultado"), WT("Y01", "serie", 2) - .15, -10), (sx("brillo"), S("Y02"), -10),
-           (sx("brillo"), WT("X01", "una") - .2, -8), (sx("lapiz"), WT("Y03", "divertida,") - .2, -10), (sx("lapiz"), WT("Y03", "hecha,") - .2, -10),
+           (sx("brillo"), WT("X01", "solo") - .2, -8), (sx("lapiz"), WT("Y03", "divertida,") - .2, -10), (sx("lapiz"), WT("Y03", "hecha,") - .2, -10),
            (sx("lapiz"), WT("Y03", "relleno.") - .2, -10), (sx("brillo"), WT("X04", "solito!") - .2, -8),
            (sx("brillo"), WT("Y04", "perfil.") - .25, -8), (sx("teclea"), WT("Y04", "comentario.") - .2, -12), (sx("brillo"), S("Y05"), -9),
            (sx("musica"), 0, -16)]
