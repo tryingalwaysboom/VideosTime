@@ -1,0 +1,435 @@
+# ================================================================ ESCENAS DEL DÍA 4 — La M en el sofá (un plano cada ~2 s)
+NEGRO = (24, 22, 30); VERDE_C = (86, 176, 110)
+
+@lru_cache(8)
+def fondo2(name): return R.layer(name)
+def vista(name, cx, cy, z):
+    """Encuadre de un fondo (capa 2x) centrado en (cx, cy) con zoom z. Devuelve la imagen y la transformación fondo→pantalla."""
+    im = fondo2(name); w, h = 2 * W / z, 2 * H / z
+    x0 = min(max(cx * 2 - w / 2, 0), 2 * W - w); y0 = min(max(cy * 2 - h / 2, 0), 2 * H - h)
+    c = im.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + w, y0 + h)).convert("RGBA")
+    return c, (lambda p: ((p[0] - x0 / 2) * z, (p[1] - y0 / 2) * z))
+def trazo(c, pts, w, col=NEGRO):
+    """Trazo de marcador (borde limpio: se dibuja a 2x)."""
+    if len(pts) < 2: return
+    K = 2; m = Image.new("L", (W * K, H * K), 0); d = ImageDraw.Draw(m); q = [(x * K, y * K) for x, y in pts]
+    d.line(q, fill=255, width=int(w * K), joint="curve")
+    for p in q[::3] + [q[-1]]: d.ellipse((p[0] - w * K / 2, p[1] - w * K / 2, p[0] + w * K / 2, p[1] + w * K / 2), fill=255)
+    lay = Image.new("RGBA", (W, H), col + (255,)); lay.putalpha(m.resize((W, H), Image.LANCZOS)); c.alpha_composite(lay)
+
+# la M del sofá (coordenadas del fondo bg_sala): sube, baja, sube, baja
+MS = [_poli([(400, 1030), (398, 800)], 10, 41, 1.6), _poli([(398, 800), (540, 962)], 10, 42, 1.6), _poli([(540, 962), (682, 800)], 10, 43, 1.6), _poli([(682, 800), (684, 1030)], 10, 44, 1.6)]
+MS_ALL = [p for s_ in MS for p in s_]
+def sofa(cx, cy, z, u=1.0):
+    c, tr = vista("bg_sala", cx, cy, z); pts = parcial(MS_ALL, u)
+    if pts: trazo(c, [tr(p) for p in pts], 26 * z)
+    return c, tr
+def borroso(c, r=14, a=70):
+    c = c.filter(ImageFilter.GaussianBlur(r)); oscurecer(c, (20, 18, 40), a); return c
+def dulce_ico(c, x, y, s, tachado=0.0, rot=-12):
+    put(c, "dulce", x, y, s, rot=rot)
+    if tachado > 0:
+        d = ImageDraw.Draw(c); r = 150 * s; u = clamp(tachado)
+        d.line((x - r, y - r, x - r + 2 * r * u, y - r + 2 * r * u), fill=ROJO, width=int(26 * s) + 6)
+        if u > .5: d.line((x + r, y - r, x + r - 2 * r * (u - .5) * 2, y - r + 2 * r * (u - .5) * 2), fill=ROJO, width=int(26 * s) + 6)
+
+_ico3 = icono_tarjeta
+def icono_tarjeta(d, ix, iy, k, icono):
+    if icono == "castigo":      # el marcador, prohibido
+        d.rounded_rectangle((ix - 96 * k, iy - 24 * k, ix + 40 * k, iy + 24 * k), 10 * k, fill=NEGRO, outline=OL, width=max(3, int(6 * k)))
+        d.polygon([(ix + 40 * k, iy - 18 * k), (ix + 98 * k, iy), (ix + 40 * k, iy + 18 * k)], fill=(70, 66, 86), outline=OL)
+        d.ellipse((ix - 118 * k, iy - 118 * k, ix + 118 * k, iy + 118 * k), outline=CREMA, width=max(4, int(20 * k)))
+        d.line((ix - 82 * k, iy - 82 * k, ix + 82 * k, iy + 82 * k), fill=CREMA, width=max(4, int(20 * k)))
+    elif icono == "celebrar":   # estrella con su M
+        P = [(ix + (118 if i % 2 == 0 else 52) * k * math.sin(i * PI_ / 5), iy - (118 if i % 2 == 0 else 52) * k * math.cos(i * PI_ / 5)) for i in range(10)]
+        d.polygon(P, fill=AMA, outline=OL); d.line(P + [P[0]], fill=OL, width=max(3, int(8 * k)), joint="curve")
+        d.text((ix, iy + 4 * k), "M", font=font(F_AND, 96 * k), fill=OL, anchor="mm")
+    else: _ico3(d, ix, iy, k, icono)
+
+# ---------------------------------------------------------------- 1 · gancho: una sola idea y pregunta abierta
+@esc(0)
+def gancho(T, t0):
+    """Fotograma 0: el sofá nuevo rayado con marcador y Mateo al lado, con el marcador en la mano."""
+    z = 1.5 + .12 * ease(T / .5) + .05 * u_(T, 0, 2); c, tr = sofa(480, 930, z)
+    hx = 236 + 5 * math.sin(T * 17) * (1 - u_(T, 0, .6)); mateo(c, "feliz_tira", hx, 1130, .92, T, blink=False)
+    brazo_tira(c, hx + 224 * .92, 1130 + 372 * .92, -38 + 3 * math.sin(T * 6), -80 + 4 * math.sin(T * 6), .92, "marcador")
+    p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22)
+    rotulo(c, "RAYÓ", 380, 290, 132, CREMA, OL, -4, k=p); rotulo(c, "EL SOFÁ NUEVO", 530, 450, 100, ROJO, CREMA, -4, k=p)
+    return c
+
+AB = (270, 270, 816, 1356)      # hueco de la puerta en bg_puerta
+def puerta(T, cx, cy, z, abierta=1.0, papa=0.0, px=560):
+    """La puerta de entrada: se abre (abierta 0→1) y papá aparece a contraluz con su sombra larga."""
+    c, tr = vista("bg_puerta", cx, cy, z); d = ImageDraw.Draw(c)
+    if abierta < .5:       # puerta cerrada: la hoja abierta del fondo no se ve
+        a, b = tr((822, 180)), tr((1080, 1352)); d.rectangle((a[0], a[1], b[0], b[1]), fill=c.getpixel((int(tr((60, 300))[0]) if tr((60, 300))[0] > 0 else 4, int(tr((60, 300))[1]))))
+    if papa > 0:
+        s = .64 * z; fx, fy = tr((px, AB[3] - 6)); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(lay).polygon([(fx - 150 * z, fy), (fx + 150 * z, fy), (fx - 80 * z, fy + 900 * z), (fx - 620 * z, fy + 900 * z)], fill=(20, 16, 40, int(120 * papa)))
+        c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(10))); put(c, "papa_silueta", fx, fy - 810 * s + 14 * (1 - papa), s, alpha=clamp(papa))
+    if abierta < 1:
+        a, b = tr((AB[0], AB[1])), tr((AB[0] + (AB[2] - AB[0]) * (1 - abierta), AB[3]))
+        if b[0] - a[0] > 4:
+            d = ImageDraw.Draw(c); d.rectangle((a[0], a[1], b[0], b[1]), fill=(176, 106, 52), outline=OL, width=7)
+            d.rectangle((a[0] + 40 * z, a[1] + 60 * z, b[0] - 40 * z, a[1] + 480 * z), outline=(140, 82, 40), width=7) if b[0] - a[0] > 120 * z else None
+            kx, ky = b[0] - 46 * z, (a[1] + b[1]) / 2 + 30 * z; d.ellipse((kx - 22 * z, ky - 22 * z, kx + 22 * z, ky + 22 * z), fill=AMA, outline=OL, width=5)
+    return c
+
+@esc(WI("L01", 4) - .1)
+def llego(T, t0):
+    u = ease((T - t0) / .4); c = puerta(T, 540, 880, 1.18 + .1 * u_(T, t0, 2), abierta=.35 + .65 * u, papa=clamp((T - t0 - .12) / .3))
+    k = pop(T, WI("L01", 5) - .05, .2)
+    if k > 0: rotulo(c, "…Y PAPÁ YA LLEGÓ", 500, 300, 84, ROJO, CREMA, -4, k=k)
+    return c
+
+# ---------------------------------------------------------------- 2 · el objetivo, en una frase
+@esc(S("L02") - .15)
+def faltan(T, t0):
+    c = pizarra(); mateo(c, "timido", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.05 + .03 * u_(T, t0, 2.5), T)
+    k = pop(T, WI("L02", 1) - .08, .25)
+    if k > 0: tiza(c, "27", 770, 480, 330 * k * (1 + .03 * math.sin((T - t0) * 9)), AMA, 0, f=F_ANTON)
+    k = pop(T, WI("L02", 2) - .05, .22)
+    if k > 0: tiza(c, "DÍAS", 770, 700, 130 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("L02", 3) - .05, .22)
+    if k > 0: tiza(c, "para escribir", 770, 830, 72 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("L02", 5) - .05, .22)
+    if k > 0: tiza(c, "SU NOMBRE", 750, 925, 84 * k, AMA, -2, f=F_BAL)
+    return c
+
+@esc(WI("L02", 7) - .1)
+def o_repite(T, t0):
+    c = pizarra(); tr_ = WI("L02", 8) - .05
+    mateo(c, "neutral" if T < tr_ else "susto", 270 + (9 * math.sin(T * 40) * math.exp(-(T - tr_) * 5) if T >= tr_ else 0), 720, 1.1 + (.08 * ease((T - tr_) / .2) if T >= tr_ else 0), T, blink=False)
+    tiza(c, "…o", 760, 470, 150 * pop(T, t0 + .03, .22), TIZA, -3, f=F_BAL)
+    k2 = pop(T, tr_, .2)
+    if k2 > 0: rotulo(c, "REPITE", 750, 670, 128, ROJO, CREMA, -5, k=k2)
+    k3 = pop(T, WI("L02", 9) - .05, .2)
+    if k3 > 0: tiza(c, "EL CURSO", 750, 850, 96 * k3, TIZA, -3, f=F_BAL)
+    return c
+
+# ---------------------------------------------------------------- 3 · cómo llegó ahí: ustedes eligieron PREMIO
+@esc(S("L03") - .1)
+def eligieron(T, t0):
+    c = pizarra(); mateo(c, "feliz", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.08 + .03 * u_(T, t0, 2.5), T, blink=False)
+    k = pop(T, t0 + .05, .22); tiza(c, "USTEDES", 750, 470, 100 * k, TIZA, -2, f=F_BAL)
+    k = pop(T, WI("L03", 2) - .05, .22)
+    if k > 0: tiza(c, "ELIGIERON:", 750, 590, 100 * k, AMA, -2, f=F_BAL)
+    k = pop(T, WI("L03", 3) - .05, .2)
+    if k > 0: rotulo(c, "PREMIO", 750, 800, 128, NAR, CREMA, -5, k=k); dulce_ico(c, 760, 1010, .62 * k)
+    return c
+
+NCOM = len([f for f in os.listdir(os.path.join(HERE, "coment_d4")) if f.endswith(".jpg")])
+def _com_y():
+    ys, y = [], 400
+    for i in range(NCOM):
+        h = _coment(i + 1).height; ys.append(y + h / 2); y += h * (.62 if NCOM > 4 else 1.06)
+    k = min(1.0, (1180 - 400) / (y + _coment(NCOM).height * .38 - 400)); return [400 + (v - 400) * k for v in ys]
+COM_Y = _com_y()
+@esc(WI("L03", 4) - .1)
+def comentarios(T, t0):
+    """Comentarios reales de quienes votaron PREMIO y el sello."""
+    c = pizarra(); tiza(c, "USTEDES ELIGIERON", 470, 338, 74, AMA, -2, f=F_BAL)
+    for i in range(NCOM):
+        ti = t0 + .04 + .9 * i / NCOM; k = pop(T, ti, .18)
+        if k <= 0: continue
+        im = _coment(i + 1); cx = 470 + (22 if i % 2 else -22); r = (-2.5, 2, -1.5, 2.5, -2, 1.5)[i]; cy = COM_Y[i] + 40 * (1 - ease((T - ti) / .18))
+        sombra(c, (cx - im.width / 2, cy - im.height / 2, cx + im.width / 2, cy + im.height / 2), 26, 120, 14); paste_rot(c, im, cx, cy, k, r)
+    ks = pop(T, t0 + 1.0, .2)
+    if ks > 0: rotulo(c, "✔ GANÓ: PREMIO", 470, 1246, 58, NAR, CREMA, -3, f=DJ, k=ks)
+    return c
+
+# tres M rápidas sobre la fila punteada de la hoja real (la tercera, al revés: el error escondido)
+FS = [_poli([(208, 628), (213, 556), (240, 612), (262, 560), (271, 633)], 8, 51, 2.4), _poli([(298, 621), (307, 551), (326, 597), (353, 566), (350, 634)], 8, 52, 2.6),
+      _poli([(388, 560), (402, 629), (420, 581), (437, 631), (451, 556)], 8, 53, 2.4)]
+T_F0 = WI("L04", 3) - .1
+def _hoja_rapida(c, T, s=4.4, cx=470, cy=900, hasta=None):
+    tr, sc = pagM(c, s, 330, 592, cx, cy); tip = None
+    for i, F in enumerate(FS):
+        u = 1 if hasta is None else u_(T, T_F0 + i * .4, .34); pts = parcial(F, u); cray(c, tr, sc, pts)
+        if pts and u < 1: tip = tr(pts[-1])
+    return tr, sc, tip
+
+@esc(S("L04") - .25)
+def rapido(T, t0):
+    c = _mesa(T, t0, 1.05); tr, sc, tip = _hoja_rapida(c, T, hasta=True)
+    put(c, "tarro", 800, 500, .62 + .02 * math.sin(T * 7), rot=4)
+    if tip is None: tip = tr(FS[0][0]) if T < T_F0 else tr(FS[2][-1])
+    if T_F0 <= T < T_F0 + 1.2:
+        d = ImageDraw.Draw(c)
+        for i in range(3): d.line((tip[0] + 120 + i * 46, tip[1] - 150 + i * 30, tip[0] + 260 + i * 46, tip[1] - 200 + i * 30), fill=TIZA, width=9)
+    mano(c, tip, T, .8); return c
+
+@esc(WI("L04", 5) - .1)
+def mal(T, t0):
+    c = _mesa(T, t0, 1.1); tr, sc, _ = _hoja_rapida(c, T, 4.8, 500, 900)
+    for i, F in enumerate(FS):
+        k = pop(T, WI("L04", 7) - .05 + i * .16, .2)
+        if k > 0: a = tr(F[len(F) // 2]); tiza(c, "✗", a[0], a[1] - 150, 120 * k, ROJO, 6, f=DJ, stroke=3, borde=True)
+    return view(c, 520, 880, 1 + .08 * u_(T, t0, 2))
+
+@esc(S("L05") - .2)
+def mi_dulce(T, t0):
+    c = bg("bg_cocina", T, t0, 1.3, 1.36, 3, .5, .45); hx, hy, sc = 330, 660, 1.2
+    mateo(c, "feliz_tira", hx, hy, sc, T, "L05", blink=False)
+    u = ease((T - t0) / .25); x, y = brazo_tira(c, hx + 224 * sc, hy + 372 * sc, 75 - 35 * u, 10 - 80 * u + 3 * math.sin(T * 9), sc, False)
+    k = pop(T, WI("L05", 3) - .05, .2)
+    if k > 0: dulce_ico(c, x + 10, y - 170 - 10 * math.sin(T * 8), .6 * k); tiza(c, "?", x + 150, y - 250, 150 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
+    return c
+
+@esc(S("L06") - .2)
+def asi_no(T, t0):
+    c = bg("bg_cocina", T, t0, 1.36, 1.4, 3, .5, .45); tn = WI("L06", 1) - .05
+    mateo(c, "feliz" if T < tn else "triste", 330, 660, 1.2 + (.05 * ease((T - tn) / .2) if T >= tn else 0), T, blink=False)
+    dulce_ico(c, 760, 560, .7, tachado=u_(T, tn, .25))
+    k = pop(T, tn, .2)
+    if k > 0: rotulo(c, "ASÍ NO", 730, 800, 110, ROJO, CREMA, -5, k=k)
+    return c
+
+@esc(WI("L06", 2) - .1)
+def en_lo_alto(T, t0):
+    """Los dulces suben a lo más alto del refrigerador; Mateo los mira desde abajo."""
+    u = ease((T - t0 - .1) / .7); c, tr = vista("bg_cocina", 760, 950 - 430 * u, 1.3)
+    x, y = tr((330 + 510 * u, 930 - 590 * u - 140 * math.sin(PI_ * u))); put(c, "tarro", x, y, .66, rot=-10 * math.sin(PI_ * u))
+    mateo(c, "triste", 330, 1380 + 430 * u * 1.3 * .35, 1.0, T, blink=False)
+    k = pop(T, WI("L06", 8) - .05, .2)
+    if k > 0: tiza(c, "↑", 330, 560, 190 * k, TIZA, 0, f=DJ, stroke=3, borde=True)
+    return c
+
+@esc(WI("L06", 9) - .1)
+def se_fue(T, t0):
+    c = bg("bg_cocina", T, t0, 1.3, 1.34, 3, .5, .45); u = ease((T - t0 - .15) / 1.1)
+    mateo(c, "triste", 540 - 980 * u, 700 + 10 * abs(math.sin((T - t0) * 9)), 1.25, T, blink=False)
+    return c
+
+@esc(S("L07") - .25)
+def silencio(T, t0):
+    """La hoja y la crayola, abandonadas."""
+    c = _mesa(T, t0, 1.0); _hoja_rapida(c, T, 3.6, 500, 900); put(c, "crayola", 760, 1250, .6, rot=24); oscurecer(c, (10, 14, 40), 70)
+    return view(c, 540, 900, 1.12 - .08 * u_(T, t0, 1.6))
+
+@esc(WI("L07", 1) - .1)
+def silencio2(T, t0):
+    c = bg("bg_cuarto", T, t0, 1.2, 1.3, 2.5, .5, .5); oscurecer(c, (10, 14, 40), 60)
+    k = pop(T, t0 + .08, .25)
+    if k > 0: tiza(c, "¿MATEO…?", 500, 620, 130 * k, TIZA, -4, f=F_BAL, stroke=3, borde=True)
+    return c
+
+# ---------------------------------------------------------------- 4 · la sala
+T_REV = WI("L08", 6) - .05
+@esc(S("L08") - .25)
+def sala(T, t0):
+    """La sala: Mateo, de pie delante del sofá, tapa algo."""
+    z = 1.12 + .14 * u_(T, t0, 2.2); c, tr = sofa(540, 960, z); x, y = tr((540, 905))
+    mateo(c, "timido", x, y + 60, 1.02 * z, T, blink=False)
+    return c
+
+@esc(WI("L08", 4) - .1)
+def ahi_estaba(T, t0):
+    z = 1.26 + .1 * u_(T, t0, 1.6); c, tr = sofa(470, 960, z); u = ease((T - T_REV + .12) / .3); x, y = tr((540 - 430 * u, 905))
+    mateo(c, "susto" if u > .2 else "timido", x, y + 60 + 150 * u, 1.02 * z, T, blink=False)
+    return c
+
+@esc(WI("L08", 7) - .1)
+def nuevo(T, t0):
+    """La etiqueta de NUEVO, todavía colgando."""
+    c, tr = sofa(900, 1090, 2.0 + .25 * u_(T, t0, 1.5)); x, y = tr((1000, 1150))
+    k = pop(T, WI("L08", 10) - .08, .2)
+    if k > 0: lapiz_rojo(c, (x - 190, y - 130, x + 190, y + 130), u_(T, WI("L08", 10) - .08, .3), 13, 9)
+    return c
+
+@esc(WI("L08", 11) - .1)
+def permanente(T, t0):
+    c, tr = sofa(540, 930, 1.9); c = borroso(c, 12, 110); k = pop(T, t0 + .04, .25)
+    put(c, "marcador", 520, 860 + 10 * math.sin((T - t0) * 5), 1.45 * k, rot=18 - 6 * u_(T, t0, 1.6))
+    return c
+
+@esc(S("L09") - .2)
+def mirala(T, t0):
+    c, tr = sofa(540, 930, 1.55 + .3 * u_(T, t0, 1.8)); return c
+
+T_SB = [WI("L09", i) - .04 for i in (3, 4, 5, 6)] + [WI("L09", 7) - .15]
+@esc(T_SB[0] - .12)
+def sube_baja(T, t0):
+    """Así la hizo: cada trazo cae con su palabra (sube, baja, sube, baja)."""
+    z = 2.0; c, tr = vista("bg_sala", 600, 915, z); pts = []
+    for i in range(4):
+        u = u_(T, T_SB[i], max(.2, (T_SB[i + 1] - T_SB[i]) * .8)); pts += parcial(MS[i], u)
+    tip = tr(pts[-1]) if pts else tr(MS[0][0])
+    if pts: trazo(c, [tr(p) for p in pts], 26 * z)
+    mano(c, tip, T, .95, "mano_marcador"); return c
+
+@esc(WI("L09", 7) - .1)
+def lenta(T, t0):
+    c, tr = vista("bg_sala", 300, 900, 2.2); c = borroso(c, 10, 60); mateo(c, "concentra", 400, 760, 1.35 + .04 * u_(T, t0, 2), T, blink=False)
+    k = pop(T, t0 + .06, .22)
+    if k > 0: tiza(c, "LENTA", 770, 420, 110 * k, TIZA, -4, f=F_BAL, stroke=3, borde=True)
+    k = pop(T, WI("L09", 8) - .05, .22)
+    if k > 0: tiza(c, "DERECHITA", 720, 560, 104 * k, AMA, -4, f=F_BAL, stroke=3, borde=True)
+    return c
+
+T_PERF = WI("L09", 12) - .05
+@esc(WI("L09", 9) - .1)
+def perfecta(T, t0):
+    """La recompensa: su primera M perfecta."""
+    z = 1.5 + .12 * u_(T, t0, 2); c, tr = sofa(540, 930, z); x, y = tr((540, 915))
+    if T >= T_PERF: chispas(c, x, y, T, T_PERF, 9, 420, 5)
+    k = pop(T, T_PERF, .22)
+    if k > 0: rotulo(c, "✔ PERFECTA", 520, y - 350, 96, VERDE_C, CREMA, -4, f=DJ, k=k)
+    return c
+
+@esc(S("L10") - .2)
+def mira_mama(T, t0):
+    z = 1.6 + .05 * u_(T, t0, 2); c, tr = sofa(480, 930, z); hx = 215
+    mateo(c, "feliz_tira", hx, 1130 - 14 * abs(math.sin((T - t0) * 8)), .92, T, "L10", blink=False)
+    brazo_tira(c, hx + 224 * .92, 1130 + 372 * .92, -30 + 4 * math.sin(T * 9), -42 + 5 * math.sin(T * 9), .92, False)
+    return c
+
+@esc(WI("L10", 2) - .08, True)
+def sin_dulce(T, t0):
+    c, tr = vista("bg_sala", 300, 900, 2.2); c = borroso(c, 10, 40); mateo(c, "feliz", 430, 700, 1.45 + .05 * u_(T, t0, 1.5), T, "L10", blink=False)
+    k = pop(T, WI("L10", 5) - .05, .2)
+    if k > 0: dulce_ico(c, 820, 470, .62 * k, tachado=u_(T, WI("L10", 5) + .05, .25))
+    return c
+
+@esc(S("L11") - .2)
+def reir_llorar(T, t0):
+    c, tr = sofa(540, 960, 1.4 + .06 * u_(T, t0, 2))
+    k = pop(T, WI("L11", 3) - .05, .22)
+    if k > 0: tiza(c, "¿REÍR?", 300, 420, 120 * k, AMA, -6, f=F_BAL, stroke=3, borde=True)
+    k = pop(T, WI("L11", 5) - .05, .22)
+    if k > 0: tiza(c, "¿LLORAR?", 690, 560, 120 * k, TIZA, 5, f=F_BAL, stroke=3, borde=True)
+    return c
+
+HJ = (322, 720, 762, 1090)      # la hoja sobre la M (coordenadas del fondo)
+def _hoja_sofa(c, tr, dy=0, a=205):
+    p0, p1 = tr((HJ[0], HJ[1] + dy)), tr((HJ[2], HJ[3] + dy)); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rectangle((p0[0], p0[1], p1[0], p1[1]), fill=CREMA + (a,), outline=(200, 190, 170, 255), width=6); sombra(c, (p0[0], p0[1], p1[0], p1[1]), 4, 60, 10); c.alpha_composite(lay)
+
+T_CAL = WI("L11", 10) - .05
+@esc(WI("L11", 6) - .1)
+def hoja_encima(T, t0):
+    z = 1.9; c, tr = sofa(540, 915, z); u = ease((T - t0 - .1) / .45); _hoja_sofa(c, tr, -560 * (1 - u))
+    return c
+
+@esc(T_CAL - .05, True)
+def calcan(T, t0):
+    """La calcan juntos: la crayola verde sigue la M que se ve debajo de la hoja."""
+    z = 1.9 + .12 * u_(T, t0, 2); c, tr = sofa(560, 915, z); _hoja_sofa(c, tr)
+    pts = parcial(MS_ALL, u_(T, T_CAL + .1, 1.5))
+    if pts: crayon(c, [tr(p) for p in pts], 17 * z, VERDE)
+    mano(c, tr(pts[-1]) if pts else tr(MS_ALL[0]), T, .9); return c
+
+@lru_cache(1)
+def hoja_calco():
+    w, h = (HJ[2] - HJ[0]) * 2, (HJ[3] - HJ[1]) * 2; im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    ox, oy = (W - w) / 2, (H - h) / 2; d.rectangle((ox, oy, ox + w, oy + h), fill=CREMA + (255,), outline=(200, 190, 170, 255), width=8)
+    crayon(im, [(ox + (x - HJ[0]) * 2, oy + (y - HJ[1]) * 2) for x, y in MS_ALL], 34, VERDE); return im.crop((int(ox) - 6, int(oy) - 6, int(ox + w) + 6, int(oy + h) + 6))
+
+@esc(WI("L11", 14) - .1)
+def guardarla(T, t0):
+    c, tr = sofa(540, 930, 1.5); c = borroso(c, 10, 70); k = pop(T, t0 + .03, .28); im = hoja_calco()
+    sombra(c, (500 - im.width * .45, 860 - im.height * .45, 500 + im.width * .45, 860 + im.height * .45), 8, 120, 22)
+    paste_rot(c, im, 500, 860 - 20 * u_(T, t0, 1.5), .9 * k, -5 + 2 * math.sin((T - t0) * 3)); chispas(c, 500, 860, T, t0 + .2, 6, 430, 8)
+    return c
+
+# ---------------------------------------------------------------- 5 · el giro: papá
+@esc(S("L12") - .2)
+def justo_ahi(T, t0):
+    """La puerta, todavía cerrada."""
+    c = puerta(T, 540, 880, 1.2 + .12 * u_(T, t0, 1.5), abierta=0.0); return c
+
+@esc(WI("L12", 3) - .1)
+def se_abre(T, t0):
+    u = ease((T - t0 - .05) / .5); c = puerta(T, 540, 880, 1.32 + .06 * u_(T, t0, 1.5), abierta=u, papa=clamp((T - t0 - .3) / .3)); return c
+
+@esc(S("L13") - .2)
+def papa_sofa(T, t0):
+    """Papá mira el sofá: su sombra cruza la M."""
+    z = 1.5 + .08 * u_(T, t0, 2); c, tr = sofa(540, 930, z); u = ease((T - t0) / .7)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); x = W + 200 - 900 * u
+    ImageDraw.Draw(lay).polygon([(x, 0), (W + 400, 0), (W + 400, H), (x - 380, H)], fill=(20, 16, 40, 125)); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(16)))
+    return c
+
+@esc(WI("L13", 4) - .1)
+def papa_mateo(T, t0):
+    c, tr = vista("bg_sala", 300, 900, 2.0); c = borroso(c, 8, 50); mateo(c, "susto", 520, 720, 1.4 + .05 * u_(T, t0, 1.5), T, blink=False)
+    u = ease((T - t0 - .1) / .5); put(c, "marcador", 800, 1050 + 500 * u * u, .7, rot=-40 - 200 * u)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).polygon([(W - 520, 0), (W + 200, 0), (W + 200, H), (W - 880, H)], fill=(20, 16, 40, 110)); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(16)))
+    return c
+
+@esc(WI("L13", 7) - .1)
+def no_dice_nada(T, t0):
+    c = puerta(T, 540, 760, 1.75 + .15 * u_(T, t0, 2), abierta=1.0, papa=1.0, px=540)
+    k = pop(T, WI("L13", 10) - .05, .25)
+    if k > 0: tiza(c, "…", 250, 430, 200 * k, CREMA, 0, f=F_BAL, stroke=3, borde=True)
+    return c
+
+@esc(S("L14") - .2)
+def enojado(T, t0):
+    c, tr = vista("bg_sala", 300, 900, 2.2); c = borroso(c, 10, 60); mateo(c, "timido", 500, 700, 1.4 + .06 * u_(T, t0, 2), T, "L14", blink=False)
+    return c
+
+# ---------------------------------------------------------------- 6 · la escuela y el sobre
+@esc(S("L15") - .4)
+def mientras(T, t0):
+    c = pizarra(); tiza(c, "MIENTRAS", 500, 780, 190 * pop(T, t0 + .05, .25), AMA, -4, f=F_BAL)
+    if T >= t0 + .22: tiza(c, "TANTO…", 500, 990, 190 * pop(T, t0 + .22, .25), TIZA, -4, f=F_BAL)
+    return c
+
+@esc(WI("L15", 2) - .05)
+def escuela(T, t0): return bg("bg_escuela", T, t0, 1.05, 1.3, 2.2, .5, .45)
+
+@esc(WI("L15", 4) - .1)
+def tacha(T, t0):
+    c = pizarra(); d = ImageDraw.Draw(c); x0, y0, cw, ch_ = 70, 440, 136, 136
+    sombra(c, (x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 + 5 * ch_ + 26), 18, 110, 14)
+    d.rounded_rectangle((x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 + 5 * ch_ + 26), 18, fill=CREMA, outline=OL, width=8)
+    d.rounded_rectangle((x0 - 26, y0 - 110, x0 + 6 * cw + 26, y0 - 14), 18, fill=ROJO, outline=OL, width=8); d.text((x0 + 3 * cw, y0 - 62), "30 DÍAS · MATEO", font=font(F_BAL, 58), fill=CREMA, anchor="mm")
+    for i in range(30):
+        x, y = x0 + (i % 6) * cw, y0 + (i // 6) * ch_; d.rectangle((x + 6, y + 6, x + cw - 6, y + ch_ - 6), outline=(190, 186, 170), width=4)
+        d.text((x + cw / 2, y + ch_ / 2), str(i + 1), font=font(F_ANTON, 58), fill=OL if i > 2 else (150, 150, 160), anchor="mm")
+    tx = WI("L15", 4) - .02
+    for n in range(3):
+        a = (x0 + n * cw + 18, y0 + 18); b = (x0 + (n + 1) * cw - 18, y0 + ch_ - 18)
+        for j, (p, q) in enumerate(((a, b), ((b[0], a[1]), (a[0], b[1])))):
+            u = 1 if n < 2 else u_(T, tx + j * .16, .14)
+            if u > 0: d.line((p[0], p[1], p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u), fill=ROJO, width=18)
+    return view(c, 480, 800, 1 + .05 * u_(T, t0, 2.5))
+
+@esc(WI("L15", 8) - .1)
+def sobre(T, t0):
+    c = bg("bg_cocina", T, t0, 1.4, 1.5, 3, .7, .3); oscurecer(c, (10, 14, 40), 120); z = .95 + .1 * u_(T, t0, 2.5)
+    g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).ellipse((0, 420, 960, 1300), fill=(255, 226, 150, 110)); c.alpha_composite(g.filter(ImageFilter.GaussianBlur(70)))
+    sombra(c, (480 - 410 * z, 860 - 270 * z, 480 + 410 * z, 860 + 270 * z), 20, 130, 20); paste_rot(c, sobre_img(), 480, 860, z, -3 + 1.5 * math.sin((T - t0) * 3))
+    k = pop(T, WI("L15", 12) - .05, .22)
+    if k > 0: rotulo(c, "CERRADO", 640, 1140, 78, ROJO, CREMA, -8, k=k)
+    return c
+
+# ---------------------------------------------------------------- 7 · el dilema
+@lru_cache(1)
+def _mitades():
+    A2 = bg("bg_cuarto", 0, 0, 1.3, 1.3, 1, .5, .5); A2.alpha_composite(Image.new("RGBA", (W, H), ROJO + (70,)))
+    B2, _ = sofa(540, 1000, 1.25); B2.alpha_composite(Image.new("RGBA", (W, H), VERDE_C + (60,)))
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon([(0, 0), (512, 0), (428, H), (0, H)], fill=255); return A2, B2, m
+T_A, T_B, T_C = WI("L16", 0) - .05, WI("L16", 6) - .05, S("L17") - .05
+T_TU = WI("L17", 4) - .08
+@esc(S("L16") - .25)
+def final(T, t0):
+    """Pantalla partida: cada opción con su consecuencia. Sin "mañana": las tarjetas dicen "¿EN EL DÍA 5?"."""
+    A2, B2, m = _mitades(); a = A2.copy(); b = B2.copy()
+    mateo(a, "triste", 245, 1490, .92, T, blink=False); mateo(b, "feliz", 720 + 4 * math.sin(T * 3), 1490, .92, T, blink=False)
+    if T < T_B: b.alpha_composite(Image.new("RGBA", (W, H), (10, 14, 40, int(150 * (1 - u_(T, T_B - .2, .2))))))
+    ka = u_(T, T_B, .2) * (1 - u_(T, T_C - .2, .2))      # mientras se habla de la B, la A queda en oscuro
+    c = b; c.paste(a, (0, 0), m); d = ImageDraw.Draw(c); d.line((512, 0, 428, H), fill=CREMA, width=16)
+    pa = 1 + .07 * math.sin((T - T_C) * 10) if WI("L17", 1) - .08 <= T < WI("L17", 2) else 1; pb = 1 + .07 * math.sin((T - T_C) * 10) if WI("L17", 3) - .08 <= T < T_TU else 1
+    tarjeta(c, 247, 660, .74 * pop(T, T_A, .3) * pa, "CASTIGO", ROJO, "castigo", 3, sub="¿EN EL DÍA 5?")
+    tarjeta(c, 719, 660, .74 * pop(T, T_B, .3) * pb, "CELEBRAR", VERDE_C, "celebrar", -3, sub="¿EN EL DÍA 5?")
+    dos_lineas(c, 243, 950, "por rayar", "el sofá", 2, pop(T, WI("L16", 2) - .05, .25)); dos_lineas(c, 715, 950, "su primera", "M perfecta", -2, pop(T, WI("L16", 8) - .05, .25))
+    if ka > 0: c.paste(Image.alpha_composite(c, Image.new("RGBA", (W, H), (10, 14, 40, int(150 * ka)))), (0, 0), m); d = ImageDraw.Draw(c); d.line((512, 0, 428, H), fill=CREMA, width=16)
+    kv = pop(T, T_B + .1, .25)
+    if kv > 0:
+        r = 65 * kv; d = ImageDraw.Draw(c); d.ellipse((483 - r, 659 - r, 483 + r, 659 + r), fill=AMA, outline=OL, width=8); d.text((483, 657), "vs", font=font(F_BAL, 78 * kv), fill=OL, anchor="mm")
+    kt = pop(T, T_TU, .25)
+    if kt > 0: paste_rot(c, _coment(min(3, NCOM), 540), 478, 356 - 30 * (1 - ease((T - T_TU) / .25)), kt, -3)     # "Tu comentario puede salir…": asoma un comentario real
+    return c
+
