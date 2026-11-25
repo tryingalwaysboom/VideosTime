@@ -27,8 +27,8 @@ DIAS_FALTAN = 27; LETRAS_ON = ""          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .25, "L03": .25, "L04": .55, "L05": .3, "L06": .3, "L07": .7, "L08": .5, "L09": .4, "L10": .35, "L11": .4, "L12": .5,
-        "L13": .4, "L14": .5, "L15": .6, "L16": .5, "L17": .3}
+BASE = {"L02": .45, "L03": .12, "L04": .55, "L05": .3, "L06": .3, "L07": .7, "L08": .5, "L09": .4, "L10": .35, "L11": .4, "L12": .5,
+        "L13": .4, "L14": .5, "L15": .6, "L16": .45, "L17": .3}
 FLEX = ("L04", "L07", "L08", "L09", "L11", "L12", "L13", "L15", "L16")      # pausas que absorben el ajuste para clavar la duración
 COLA = .35
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["L17"][1] - .1 + COLA
@@ -294,7 +294,7 @@ def _barra_img(n, on):
     o.paste((0, 0, 0, 255), (0, 0), a); o.alpha_composite(im, (pad, pad)); return o
 IMAN = [(226, 72, 59), (245, 166, 35), (60, 160, 90), (63, 127, 208), (150, 90, 200)]
 BARRA = _barra_img(DIAS_FALTAN, LETRAS_ON)
-T_HUD = S("L02") - .1
+T_HUD = S("L03") - .1
 def draw_hud(c, T):
     if T < T_HUD: return
     y = int(122 - 320 * (1 - ease((T - T_HUD) / .35)))
@@ -630,12 +630,13 @@ def o_repite(T, t0):
 # ---------------------------------------------------------------- 3 · cómo llegó ahí: ustedes eligieron PREMIO
 @esc(S("L03") - .1)
 def eligieron(T, t0):
-    c = pizarra(); mateo(c, "feliz", 270 - 420 * (1 - ease((T - t0) / .3)), 720, 1.08 + .03 * u_(T, t0, 2.5), T, blink=False)
-    k = pop(T, t0 + .05, .22); tiza(c, "USTEDES", 750, 470, 100 * k, TIZA, -2, f=F_BAL)
-    k = pop(T, WI("L03", 2) - .05, .22)
-    if k > 0: tiza(c, "ELIGIERON:", 750, 590, 100 * k, AMA, -2, f=F_BAL)
+    """Ustedes eligieron PREMIO, contado dentro de la historia (en la cocina, sin pizarra)."""
+    c = bg("bg_cocina", T, t0, 1.3, 1.38, 3, .5, .45); mateo(c, "feliz", 270 - 420 * (1 - ease((T - t0) / .25)), 760, 1.1 + .03 * u_(T, t0, 2.5), T, blink=False)
+    k = pop(T, t0 + .05, .2); tiza(c, "USTEDES", 760, 420, 96 * k, CREMA, -2, f=F_BAL, stroke=3, borde=True)
+    k = pop(T, WI("L03", 2) - .05, .2)
+    if k > 0: tiza(c, "ELIGIERON:", 760, 535, 96 * k, AMA, -2, f=F_BAL, stroke=3, borde=True)
     k = pop(T, WI("L03", 3) - .05, .2)
-    if k > 0: rotulo(c, "PREMIO", 750, 800, 128, NAR, CREMA, -5, k=k); dulce_ico(c, 760, 1010, .62 * k)
+    if k > 0: rotulo(c, "PREMIO", 760, 720, 124, NAR, CREMA, -5, k=k); put(c, "tarro", 770, 990, .7 * k, rot=5)
     return c
 
 NCOM = len([f for f in os.listdir(os.path.join(HERE, "coment_d4")) if f.endswith(".jpg")])
@@ -648,7 +649,7 @@ COM_Y = _com_y()
 @esc(WI("L03", 4) - .1)
 def comentarios(T, t0):
     """Comentarios reales de quienes votaron PREMIO y el sello."""
-    c = pizarra(); tiza(c, "USTEDES ELIGIERON", 470, 338, 74, AMA, -2, f=F_BAL)
+    c = borroso(bg("bg_cocina", T, t0, 1.38, 1.42, 3, .5, .45), 12, 120); tiza(c, "UN DULCE POR CADA M", 470, 338, 70, AMA, -2, f=F_BAL, stroke=3, borde=True)
     for i in range(NCOM):
         ti = t0 + .04 + .9 * i / NCOM; k = pop(T, ti, .18)
         if k <= 0: continue

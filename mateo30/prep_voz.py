@@ -20,18 +20,24 @@ def lead_silence(f):
     return float(m.group(2)) if m and float(m.group(1)) <= 0.01 else 0.0
 
 offs = {}
+CUTS = {"L01": [(1.80, 2.05), (2.48, 2.60)]} if EP == "4" else {}      # pausas dentro del gancho: fuera, para que dure menos
+TEMPO_L = {"L01": 1.10} if EP == "4" else {}
 for lid, v, *_ in LINEAS:
     src = os.path.join(SRC, lid + ".mp3")
-    off = max(0.0, lead_silence(src) - .03); tp = TEMPO[v]; pt = PITCH.get(v)
+    off = max(0.0, lead_silence(src) - .03); tp = TEMPO_L.get(lid, TEMPO[v]); pt = PITCH.get(v); cuts = CUTS.get(lid, [])
     if EP == "2" and lid == "H09": off = 1.80   # se corta "No es una doble u": Mateo aún no conoce las letras
     pf = f"asetrate={int(44100 * pt)},aresample=44100,atempo={1 / pt:.4f}," if pt else ""
-    af = (f"aresample=44100,atrim=start={off:.3f},asetpts=PTS-STARTPTS," + pf +
+    sel = ("aselect='not(" + "+".join(f"between(t,{a},{b})" for a, b in cuts) + ")',asetpts=N/SR/TB,") if cuts else ""
+    af = (f"aresample=44100," + sel + f"atrim=start={off:.3f},asetpts=PTS-STARTPTS," + pf +
           f"areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,atempo={tp}")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-af", af, "-ar", "44100", "-ac", "1", os.path.join(DST, lid + ".wav")], check=True)
     offs[lid] = {"off": off, "tempo": tp}
     j = os.path.join(SRC, lid + ".json")
     if os.path.exists(j):
-        ws = [w for w in json.load(open(j, encoding="utf-8")) if w["inicio"] >= off - .02]
+        ws = json.load(open(j, encoding="utf-8"))
+        for w in ws:
+            q = sum(b - a for a, b in cuts if b <= w["inicio"] + .05); w["inicio"] = round(w["inicio"] - q, 3); w["fin"] = round(w["fin"] - sum(b - a for a, b in cuts if b <= w["fin"] + .05), 3)
+        ws = [w for w in ws if w["inicio"] >= off - .02]
         json.dump(ws, open(os.path.join(DST, lid + ".json"), "w", encoding="utf-8"), ensure_ascii=False)
 json.dump(offs, open(os.path.join(DST, "offsets.json"), "w"))
 print("ok", len(offs))
