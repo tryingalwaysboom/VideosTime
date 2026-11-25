@@ -141,11 +141,11 @@ def sc_repetidos(T):
     mateo(c, "triste" if T < tr else "llora", W / 2, 900, 1.2, T, "R01")
     k = pop(T, .05, .35)
     if k > 0:
-        card = tarjeta(COMENT, 900); sombra(c, (W / 2 - 460, 420 - 130, W / 2 + 460, 420 + 130), 20, 110, 16)
+        card = tarjeta(COMENT, 920); sombra(c, (W / 2 - 470, 420 - 135, W / 2 + 470, 420 + 135), 20, 110, 16)
         paste_rot(c, card, W / 2, 420 + 6 * math.sin(T * 3), k, -2)
     if T >= tr: tiza(c, "¿REPETIDOS?", W / 2, 250, int(110 * pop(T, tr, .3)), ROJO, -3, f=D.F_ANTON, borde=True)
     if T < tr: return zoomcam(c, T, 0, 1.0, 1.05, 2.0, W / 2, 800)
-    return zoomcam(c, T, tr, 1.12, 1.18, 2.0, W / 2, 760)
+    return zoomcam(c, T, tr, 1.06, 1.1, 2.0, W / 2, 700)
 
 def sc_antes_ahora(T):
     """'No, mi amor. Esta es una historia nueva…': portada de la serie anterior vs la del Día 1."""
@@ -194,10 +194,10 @@ def sc_novedades(T):
     dl.line((120, 870, 340, 1230), fill=ROJO + (230,), width=16); dl.line((340, 870, 120, 1230), fill=ROJO + (230,), width=16)
     c.alpha_composite(lay); tiza(c, "ANTES", 230, 820, 50, TIZA, -6, f=D.F_BAL, borde=True)
     mateo(c, "feliz", 680, 760, 1.05, T, "R03")
-    rotulo(c, "¡NUEVA BATA!", 680, 330, 64, AMA, OL, 3, k=pop(T, tb, .3))
+    if T < tl: rotulo(c, "¡NUEVA BATA!", 680, 330, 64, AMA, OL, 3, k=pop(T, tb, .3))
     if T >= tl:
         on = "".join(ch for i, ch in enumerate("MATEO") if T >= tl + i * .1)
-        D.imanes(d, W / 2 - 2 * 126 * 1.05, 1290, 1.05, T, on=on, t0=tl)
+        D.imanes(d, W / 2 - 2 * 126 * 1.05, 300, 1.05, T, on=on, t0=tl)
     return zoomcam(c, T, tb, 1.0, 1.05, 2.0, W / 2, 900)
 
 def sc_manana(T):
