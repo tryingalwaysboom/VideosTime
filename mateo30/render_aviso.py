@@ -146,7 +146,7 @@ def sc_postre(T):
     """'¿repetir es como repetir postre?': Mateo inocente y aparece un flan que tiembla."""
     t0 = S("A02") - .15; tp = WT("A02", "postre?") - .2; c = pizarra()
     mateo(c, "neutral" if T < tp else "feliz", W / 2 - (120 if T >= tp else 0) * ease(u_(T, tp, .3)), 820, 1.25, T, "A02")
-    flan(c, 820, 1060, .8, T, tp)
+    flan(c, 850, 1180, .72, T, tp)
     if T >= tp:
         dd = ImageDraw.Draw(c)
         for i, (x, y) in enumerate(((700, 760), (940, 720))):
