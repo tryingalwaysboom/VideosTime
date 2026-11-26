@@ -22,6 +22,7 @@ def efectos():
          (sx("mochila"), st["sc_salio"] + .05, -9), (sx("sello", "casa_sfx"), st["sc_no"], -6), (sx("risa"), WI("V10", 7) + .1, -13),
          (sx("corre"), st["sc_dame"] + .5, -11), (sx("camara"), WI("V12", 9), -6), (sx("brillo"), WI("V13", 8) - .05, -9),
          (sx("mochila"), WI("V14", 1) - .05, -10), (sx("mochila"), WI("V14", 9) - .05, -10), (sx("brillo"), st["sc_final"], -8)]
+    for q in range(13): e.append((sx("mochila"), WI("V07", 2) + (q + .5) * 1.3 / 13, -15))
     for t, fn in SCENES[1:]: e.append((sx("whoosh"), t - .06, -14))
     return e
 

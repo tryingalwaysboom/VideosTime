@@ -247,13 +247,14 @@ def sc_prehistoria(T, t0):
     d.rounded_rectangle((760, 260 + 50 * u, 910, 360 + 50 * u), 20, fill=(154, 143, 132), outline=OL, width=9)
     vale(c, "asco", 260, 1270, .62, T, "V06"); papel(c, "AÑO 10.000 a. C.", 690, 1080, 60, 5, pop(T, t0 + .2), f=F_ANTON)
     return c
-def _hora(c, n, T, t0): papel(c, f"HORA {n}", 240, 420, 110, -7, pop(T, t0, .2), ROSA, BLANCO, F_ANTON)
-def sc_hora1(T, t0):            # revisa su bolsillo 14 veces
-    c = bg("bg_cuarto", T, t0, 1.05, 1.15, 3, .6, .5); tk = WI("V07", 2); n = int(clamp((T - tk) / 1.25) * 13); ph = ((T - tk) / 1.25 * 13) % 1 if 0 < n < 13 else 1      # FALLO 1 a propósito: dicen 14 y el contador se queda en 13
-    put(c, "vale_aburrida", 400 + (10 if ph < .4 else 0), 1190, 1.1)
-    d = ImageDraw.Draw(c); o = 16 if ph < .4 else 0; d.ellipse((335, 1415 - o, 465, 1505 - o), fill=(244, 199, 161), outline=OL, width=8)
-    _hora(c, 1, T, t0); titulo(c, f"x{max(n, 1)}", 790, 640, 190 * (1 + .18 * (1 - ph)), AMA if n < 13 else ROJO, 8, 1 if T >= tk else 0)
-    papel(c, "bolsillo vacío", 780, 880, 62, 4, pop(T, tk + .2), f=F_HAND)
+def _hora(c, n, T, t0): papel(c, f"HORA {n}", 215, 370, 96, -7, pop(T, t0, .2), ROSA, BLANCO, F_ANTON)
+def sc_hora1(T, t0):            # revisa su bolsillo 14 veces: cuerpo entero, mete la mano y saca el forro vacío
+    c = bg("bg_cuarto", T, t0, 1.0, 1.08, 3, .5, .62); tk = WI("V07", 2); q = clamp((T - tk) / 1.3) * 13; n = int(q); ph = q % 1 if 0 < q < 13 else (1 if q >= 13 else 0)
+    fuera = ph >= .5 and T >= tk; lay = "vale_cuerpo_c" if n >= 13 else ("vale_cuerpo_b" if fuera else "vale_cuerpo_a")
+    put(c, lay, 600 + (9 if fuera else -6), 985 + (-12 if fuera else 0), .72, rot=-2.5 if fuera else 2)
+    _hora(c, 1, T, t0); titulo(c, f"x{max(n, 1)}", 215, 720, 175 * (1 + .2 * (1 - abs(ph - .5) * 2 if fuera else 0)), AMA if n < 13 else ROJO, -8, 1 if T >= tk else 0)      # FALLO 1 a propósito: dicen 14 y se queda en 13
+    papel(c, "¡vacío!", 215, 900, 70, 4, pop(T, tk + .25), f=F_HAND)
+    if fuera and n < 13: chispas(c, 860, 1160, T, tk + (n + .5) * 1.3 / 13, 6, BLANCO, 130)
     return c
 def sc_hora2(T, t0):            # le habla al microondas
     c = bg("bg_cocina", T, t0, 1.2, 1.3, 3, .3, .55); put(c, "microondas", 590, 770 + 6 * math.sin(T * 5), 1.0)

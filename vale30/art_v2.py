@@ -74,7 +74,7 @@ def mano(hx, hy, s=1.0, flip=1, rot=0, dedos=4):
     b += f'<path d="M-58 0 Q-96 -6 -92 -44 Q-74 -52 -62 -30Z" fill="{SK}" {ST}/><path d="M-30 20 q30 14 62 -4" stroke="{SKS}" stroke-width="5" fill="none" stroke-linecap="round"/></g>'
     return b
 
-def vale(kind="aburrida", hab=False, pose="quieta", uid="v"):
+def vale_b(kind="aburrida", hab=False, pose="quieta", uid="v"):
     b = '<defs><linearGradient id="hd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd968"/><stop offset=".45" stop-color="#f5bf2e"/><stop offset="1" stop-color="#c98a0c"/></linearGradient>'
     b += '<linearGradient id="hr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a3fa8"/><stop offset=".5" stop-color="#3d2a7a"/><stop offset="1" stop-color="#22154e"/></linearGradient></defs>'
     # melena por detrás
@@ -134,7 +134,38 @@ def vale(kind="aburrida", hab=False, pose="quieta", uid="v"):
         b += f'<circle cx="10" cy="-18" r="50" fill="{SKL}" {ST}/><path d="M-22 -34 Q10 -66 42 -34 Q10 -44 -22 -34Z" fill="{TUR}" stroke="{OL}" stroke-width="4"/><path d="M-14 0 q24 16 48 0" stroke="{SKS}" stroke-width="5" fill="none" stroke-linecap="round"/>'
         b += f'<path d="M-96 -110 l-22 -26 M10 -120 l0 -36 M110 -100 l24 -26" stroke="#fff6dc" stroke-width="9" stroke-linecap="round"/></g>'
         b += f'<path d="M134 880 Q60 1010 82 1310 L186 1310 Q170 1040 206 910Z" fill="url(#hd)" {ST}/>'
-    return svg(800, 1300, b)
+    return b
+def vale(kind="aburrida", hab=False, pose="quieta", uid="v"): return svg(800, 1300, vale_b(kind, hab, pose, uid))
+
+def cuerpo(estado="a", kind="aburrida", uid="c"):
+    """Vale de cuerpo entero buscando el celular en el bolsillo. a = mano dentro del bolsillo · b = saca el forro: vacío."""
+    PJ, PJS = "#6a4fc0", "#4b3596"; b = '<ellipse cx="400" cy="1962" rx="300" ry="26" fill="#000" opacity=".35"/>'
+    # piernas: pantalón de pijama a cuadros, calcetines distintos y pantuflas de cocodrilo
+    for sx, x0 in ((-1, 270), (1, 530)):
+        b += f'<path d="M{x0 - 96} 1250 L{x0 + 96} 1250 L{x0 + 84} 1800 L{x0 - 84} 1800Z" fill="{PJ}" {ST}/>'
+        for y in range(1310, 1790, 90): b += f'<path d="M{x0 - 92} {y} L{x0 + 92} {y}" stroke="{PJS}" stroke-width="10"/>'
+        for dx in (-40, 30): b += f'<path d="M{x0 + dx} 1256 L{x0 + dx} 1796" stroke="{PJS}" stroke-width="8"/>'
+        b += f'<path d="M{x0 + 40} 1250 L{x0 + 96} 1250 L{x0 + 84} 1800 L{x0 + 50} 1800Z" fill="#000" opacity=".14"/><rect x="{x0 - 90}" y="1784" width="180" height="30" rx="8" fill="{PJS}" {ST}/>'
+        sock = "#2bd4c4" if sx < 0 else "#ff8fa3"; b += f'<rect x="{x0 - 56}" y="1810" width="112" height="70" fill="{sock}" {ST}/>'
+        if sx < 0: b += "".join(f'<path d="M{x0 - 54} {1826 + q * 20} L{x0 + 54} {1826 + q * 20}" stroke="#fff6dc" stroke-width="7"/>' for q in range(3))
+        else: b += "".join(f'<circle cx="{x0 - 30 + q * 30}" cy="{1836 + (q % 2) * 22}" r="7" fill="#fff6dc"/>' for q in range(3))
+        b += f'<g transform="translate({x0},1900) scale({sx},1)"><path d="M-80 30 Q-90 -40 -10 -44 L90 -30 Q150 -10 150 30 Q150 54 120 54 L-60 54 Q-80 54 -80 30Z" fill="#5fc46a" {ST}/><path d="M40 30 L148 30" stroke="{OL}" stroke-width="6"/>'
+        b += "".join(f'<path d="M{56 + q * 22} 30 l9 16 l9 -16Z" fill="#fff" stroke="{OL}" stroke-width="3"/>' for q in range(4)) + f'<circle cx="60" cy="-34" r="22" fill="#5fc46a" {ST}/><circle cx="62" cy="-36" r="12" fill="#fff"/><circle cx="66" cy="-34" r="6" fill="{OL}"/><circle cx="132" cy="6" r="4" fill="{OL}"/></g>'
+    b += f'<path d="M174 1250 L626 1250 L626 1330 Q400 1380 174 1330Z" fill="{PJ}" {ST}/><path d="M400 1340 L400 1250" stroke="{PJS}" stroke-width="8"/>'
+    b += f'<path d="M206 1300 Q232 1360 214 1440" stroke="{OL}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M594 1300 Q568 1360 586 1440" stroke="{OL}" stroke-width="8" fill="none" stroke-linecap="round"/>'
+    # brazo izquierdo (de ella, a nuestra izquierda) colgando
+    b += f'<path d="M150 850 Q70 1000 96 1330 L196 1330 Q176 1040 214 900Z" fill="url(#hd)" {ST}/><rect x="92" y="1310" width="110" height="40" rx="14" fill="{HOODS}" {ST}/>' + mano(146, 1420, .8, 1, 180)
+    if estado == "b":      # forro del bolsillo fuera: vacío
+        b += f'<path d="M586 1310 Q680 1290 790 1210 L826 1310 Q720 1420 600 1430Z" fill="#fff6dc" {ST}/><path d="M610 1340 q70 -10 160 -76 M620 1384 q70 -14 170 -84" stroke="#d8cfae" stroke-width="6" fill="none" stroke-linecap="round"/>'
+        b += f'<path d="M850 1130 l30 -30 M880 1210 l44 -8 M860 1300 l36 22" stroke="#fff6dc" stroke-width="9" stroke-linecap="round"/><circle cx="700" cy="1470" r="7" fill="#c9d3e6"/><circle cx="740" cy="1500" r="5" fill="#c9d3e6"/><circle cx="668" cy="1520" r="4" fill="#c9d3e6"/>'
+    b += vale_b(kind, False, "sin", uid)
+    b += f'<rect x="100" y="1262" width="600" height="56" rx="22" fill="{HOODS}" {ST}/>' + "".join(f'<path d="M{130 + q * 38} 1272 l0 36" stroke="#b47d08" stroke-width="5"/>' for q in range(15))
+    # brazo derecho (el que busca)
+    if estado == "a":
+        b += f'<path d="M650 850 Q740 1010 690 1300 L592 1290 Q630 1040 586 900Z" fill="url(#hd)" {ST}/><rect x="586" y="1276" width="112" height="40" rx="14" fill="{HOODS}" {ST}/><path d="M604 1316 L676 1322 L664 1372 L600 1366Z" fill="{SK}" {ST}/><path d="M586 1362 Q640 1384 690 1368 L690 1392 L586 1392Z" fill="{PJ}" stroke="{OL}" stroke-width="7"/>'
+    else:
+        b += f'<path d="M650 850 Q850 940 870 1130 L770 1160 Q740 1030 586 900Z" fill="url(#hd)" {ST}/><rect x="764" y="1124" width="114" height="40" rx="14" fill="{HOODS}" {ST}/>' + mano(822, 1232, .8, -1, 170)
+    return svg(1000, 2000, f'<g transform="translate(100,0)">{b}</g>')
 
 # ---------------------------------------------------------------- otros personajes
 def cabeza(quien):
@@ -302,6 +333,7 @@ L = {"bg_cuarto": fondo("cuarto"), "bg_cocina": fondo("cocina"), "celular": celu
 for k in ("aburrida", "shock", "asco", "orgullosa", "enojada"):
     L[f"vale_{k}"] = vale(k, uid=k); L[f"vale_{k}_hab"] = vale(k, True, uid=k + "h")
 L["vale_orgullosa_nota"] = vale("orgullosa", pose="nota", uid="on"); L["vale_orgullosa_nota_hab"] = vale("orgullosa", True, "nota", "onh"); L["vale_aburrida_nota"] = vale("aburrida", pose="nota", uid="an")
+L["vale_cuerpo_a"] = cuerpo("a", "aburrida", "ca"); L["vale_cuerpo_b"] = cuerpo("b", "asco", "cb"); L["vale_cuerpo_c"] = cuerpo("b", "enojada", "cc")
 L["vale_shock_manos"] = vale("shock", pose="manos", uid="sm"); L["vale_shock_manos_hab"] = vale("shock", True, "manos", "smh"); L["vale_aburrida_senala"] = vale("orgullosa", pose="senala", uid="as")
 if __name__ == "__main__":
     solo = sys.argv[1:]
