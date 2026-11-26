@@ -23,9 +23,9 @@ PAPEL = (255, 246, 220); TINTA = (42, 59, 143); BLANCO = (255, 255, 255); ROJO =
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"V02": .05, "V03": .22, "V04": .3, "V05": .3, "V06": .12, "V07": .3, "V08": .28, "V09": .4, "V10": .15, "V11": .15, "V12": .22,
-        "V13": .4, "V14": .3, "V15": .3, "V16": .35}
-FLEX = ("V04", "V05", "V07", "V09", "V13", "V15")
+BASE = {"V01": .04, "V05": .22, "V06": .1, "V03": .22, "V04": .28, "V07": .28, "V08": .25, "V09": .35, "V10": .12, "V11": .12, "V12": .2,
+        "V13": .35, "V14": .28, "V15": .28, "V16": .32}
+FLEX = ("V04", "V07", "V09", "V13", "V15")
 COLA = .45
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["V16"][1] - .1 + COLA
 OBJ = float(math.ceil(_fin)); _extra = (OBJ - COLA) - (_tl["V16"][1] - .1)
@@ -158,19 +158,20 @@ def sc_gancho(T, t0):           # la caja se cierra
     c = bg("bg_cocina", T, t0, 1.0, 1.1, 3, .5, .62); rayos(c, T, ROSA, 540, 900, 20)
     tk = WI("V01", 4); u = u_(T, tk - .16, .16)
     caja_big(c, 540, 960, 1.95, T, shake=10 * math.exp(-(T - tk) * 9) if T >= tk else 0)
-    put(c, "mano_mama", 1250 - 470 * ease(u_(T, .0, .3)) + 300 * ease(u_(T, tk + .45, .3)), 1040, .85)
+    put(c, "mano_mama", 1250 - 470 * ease(u_(T, t0, .25)) + 300 * ease(u_(T, tk + .45, .3)), 1040, .85)
     if T >= tk: chispas(c, 540, 1040, T, tk, 12, AMA, 330); titulo(c, "¡CLIC!", 300, 400, 130, AMA, 8, pop(T, tk, .2))
     flash(c, T, tk, .12)
-    return zoom(c, 1.24 - .24 * ease(u_(T, 0, .35)), .5, .5)
+    return c
 def sc_30(T, t0):               # el contador
     c = plano((60, 12, 40), (20, 8, 28), ROJO); rayos(c, T, ROJO, 540, 760, 30)
     k = pop(T, t0, .22); put(c, "candado", 540, 1090 + 40 * (1 - k), 1.5, rot=6 * math.sin(T * 9))
     titulo(c, "30", 540, 500, 420, ROJO, 0, k, 16, sfill=(20, 8, 28)); titulo(c, "DÍAS", 540, 770, 170, BLANCO, 0, pop(T, t0 + .12, .22))
     return c
-def sc_treinta(T, t0):          # Vale: ¿¡TREINTA!?
-    c = bg("bg_cuarto", T, t0, 1.25, 1.4, 1, .5, .3); rayos(c, T * 3, AMA, 540, 760, 34)
-    vale(c, "shock", 540 + 9 * math.sin(T * 60), 1120, 1.5, T, "V02", "manos")
-    return zoom(c, 1 + .1 * u_(T, t0, .8), .5, .38)
+def sc_treinta(T, t0):          # FOTOGRAMA 0: Vale grita y la premisa ya está escrita
+    c = bg("bg_cuarto", T, t0, 1.25, 1.4, 1, .5, .3); rayos(c, T * 3, ROJO, 540, 900, 40)
+    vale(c, "shock", 540 + 10 * math.sin(T * 60), 1250, .95, T, "V02", "manos")
+    k = .9 + .1 * back(u_(T, t0, .18)); titulo(c, "30 DÍAS", 540, 440, 200, ROJO, -3, k, 18, sfill=BLANCO); titulo(c, "SIN CELULAR", 540, 600, 115, BLANCO, -3, k, 15)
+    return zoom(c, 1 + .06 * u_(T, t0, .8), .5, .25)
 def sc_vale(T, t0):             # presentación
     c = bg("bg_cuarto", T, t0, 1.0, 1.12, 3, .5, .5); vale(c, "aburrida", 500, 1130, 1.18, T)
     papel(c, "VALE", 250, 470, 130, -8, pop(T, WI("V03", 2) - .05), AMA, f=F_ANTON)
@@ -225,11 +226,14 @@ def sc_16(T, t0):
     titulo(c, "SIN CELULAR", 540, 400, 150, BLANCO, 0, pop(T, WI("V04", 20) - .05))
     return zoom(c, 1 + .08 * u_(T, t0, 2))
 def sc_regla(T, t0):            # la regla
-    c = bg("bg_cocina", T, t0, 1.15, 1.25, 3, .5, .4); osc(c, 110); hoja(c, 520, 800, 800, 700)
-    titulo(c, "REGLA Nº 1", 520, 590, 140, ROJO, -2, pop(T, WI("V05", 3) - .08, .2), 0)
-    frase = "Todo lo que quieras decir"; n = int(len(frase) * u_(T, WI("V05", 4), 1.0)); d = ImageDraw.Draw(c); d.text((230, 716), frase[:n], font=font(F_HAND, 76), fill=TINTA)
-    f2 = "va en una NOTA."; n2 = int(len(f2) * u_(T, WI("V05", 9), .7)); d.text((230, 850), f2[:n2], font=font(F_HAND, 108), fill=TINTA)
-    if n2 >= len(f2): d.line((560, 978, 840, 970), fill=ROSA, width=12)
+    c = bg("bg_cocina", T, t0, 1.15, 1.25, 3, .5, .4); osc(c, 110); hoja(c, 520, 800, 800, 640)
+    titulo(c, "REGLA Nº 1", 520, 640, 150, ROJO, -2, pop(T, t0 + .05, .2), 0)
+    frase = "Todo lo que quiera decir…"; n = int(len(frase) * u_(T, WI("V05", 4) - .1, .8)); d = ImageDraw.Draw(c); d.text((220, 800), frase[:n], font=font(F_HAND, 84), fill=TINTA)
+    return zoom(c, 1 + .06 * u_(T, t0, 2))
+def sc_en_nota(T, t0):          # …va en una nota
+    c = plano((14, 60, 70), (10, 14, 40), TUR); rayos(c, T * 2, TUR, 540, 820, 34); k = pop(T, t0, .22)
+    put(c, "nota_blanca", 540, 860, 2.0 * k, rot=-6 + 30 * (1 - k)); titulo(c, "EN UNA", 540, 760, 150, TINTA, -6, pop(T, t0 + .08, .2), 0, F_HAND); titulo(c, "NOTA", 540, 930, 230, ROJO, -6, pop(T, WI("V05", 12) - .05, .2), 0)
+    chispas(c, 540, 860, T, WI("V05", 12), 14, AMA, 430)
     return c
 def sc_amano(T, t0):
     c = plano((14, 60, 70), (10, 14, 40), TUR); rayos(c, T * 2, TUR, 540, 800, 36); k = pop(T, t0, .2)
@@ -353,13 +357,14 @@ def sc_final(T, t0):
     c = plano(); _duo(c, T); k = pop(T, t0, .22); papel(c, "COMENTA", 540, 340, 80, 0, k, AMA, OL, F_ANTON, cinta=False)
     put(c, "nota", 540, 1010, .55 * max(k, .001), rot=-8 + 4 * math.sin(T * 3)); return c
 def sp(lid, i, d=-.06): return WI(lid, i) + d
-SC = [(0, sc_gancho), (sp("V01", 7), sc_30), (S("V02") - .04, sc_treinta), (S("V03") - .08, sc_vale), (sp("V03", 5), sc_9horas), (sp("V03", 12), sc_letra),
+SC = [(0, sc_treinta), (S("V01") - .03, sc_gancho), (sp("V01", 7), sc_30), (S("V03") - .08, sc_vale), (sp("V03", 5), sc_9horas), (sp("V03", 12), sc_letra),
       (S("V04") - .1, sc_trato), (sp("V04", 2), sc_recupera), (sp("V04", 6), sc_concierto), (sp("V04", 12), sc_trampa), (sp("V04", 18), sc_16),
-      (S("V05") - .1, sc_regla), (sp("V05", 13), sc_amano), (S("V06") - .05, sc_amano_q), (sp("V06", 2), sc_prehistoria),
+      (S("V05") - .1, sc_regla), (sp("V05", 9), sc_en_nota), (sp("V05", 13), sc_amano), (S("V06") - .05, sc_amano_q), (sp("V06", 2), sc_prehistoria),
       (S("V07") - .1, sc_hora1), (sp("V07", 7), sc_hora2), (sp("V07", 13), sc_hora3), (S("V08") - .08, sc_11min), (sp("V08", 3), sc_salio),
       (S("V09") - .1, sc_clarisimo), (sp("V09", 2), sc_traduce), (S("V10") - .06, sc_no), (sp("V10", 1), sc_nico_lee), (sp("V10", 4), sc_cocodrilo),
       (S("V11") - .05, sc_dame), (S("V12") - .08, sc_nico), (sp("V12", 4), sc_tablet), (sp("V12", 6), sc_foto),
       (S("V13") - .1, sc_resumen), (sp("V13", 7), sc_tu), (S("V14") - .1, sc_duo), (S("V15") - .1, sc_ojo), (S("V16") - .1, sc_final)]
+SC.sort(key=lambda x: x[0])
 SCENES = SC; T_DUO = S("V14") - .1; T_OJO = S("V15") - .1; T_FIN = S("V16") - .1
 
 def draw_hud(c, T):

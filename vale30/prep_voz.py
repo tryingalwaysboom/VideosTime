@@ -3,7 +3,7 @@ import os, json, re, subprocess, sys, importlib
 EP = sys.argv[2]; HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 LINEAS = importlib.import_module("guion_v" + EP).LINEAS
 SRC = os.path.join(HERE, "..", "descargas", sys.argv[1]); DST = os.path.join(HERE, "voz_v" + EP); os.makedirs(DST, exist_ok=True)
-TEMPO = {"N": 1.10, "V": 1.03}
+TEMPO = {"N": 1.13, "V": 1.03}
 def lead_silence(f):
     out = subprocess.run(["ffmpeg", "-i", f, "-af", "silencedetect=n=-40dB:d=0.02", "-t", "1.5", "-f", "null", "-"], capture_output=True, text=True).stderr
     m = re.search(r"silence_start: (-?[\d.]+).*?silence_end: ([\d.]+)", out, re.S)

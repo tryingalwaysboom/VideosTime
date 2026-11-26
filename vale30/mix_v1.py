@@ -14,7 +14,7 @@ def gate(nombre, tramos, out):
 
 def efectos():
     g = lambda n, tr: gate(n, tr, os.path.join(TMP, n + "_gate.wav")); st = {f.__name__: t for t, f in SCENES}
-    e = [(g("lapiz", [(st["sc_letra"] + .05, st["sc_letra"] + 1.2), (st["sc_regla"] + .9, st["sc_amano"] - .2), (st["sc_hora3"] + .1, st["sc_11min"] - .1)]), 0, -6),
+    e = [(g("lapiz", [(st["sc_letra"] + .05, st["sc_letra"] + 1.2), (st["sc_regla"] + .5, st["sc_en_nota"] - .05), (st["sc_hora3"] + .1, st["sc_11min"] - .1)]), 0, -6),
          (g("reloj", [(st["sc_11min"] + .05, st["sc_salio"] - .05), (st["sc_ojo"] + .1, st["sc_final"] - .1)]), 0, -9),
          (sx("candado", "casa_sfx"), WI("V01", 4) - .03, -5), (sx("boom", "casa_sfx"), st["sc_30"], -9), (sx("movil"), st["sc_9horas"] + .05, -11),
          (sx("brillo"), st["sc_recupera"] + .25, -10), (sx("brillo"), st["sc_concierto"] + .1, -9), (sx("boom", "casa_sfx"), WI("V04", 14) - .04, -9),
