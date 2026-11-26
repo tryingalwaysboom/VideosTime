@@ -23,9 +23,8 @@ PAPEL = (255, 246, 220); TINTA = (42, 59, 143); BLANCO = (255, 255, 255); ROJO =
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"V01": .04, "V05": .22, "V06": .1, "V03": .22, "V04": .28, "V07": .28, "V08": .25, "V09": .35, "V10": .12, "V11": .12, "V12": .2,
-        "V13": .35, "V14": .28, "V15": .28, "V16": .32}
-FLEX = ("V04", "V07", "V09", "V13", "V15")
+BASE = {"X02": .12, "V02": .04, "X03": .2, "X04": .2, "V09": .22, "V10": .1, "X05": .28, "X06": .25, "V16": .28}
+FLEX = ("X03", "X04", "V09", "X05", "X06")
 COLA = .45
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["V16"][1] - .1 + COLA
 OBJ = float(math.ceil(_fin)); _extra = (OBJ - COLA) - (_tl["V16"][1] - .1)
@@ -155,10 +154,10 @@ def caja_big(c, cx, cy, s, T, texto=None, tcol=ROJO, shake=0):
 # ---------------------------------------------------------------- escenas
 def sc_gancho(T, t0):           # la caja se cierra
     c = bg("bg_cocina", T, t0, 1.0, 1.1, 3, .5, .62); rayos(c, T, ROSA, 540, 900, 20)
-    tk = WI("V01", 4); u = u_(T, tk - .16, .16)
+    tk = WI("X02", 4); u = u_(T, tk - .16, .16)
     caja_big(c, 540, 960, 1.95, T, shake=10 * math.exp(-(T - tk) * 9) if T >= tk else 0)
     put(c, "mano_mama", 1250 - 470 * ease(u_(T, t0, .25)) + 300 * ease(u_(T, tk + .45, .3)), 1040, .85)
-    if T >= tk: chispas(c, 540, 1040, T, tk, 12, AMA, 330); titulo(c, "¡CLIC!", 300, 400, 130, AMA, 8, pop(T, tk, .2))
+    if T >= tk: chispas(c, 540, 1040, T, tk, 12, AMA, 330); titulo(c, "¡CLIC!", 300, 400, 130, AMA, 8, pop(T, tk, .2)); papel(c, "23:59", 800, 420, 96, 6, pop(T, t0 + .05, .2), f=F_ANTON)
     flash(c, T, tk, .12)
     return c
 def sc_30(T, t0):               # el contador
@@ -173,8 +172,8 @@ def sc_treinta(T, t0):          # FOTOGRAMA 0: Vale grita y la premisa ya está 
     return zoom(c, 1 + .06 * u_(T, t0, .8), .5, .25)
 def sc_vale(T, t0):             # presentación
     c = bg("bg_cuarto", T, t0, 1.0, 1.12, 3, .5, .5); put(c, "cocodrilo", 120, 1225, .3, rot=-8); vale(c, "aburrida", 560, 1130, 1.18, T)
-    papel(c, "VALE", 250, 470, 130, -8, pop(T, WI("V03", 2) - .05), AMA, f=F_ANTON)
-    papel(c, "15 AÑOS", 760, 560, 84, 6, pop(T, WI("V03", 3) - .05), f=F_ANTON)
+    papel(c, "VALE", 250, 470, 130, -8, pop(T, WI("X03", 2) - .05), AMA, f=F_ANTON)
+    papel(c, "15 AÑOS", 760, 560, 84, 6, pop(T, WI("X03", 3) - .05), f=F_ANTON)
     return c
 def sc_9horas(T, t0):           # tiempo de pantalla
     c = plano((18, 30, 74), (12, 10, 34), TUR); d = ImageDraw.Draw(c)
@@ -189,10 +188,10 @@ def sc_9horas(T, t0):           # tiempo de pantalla
     return zoom(c, 1.04 + .05 * u_(T, t0, 2))
 def sc_letra(T, t0):            # una letra que no entiende ni ella
     c = plano((70, 44, 20), (30, 16, 40), AMA); hoja(c, 540, 660, 800, 600)
-    tip = escribe(c, 270, 500, 1.9, LETRA1, u_(T, t0, 1.6))
+    tip = escribe(c, 270, 500, 1.9, LETRA1, u_(T, t0, E("X03") - t0 + .3))
     put(c, "mano_pluma", tip[0] + 320, tip[1] - 250, 1.0)
     vale(c, "asco", 270, 1250, .62, T)
-    for i, (x, y) in enumerate(((640, 1130), (790, 1090), (880, 1190))): titulo(c, "?", x, y, 170 - 24 * i, ROSA, 12 - 12 * i, pop(T, WI("V03", 16) + i * .12))
+    for i, (x, y) in enumerate(((640, 1130), (790, 1090), (880, 1190))): titulo(c, "?", x, y, 170 - 24 * i, ROSA, 12 - 12 * i, pop(T, WI("X03", 9) + i * .12))
     return c
 def sc_trato(T, t0):
     c = plano(MOR, MOR2, TUR); rayos(c, T, TUR); hoja(c, 540, 800, 800, 520, rayas=False)
@@ -227,12 +226,12 @@ def sc_16(T, t0):
 def sc_regla(T, t0):            # la regla
     c = bg("bg_cocina", T, t0, 1.15, 1.25, 3, .5, .4); osc(c, 110); hoja(c, 520, 800, 800, 640)
     titulo(c, "REGLA Nº 1", 520, 640, 150, ROJO, -2, pop(T, t0 + .05, .2), 0)
-    frase = "Todo lo que quiera decir…"; n = int(len(frase) * u_(T, WI("V05", 4) - .1, .8)); d = ImageDraw.Draw(c); d.text((220, 800), frase[:n], font=font(F_HAND, 84), fill=TINTA)
+    frase = "Si quiere contestar…"; n = int(len(frase) * u_(T, WI("X04", 3) - .1, .7)); d = ImageDraw.Draw(c); d.text((220, 800), frase[:n], font=font(F_HAND, 84), fill=TINTA)
     return zoom(c, 1 + .06 * u_(T, t0, 2))
 def sc_en_nota(T, t0):          # …va en una nota
     c = plano((14, 60, 70), (10, 14, 40), TUR); rayos(c, T * 2, TUR, 540, 820, 34); k = pop(T, t0, .22)
-    put(c, "nota_blanca", 540, 860, 2.0 * k, rot=-6 + 30 * (1 - k)); titulo(c, "EN UNA", 540, 760, 150, TINTA, -6, pop(T, t0 + .08, .2), 0, F_HAND); titulo(c, "NOTA", 540, 930, 230, ROJO, -6, pop(T, WI("V05", 12) - .05, .2), 0)
-    chispas(c, 540, 860, T, WI("V05", 12), 14, AMA, 430)
+    put(c, "nota_blanca", 540, 860, 2.0 * k, rot=-6 + 30 * (1 - k)); titulo(c, "EN UNA", 540, 760, 150, TINTA, -6, pop(T, t0 + .08, .2), 0, F_HAND); titulo(c, "NOTA", 540, 930, 230, ROJO, -6, pop(T, WI("X04", 9) - .05, .2), 0)
+    chispas(c, 540, 860, T, WI("X04", 9), 14, AMA, 430)
     return c
 def sc_amano(T, t0):
     c = plano((14, 60, 70), (10, 14, 40), TUR); rayos(c, T * 2, TUR, 540, 800, 36); k = pop(T, t0, .2)
@@ -289,7 +288,7 @@ def sc_clarisimo(T, t0):        # Vale orgullosa
     return c
 def sc_traduce(T, t0):          # lo que ella dice que dice
     c = plano((70, 44, 20), (30, 16, 40), AMA); put(c, "nota", 540, 620, 1.7, rot=-4); d = ImageDraw.Draw(c)
-    papel(c, "ESTOY CASTIGDA,", 540, 1040, 74, -2, pop(T, WI("V09", 2) - .05), f=F_ANTON); papel(c, "NO TENGO CELULAR", 540, 1190, 74, 2, pop(T, WI("V09", 4) - .05), f=F_ANTON, cinta=False)
+    papel(c, "ESTOY CASTIGDA,", 540, 990, 74, -2, pop(T, WI("V09", 2) - .05), f=F_ANTON); papel(c, "NO TENGO CELULAR", 540, 1115, 74, 2, pop(T, WI("V09", 4) - .05), f=F_ANTON, cinta=False); papel(c, "mándaselo a quien escribe así", 540, 1238, 48, -2, pop(T, WI("V09", 5)), TUR, f=F_HAND, cinta=False)
     papel(c, "según Vale", 240, 330, 60, -8, pop(T, t0 + .1), TUR, f=F_HAND)
     return c
 def sc_no(T, t0):
@@ -332,7 +331,7 @@ def sc_resumen(T, t0):          # 30 días · 0 notas
     return c
 def sc_tu(T, t0):
     c = bg("bg_cuarto", T, t0, 1.1, 1.25, 2, .5, .4); rayos(c, T * 2, AMA, 540, 900, 30); vale(c, "aburrida", 500, 1340, 1.05, T, None, "senala")
-    titulo(c, "TÚ DECIDES", 540, 500, 150, AMA, -4, pop(T, WI("V13", 8) - .05, .2), 16)
+    titulo(c, "TÚ DECIDES", 540, 480, 150, AMA, -4, pop(T, WI("X05", 3) - .05, .2), 16); papel(c, "guárdalo: el día 30 comparamos su letra", 540, 625, 44, 2, pop(T, WI("X05", 3) + .3), TUR, f=F_HAND, cinta=False)
     return zoom(c, 1 + .06 * u_(T, t0, 2), .5, .7)
 def _duo(c, T, da=0, ra=0, t0=0, cambiado=False):
     d = ImageDraw.Draw(c); d.rectangle((0, 0, 540, H), fill=(92, 22, 60)); d.rectangle((540, 0, W, H), fill=(18, 78, 92))
@@ -346,7 +345,7 @@ def _duo(c, T, da=0, ra=0, t0=0, cambiado=False):
     papel(c, e1, 270, 1180, 46, 3, 1, f=F_HAND, cinta=False); papel(c, e2, 810, 1180, 46, -3, 1, f=F_HAND, cinta=False)
     osc(c, da, (0, 0, 540, H)); osc(c, ra, (540, 0, W, H)); d = ImageDraw.Draw(c); d.line((540, 0, 540, H), fill=OL, width=14)
 def sc_duo(T, t0):
-    c = plano(); tr = WI("V14", 7) - .05; _duo(c, T, 165 if T >= tr else 0, 165 if T < tr else 0); return c
+    c = plano(); tr = WI("X05", 11) - .05; _duo(c, T, 165 if T >= tr else 0, 165 if T < tr else 0); return c
 def sc_ojo(T, t0):              # alguien más va a leer esa nota
     c = plano((10, 8, 26), (4, 3, 12)); d = ImageDraw.Draw(c); u = ease(u_(T, t0, .5))
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).ellipse((240, 520, 840, 1120), fill=(255, 246, 220, 60)); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(70)))
@@ -358,16 +357,68 @@ def sc_ojo(T, t0):              # alguien más va a leer esa nota
 def sc_final(T, t0):
     c = plano(); _duo(c, T, cambiado=True); k = pop(T, t0, .22); papel(c, "COMENTA", 540, 340, 80, 0, k, AMA, OL, F_ANTON, cinta=False)
     put(c, "nota", 540, 1010, .55 * max(k, .001), rot=-8 + 4 * math.sin(T * 3)); return c
+def telefono(c, cx, cy, s, hora, notifs, T, vib=0):
+    """Celular con pantalla de bloqueo: hora y notificaciones (nombre, texto, t_aparece, borrado)."""
+    cx += vib * math.sin(T * 90); put(c, "celular_limpio", cx, cy, s, rot=vib * .25 * math.sin(T * 70)); d = ImageDraw.Draw(c)
+    d.text((cx, cy - 150 * s), hora, font=font(F_ANTON, 64 * s), fill=(214, 222, 240), anchor="mm"); d.text((cx, cy - 104 * s), "jueves 26 de noviembre", font=font(F_BAL, 15 * s), fill=(150, 158, 190), anchor="mm")
+    y = cy - 70 * s
+    for nombre, txt, ta, borrado in notifs:
+        k = pop(T, ta, .2)
+        if k <= 0: continue
+        w, h = 206 * s * min(1, k), 58 * s; x0 = cx - w / 2
+        d.rounded_rectangle((x0, y, x0 + w, y + h), int(14 * s), fill=(58, 55, 100) if not borrado else (40, 36, 66), outline=(120, 116, 180), width=max(2, int(1.5 * s)))
+        if k > .9:
+            d.ellipse((x0 + 8 * s, y + 10 * s, x0 + 46 * s, y + 48 * s), fill=(255, 93, 115)); d.text((x0 + 27 * s, y + 28 * s), "D", font=font(F_ANTON, 24 * s), fill=BLANCO, anchor="mm")
+            d.text((x0 + 54 * s, y + 18 * s), nombre, font=font(F_BAL, 15 * s), fill=BLANCO, anchor="lm")
+            if borrado:
+                d.ellipse((x0 + 54 * s, y + 31 * s, x0 + 68 * s, y + 45 * s), outline=(160, 160, 190), width=max(2, int(1.6 * s))); d.line((x0 + 57 * s, y + 42 * s, x0 + 65 * s, y + 34 * s), fill=(160, 160, 190), width=max(2, int(1.6 * s)))
+                d.text((x0 + 73 * s, y + 38 * s), txt, font=font(F_BAL, 12.5 * s), fill=(160, 160, 190), anchor="lm")
+            else: d.text((x0 + 54 * s, y + 38 * s), txt, font=font(F_BAL, 14 * s), fill=(214, 222, 240), anchor="lm")
+        y += h + 9 * s
+def sc_msg(T, t0):              # FOTOGRAMA 0: el celular vibra, mensaje de Dani
+    c = plano((26, 18, 64), (8, 6, 22), (120, 90, 255)); rayos(c, T * 2, (120, 90, 255), 540, 820, 30)
+    telefono(c, 540, 1000, 2.9, "23:58", [], T, 9 * math.exp(-(T - t0) * 2.2))
+    d = ImageDraw.Draw(c); d.rounded_rectangle((96, 1010, 984, 1216), 56, fill=(0, 0, 0, 255)); d.rounded_rectangle((90, 1000, 978, 1206), 56, fill=BLANCO, outline=OL, width=9)
+    d.ellipse((120, 1034, 258, 1172), fill=ROSA, outline=OL, width=7); d.text((189, 1101), "D", font=font(F_ANTON, 92), fill=BLANCO, anchor="mm")
+    d.text((290, 1062), "Dani · ahora", font=font(F_BAL, 44), fill=(120, 116, 150), anchor="lm"); d.text((290, 1136), "tengo que decirte algo…", font=font(F_BAL, 56), fill=OL, anchor="lm")
+    for sx_ in (-1, 1):
+        for i in range(3): x = 540 + sx_ * (455 + i * 30 + 12 * math.sin(T * 30)); d.arc((x - 30, 640, x + 30, 900), -60 if sx_ > 0 else 120, 60 if sx_ > 0 else 240, fill=BLANCO, width=9)
+    return zoom(c, 1.1 - .1 * ease(u_(T, t0, .4)) + .04 * u_(T, t0, 2), .5, .4)
+def sc_msg2(T, t0):             # Vale lo ve… "tengo que decirte algo"
+    c = bg("bg_cuarto", T, t0, 1.2, 1.32, 2, .5, .35); osc(c, 80); vale(c, "orgullosa", 500, 1240, 1.15, T)
+    d = ImageDraw.Draw(c); k = pop(T, t0, .2)
+    if k > 0:
+        d.rounded_rectangle((150, 330, 930, 560), 60, fill=BLANCO, outline=OL, width=9); d.polygon([(600, 552), (700, 552), (640, 640)], fill=BLANCO, outline=OL); d.line((606, 552, 694, 552), fill=BLANCO, width=12)
+        d.ellipse((180, 370, 320, 510), fill=ROSA, outline=OL, width=7); d.text((250, 440), "D", font=font(F_ANTON, 90), fill=BLANCO, anchor="mm")
+        d.text((350, 400), "Dani", font=font(F_BAL, 50), fill=(120, 116, 150), anchor="lm"); frase = "tengo que decirte algo…"; n = int(len(frase) * u_(T, t0 + .1, .7)); d.text((350, 472), frase[:n], font=font(F_BAL, 50), fill=OL, anchor="lm")
+    d = ImageDraw.Draw(c)
+    for i in range(4):
+        if T >= t0 + .5 + i * .1: corazon(d, 760 + i * 44 - 20 * (i % 2), 700 - ((T - t0) * 120 + i * 40) % 220 + 110, 22, ROSA)
+    return c
+def sc_msg3(T, t0): return zoom(sc_msg2(T, sp("X01", 3)), 1.3 + .06 * u_(T, t0, 2), .5, .2)      # mismo momento, más cerca
+def sc_buzz(T, t0):             # la caja vibra: mensajes que nadie va a leer
+    c = bg("bg_cocina", T, t0, 1.1, 1.2, 3, .5, .62); osc(c, 150); n = sum(1 for i in range(4) if T >= WI("X06", 1) + i * .42)
+    caja_big(c, 540, 940, 1.9, T, shake=10 * max(0, math.sin((T - WI("X06", 1)) * 2 * PI_ / .42)) if T >= WI("X06", 1) else 0)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(lay).ellipse((300, 760, 780, 1240), fill=(140, 120, 255, 90)); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(80)))
+    if n: d = ImageDraw.Draw(c); k = pop(T, WI("X06", 1) + (n - 1) * .42, .18); r_ = 86 * k; d.ellipse((820 - r_, 560 - r_, 820 + r_, 560 + r_), fill=ROJO, outline=OL, width=9); titulo(c, f"+{n}", 820, 556, 104, BLANCO, 0, k, 0)      # FALLO 3 a propósito: dicen 3 y llegan 4
+    titulo(c, "BZZZ", 240, 520, 120, AMA, -10, pop(T, WI("X06", 1), .2))
+    return c
+def sc_borrado(T, t0):          # …y el último lo borró
+    c = plano((14, 10, 34), (4, 3, 12), (90, 70, 200)); tb = WI("X06", 10) - .1
+    telefono(c, 520, 740, 2.05, "00:07", [("Dani", "¿hola?", t0 - 1, False), ("Dani", "¿estás?", t0 - 1, False), ("Dani", "ok…", t0 - 1, False), ("Dani", "Se eliminó este mensaje" if T >= tb else "Vale, la verdad es que…", t0 + .1, T >= tb)], T)
+    flash(c, T, tb, .15); titulo(c, "BORRADO", 540, 1205, 112, ROJO, -5, pop(T, tb, .2), 14, sfill=BLANCO)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
+    for x in (120, 330, 760, 940): dl.line((x, 0, x - 260, H), fill=(190, 230, 245, 26), width=46)
+    c.alpha_composite(lay); put(c, "candado", 880, 420, .5, rot=10)
+    return zoom(c, 1 + .07 * u_(T, t0, 2.5), .5, .45)
+
 def sp(lid, i, d=-.06): return WI(lid, i) + d
-SC = [(0, sc_treinta), (S("V01") - .03, sc_gancho), (sp("V01", 7), sc_30), (S("V03") - .08, sc_vale), (sp("V03", 5), sc_9horas), (sp("V03", 12), sc_letra),
-      (S("V04") - .1, sc_trato), (sp("V04", 2), sc_recupera), (sp("V04", 6), sc_concierto), (sp("V04", 12), sc_trampa), (sp("V04", 18), sc_16),
-      (S("V05") - .1, sc_regla), (sp("V05", 9), sc_en_nota), (sp("V05", 13), sc_amano), (S("V06") - .05, sc_amano_q), (sp("V06", 2), sc_prehistoria),
-      (S("V07") - .1, sc_hora1), (sp("V07", 7), sc_hora2), (sp("V07", 13), sc_hora3), (S("V08") - .08, sc_11min), (sp("V08", 3), sc_salio),
-      (S("V09") - .1, sc_clarisimo), (sp("V09", 2), sc_traduce), (S("V10") - .06, sc_no), (sp("V10", 1), sc_nico_lee), (sp("V10", 4), sc_cocodrilo),
-      (S("V11") - .05, sc_dame), (S("V12") - .08, sc_nico), (sp("V12", 4), sc_tablet), (sp("V12", 6), sc_foto),
-      (S("V13") - .1, sc_resumen), (sp("V13", 7), sc_tu), (S("V14") - .1, sc_duo), (S("V15") - .1, sc_ojo), (S("V16") - .1, sc_final)]
+SC = [(0, sc_msg), (sp("X01", 3), sc_msg2), (sp("X01", 6), sc_msg3), (S("X02") - .06, sc_gancho), (sp("X02", 7), sc_30), (S("V02") - .03, sc_treinta),
+      (S("X03") - .08, sc_vale), (sp("X03", 5), sc_letra), (S("X04") - .08, sc_regla), (sp("X04", 6), sc_en_nota), (sp("X04", 10), sc_amano),
+      (S("V09") - .08, sc_clarisimo), (sp("V09", 2), sc_traduce), (S("V10") - .06, sc_no), (sp("V10", 1), sc_nico_lee), (sp("V10", 4), sc_cocodrilo),
+      (S("X05") - .1, sc_tu), (sp("X05", 5), sc_duo), (S("X06") - .1, sc_buzz), (sp("X06", 6), sc_borrado), (S("V16") - .1, sc_final)]
 SC.sort(key=lambda x: x[0])
-SCENES = SC; T_DUO = S("V14") - .1; T_OJO = S("V15") - .1; T_FIN = S("V16") - .1
+SCENES = SC
 
 def draw_hud(c, T):
     d = ImageDraw.Draw(c); x0, y0, x1, y1 = 200, 176, 880, 250
@@ -393,7 +444,7 @@ def draw_caption(c, T):
             x += wd + sp_
         return
 
-IMPACTS = [WI("V01", 4), WI("V10", 0), WI("V12", 9)]
+IMPACTS = [.02, WI("X02", 4), WI("V10", 0), WI("X06", 10) - .1]
 @lru_cache(1)
 def acabado():
     """Acabado de cómic: trama de puntos muy suave + viñeta. Se aplica a todos los fotogramas."""

@@ -202,12 +202,12 @@ def cabeza(quien):
     return svg(800, 1000, b)
 
 # ---------------------------------------------------------------- objetos
-def celular():
+def celular(limpio=False):
     b = f'<rect x="28" y="28" width="256" height="476" rx="42" fill="#000" opacity=".3"/><rect x="20" y="16" width="260" height="484" rx="42" fill="#2a2748" {ST}/><rect x="20" y="16" width="260" height="484" rx="42" fill="none" stroke="#5a568a" stroke-width="3" transform="translate(4,4) scale(.972)"/>'
     b += f'<rect x="38" y="42" width="224" height="432" rx="24" fill="#101028"/><rect x="38" y="42" width="224" height="432" rx="24" fill="#3a3760" opacity=".7"/><rect x="112" y="52" width="76" height="18" rx="9" fill="#06060f"/>'
     b += '<path d="M60 60 L150 60 L70 300 L60 300Z" fill="#fff" opacity=".08"/>'
     b += '<path d="M210 60 L186 150 L226 210 L196 290 M186 150 L150 170 M226 210 L250 226" stroke="#c9d3e6" stroke-width="3" fill="none" opacity=".8"/>'       # pantalla rajada
-    b += f'<text x="150" y="232" text-anchor="middle" font-family="Anton" font-size="62" fill="#c9d3e6" opacity=".9">23:59</text><rect x="70" y="270" width="160" height="50" rx="14" fill="#fff" opacity=".12"/><circle cx="92" cy="295" r="12" fill="{ROSA}"/><rect x="112" y="288" width="100" height="8" rx="4" fill="#fff" opacity=".5"/><rect x="112" y="302" width="70" height="6" rx="3" fill="#fff" opacity=".3"/>'
+    if not limpio: b += f'<text x="150" y="232" text-anchor="middle" font-family="Anton" font-size="62" fill="#c9d3e6" opacity=".9">23:59</text><rect x="70" y="270" width="160" height="50" rx="14" fill="#fff" opacity=".12"/><circle cx="92" cy="295" r="12" fill="{ROSA}"/><rect x="112" y="288" width="100" height="8" rx="4" fill="#fff" opacity=".5"/><rect x="112" y="302" width="70" height="6" rx="3" fill="#fff" opacity=".3"/>'
     b += f'<rect x="10" y="130" width="12" height="60" rx="5" fill="#2a2748" {ST}/><rect x="278" y="150" width="12" height="90" rx="5" fill="#2a2748" {ST}/>'
     return svg(300, 520, b)
 def caja(dias=30):
@@ -326,7 +326,7 @@ def fondo(tipo):
     b += '<rect width="1080" height="1920" fill="url(#lamp)"/>'
     return svg(1080, 1920, b)
 
-L = {"bg_cuarto": fondo("cuarto"), "bg_cocina": fondo("cocina"), "celular": celular(), "tablet": tablet(), "candado": candado(), "candado_abierto": candado(True), "mano_mama": mano_mama(),
+L = {"bg_cuarto": fondo("cuarto"), "bg_cocina": fondo("cocina"), "celular": celular(), "celular_limpio": celular(True), "tablet": tablet(), "candado": candado(), "candado_abierto": candado(True), "mano_mama": mano_mama(),
      "mano_pluma": mano_pluma(), "microondas": microondas(), "boleto": boleto(), "cocodrilo": cocodrilo(), "piedra": piedra(), "caja": svg(400, 430, caja()),
      "nota": svg(440, 360, f'<g transform="translate(10,22)">{nota()}</g>'), "nota_blanca": svg(440, 360, f'<g transform="translate(10,22)">{nota(texto="")}</g>'),
      "nico": cabeza("nico"), "dani": cabeza("dani"), "renata": cabeza("renata")}

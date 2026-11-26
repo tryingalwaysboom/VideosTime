@@ -14,15 +14,12 @@ def gate(nombre, tramos, out):
 
 def efectos():
     g = lambda n, tr: gate(n, tr, os.path.join(TMP, n + "_gate.wav")); st = {f.__name__: t for t, f in SCENES}
-    e = [(g("lapiz", [(st["sc_letra"] + .05, st["sc_letra"] + 1.2), (st["sc_regla"] + .5, st["sc_en_nota"] - .05), (st["sc_hora3"] + .1, st["sc_11min"] - .1)]), 0, -6),
-         (g("reloj", [(st["sc_11min"] + .05, st["sc_salio"] - .05), (st["sc_ojo"] + .1, st["sc_final"] - .1)]), 0, -9),
-         (sx("candado", "casa_sfx"), WI("V01", 4) - .03, -5), (sx("boom", "casa_sfx"), st["sc_30"], -9), (sx("movil"), st["sc_9horas"] + .05, -11),
-         (sx("brillo"), st["sc_recupera"] + .25, -10), (sx("brillo"), st["sc_concierto"] + .1, -9), (sx("boom", "casa_sfx"), WI("V04", 14) - .04, -9),
-         (sx("candado", "casa_sfx"), st["sc_16"] + .05, -8), (sx("mochila"), st["sc_amano"], -9), (sx("mochila"), st["sc_prehistoria"], -10),
-         (sx("mochila"), st["sc_salio"] + .05, -9), (sx("sello", "casa_sfx"), st["sc_no"], -6), (sx("risa"), WI("V10", 7) + .1, -13),
-         (sx("corre"), st["sc_dame"] + .5, -11), (sx("camara"), WI("V12", 9), -6), (sx("brillo"), WI("V13", 8) - .05, -9),
-         (sx("mochila"), WI("V14", 1) - .05, -10), (sx("mochila"), WI("V14", 9) - .05, -10), (sx("brillo"), st["sc_final"], -8)]
-    for q in range(13): e.append((sx("mochila"), WI("V07", 2) + (q + .5) * 1.3 / 13, -15))
+    e = [(g("lapiz", [(st["sc_letra"] + .05, st["sc_regla"] - .1), (st["sc_regla"] + .4, st["sc_en_nota"] - .05)]), 0, -6),
+         (sx("movil"), 0.0, -6), (sx("brillo"), st["sc_msg2"] + .1, -11), (sx("candado", "casa_sfx"), WI("X02", 4) - .03, -5), (sx("boom", "casa_sfx"), st["sc_30"], -9),
+         (sx("mochila"), st["sc_en_nota"], -10), (sx("mochila"), st["sc_amano"], -9), (sx("sello", "casa_sfx"), st["sc_no"], -6), (sx("risa"), WI("V10", 7) + .1, -13),
+         (sx("brillo"), WI("X05", 3) - .05, -9), (sx("mochila"), WI("X05", 10) - .05, -10), (sx("mochila"), WI("X05", 16) - .05, -10),
+         (sx("boom", "casa_sfx"), WI("X06", 10) - .1, -8), (sx("brillo"), st["sc_final"], -8)]
+    for i in range(4): e.append((sx("movil"), WI("X06", 1) + i * .42, -9))
     for t, fn in SCENES[1:]: e.append((sx("whoosh"), t - .06, -14))
     return e
 
