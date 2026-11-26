@@ -18,7 +18,7 @@ put, ease, clamp, back, font, bg = R.put, R.ease, R.clamp, R.back, R.font, R.bg
 F_ANTON = R.F_ANTON; MF = os.path.join(HERE, "..", "mateo-pov", "fonts")
 F_HAND = os.path.join(MF, "Caveat.ttf"); F_BAL = os.path.join(MF, "Baloo2-ExtraBold.ttf")
 PI_ = math.pi
-OL = (27, 19, 48); MOR = (42, 23, 87); MOR2 = (20, 12, 46); TUR = (43, 212, 196); AMA = (255, 201, 60); ROSA = (255, 93, 115)
+OL = (22, 15, 44); MOR = (35, 21, 72); MOR2 = (12, 10, 32); TUR = (43, 212, 196); AMA = (255, 201, 60); ROSA = (255, 93, 115)
 PAPEL = (255, 246, 220); TINTA = (42, 59, 143); BLANCO = (255, 255, 255); ROJO = (255, 59, 78)
 
 # ---------------------------------------------------------------- tiempos
@@ -132,13 +132,16 @@ def hoja(c, cx, cy, w, h, rot=0, rayas=True):
         for y in range(int(cy - h / 2 + 110), int(cy + h / 2 - 30), 74): d.line((cx - w / 2 + 12, y, cx + w / 2 - 12, y), fill=(156, 199, 238), width=4)
         d.line((cx - w / 2 + 90, cy - h / 2 + 8, cx - w / 2 + 90, cy + h / 2 - 8), fill=(240, 138, 138), width=4)
     d.rectangle((cx - 90, cy - h / 2 - 22, cx + 90, cy - h / 2 + 26), fill=(255, 226, 122), outline=OL, width=4)
+    for y in range(int(cy - h / 2 + 90), int(cy + h / 2 - 40), 150): d.ellipse((cx - w / 2 + 26, y - 17, cx - w / 2 + 60, y + 17), fill=(29, 22, 64), outline=OL, width=4)
+    d.polygon([(cx + w / 2 - 8, cy + h / 2 - 90), (cx + w / 2 - 8, cy + h / 2 - 8), (cx + w / 2 - 90, cy + h / 2 - 8)], fill=(232, 217, 176))
 
 def vale(c, kind, cx, cy, s, T, lid=None, pose=None, rot=0):
     hab = lid is not None and talk(lid, T) and math.sin(T * 26) > -.2
     name = f"vale_{kind}" + (f"_{pose}" if pose else "")
     if hab and os.path.exists(os.path.join(R.LAY, name + "_hab.png")): name += "_hab"
     if cy + 640 * s < H:      # el cuerpo sigue hasta el borde: nunca se ve cortado
-        d = ImageDraw.Draw(c); d.rectangle((cx - 308 * s, cy + 600 * s, cx + 308 * s, H + 10), fill=AMA); d.line((cx - 308 * s, cy + 640 * s, cx - 308 * s, H), fill=OL, width=max(3, int(9 * s))); d.line((cx + 308 * s, cy + 640 * s, cx + 308 * s, H), fill=OL, width=max(3, int(9 * s)))
+        d = ImageDraw.Draw(c); d.rectangle((cx - 300 * s, cy + 600 * s, cx + 300 * s, H + 10), fill=(240, 184, 40)); d.rectangle((cx + 170 * s, cy + 600 * s, cx + 300 * s, H + 10), fill=(214, 156, 22))
+        d.line((cx - 302 * s, cy + 640 * s, cx - 302 * s, H), fill=OL, width=max(3, int(7 * s))); d.line((cx + 302 * s, cy + 640 * s, cx + 302 * s, H), fill=OL, width=max(3, int(7 * s)))
     put(c, name, cx, cy + 5 * math.sin(T * 3.1), s, rot=rot)
 
 def zoom(im, z, fx=.5, fy=.5):
@@ -282,7 +285,7 @@ def sc_salio(T, t0):            # la nota, en grande
     put(c, "nota", 540, 820, 2.25 * k, rot=-6 + 40 * (1 - k)); titulo(c, "¿¿??", 800, 400, 170, ROSA, 10, pop(T, t0 + .5))
     return zoom(c, 1 + .1 * u_(T, t0, 2.2), .5, .44)
 def sc_clarisimo(T, t0):        # Vale orgullosa
-    c = bg("bg_cuarto", T, t0, 1.1, 1.2, 3, .5, .5); vale(c, "orgullosa", 520, 830, 1.0, T, "V09", "nota")
+    c = bg("bg_cuarto", T, t0, 1.1, 1.2, 3, .5, .5); vale(c, "orgullosa", 520, 780, 1.0, T, "V09", "nota")
     d = ImageDraw.Draw(c); d.rounded_rectangle((-30, 1345, W + 30, H + 40), 60, fill=(59, 42, 122), outline=OL, width=10); d.rounded_rectangle((60, 1280, 330, 1410), 60, fill=(185, 138, 214), outline=OL, width=9)
     papel(c, "«clarísimo»", 770, 420, 80, 6, pop(T, WI("V09", 1) - .05), AMA, f=F_HAND)
     return c
@@ -351,7 +354,7 @@ def sc_ojo(T, t0):              # alguien más va a leer esa nota
     put(c, "nota", 540, 830, 1.25, rot=-5 + 2 * math.sin(T * 2))
     bl = 1 if (T - t0) % 1.6 > .12 else .1
     for ex in (410, 670): d.ellipse((ex - 62, 380 - 40 * bl * u, ex + 62, 380 + 40 * bl * u), fill=BLANCO); d.ellipse((ex - 22 + 14 * math.sin(T * 2), 380 - 22 * bl * u, ex + 22 + 14 * math.sin(T * 2), 380 + 22 * bl * u), fill=OL)
-    titulo(c, "?", 540, 1210, 200, ROJO, 0, pop(T, WI("V15", 1), .25), 14, sfill=BLANCO)
+    titulo(c, "?", 540, 1150, 170, ROJO, 0, pop(T, WI("V15", 1), .25), 14, sfill=BLANCO)
     return zoom(c, 1 + .08 * u_(T, t0, 2.5))
 def sc_final(T, t0):
     c = plano(); _duo(c, T); k = pop(T, t0, .22); papel(c, "COMENTA", 540, 340, 80, 0, k, AMA, OL, F_ANTON, cinta=False)
@@ -392,6 +395,15 @@ def draw_caption(c, T):
         return
 
 IMPACTS = [WI("V01", 4), WI("V10", 0), WI("V12", 9)]
+@lru_cache(1)
+def acabado():
+    """Acabado de cómic: trama de puntos muy suave + viñeta. Se aplica a todos los fotogramas."""
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32); a = np.zeros((H, W, 4), np.uint8)
+    u = (xx * .866 + yy * .5) % 14 - 7; v = (-xx * .5 + yy * .866) % 14 - 7; dots = (u * u + v * v) < 7.5
+    vg = np.clip((((xx - W / 2) / (W * .62)) ** 2 + ((yy - H / 2) / (H * .6)) ** 2 - .55) * 1.5, 0, 1)
+    a[..., 3] = (vg * 150).astype(np.uint8); suave = dots & (vg < .04); a[suave, 0:3] = 255; a[suave, 3] = 11
+    return Image.fromarray(a, "RGBA")
+
 def frame(T):
     idx = max(i for i, (t, f) in enumerate(SCENES) if T >= t); t0, fn = SCENES[idx]; c = fn(T, t0)
     z = 1 + (.085 * (1 - ease((T - t0) / .2)) if idx > 0 else 0)          # golpe de zoom en cada corte
@@ -400,7 +412,7 @@ def frame(T):
     if z > 1.002 or amp > .6:
         cc = c.resize((int(W * z), int(H * z)), Image.BILINEAR); ox = (cc.width - W) // 2 + int(amp * math.sin(T * 80)); oy = (cc.height - H) // 2 + int(amp * math.cos(T * 67))
         ox = max(0, min(cc.width - W, ox)); oy = max(0, min(cc.height - H, oy)); c = cc.crop((ox, oy, ox + W, oy + H))
-    draw_hud(c, T); draw_caption(c, T)
+    c.alpha_composite(acabado()); draw_hud(c, T); draw_caption(c, T)
     return c.convert("RGB")
 
 def render_scene(i, out):
