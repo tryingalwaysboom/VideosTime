@@ -5,7 +5,7 @@
 # A = abuela Pilar (Grandma Aurora: su voz fija para toda la temporada).
 VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4", "B": "qwGqKD27pOM0ZnkGIYpY", "A": "aYQAm4rWuigkeuRA5i92"}
 LINEAS = [
- ("L01", "N", "[serious] Bruno le pidió perdón a tu hijo… sin mirarlo.", "*Bruno* le pidió *perdón* a tu hijo… sin *mirarlo.*"),
+ ("L01N", "N", "[serious] El niño que se rió de tu hijo le pidió perdón… sin mirarlo.", "El *niño* que se *rió* de tu hijo le pidió *perdón…* sin *mirarlo.*"),   # gancho para público frío: se entiende sin haber visto nada
  ("L02", "N", "Hablaste con la maestra. Ella habló con Bruno.", "Hablaste con la *maestra.* Ella habló con *Bruno.*"),
  ("L03", "B", "[mumbling, reluctant kid] Perdón…", "*Perdón…*"),
  ("L04", "N", "Y Mateo sigue sin querer volver.", "Y Mateo sigue sin querer *volver.*"),
