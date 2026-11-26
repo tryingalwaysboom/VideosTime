@@ -842,6 +842,8 @@ def deja_hoja(T, t0):
     paste_rot(c, hoja_M_mateo(), x, y, .52, -8 + 14 * (1 - u))
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); hx, hy = x - 250, y + 90 + 200 * u_(T, t0 + 1.4, .8)
     d.line((hx - 700, hy + 420, hx, hy), fill=OL, width=140); d.line((hx - 700, hy + 420, hx, hy), fill=BATA_, width=124); d.ellipse((hx - 82, hy - 76, hx + 82, hy + 76), fill=PIEL, outline=OL, width=8); c.alpha_composite(lay)
+    k = pop(T, t0 + .15, .22)
+    if k > 0 and T < WI("L08", 9) - .15: rotulo(c, "REX, SU DINOSAURIO", 540, 410, 80, VERDE_C, CREMA, -3, k=k)      # para quien llega sin haber visto nada
     k = pop(T, WI("L08", 9) - .08, .25)
     if k > 0: tiza(c, "para que practique", 560, 420, 96 * k, CREMA, -4, stroke=2, borde=True); corazon(c, 900, 520 - 30 * u_(T, WI("L08", 9), 1.5), 30 * k)
     return c
@@ -1010,9 +1012,9 @@ T_SABE = WI("L15", 22) - .1
 def te_mira(T, t0):
     """La abuela te mira por encima de la cabeza de Mateo… y te guiña un ojo: sabe quién escribe las notas."""
     c, tr = vista("bg_sala", 600, 900, 2.0); c = borroso(c, 10, 50); z = 1.0 + .1 * u_(T, t0, 6)
-    abuela(c, "guino" if T >= T_SABE else "sonrie", 600, 640, 1.2 * z, T); mateo(c, "feliz", 250, 1090, .78 * z, T, blink=False)
+    abuela(c, "guino" if T >= T_SABE else "sonrie", 600, 720, 1.15 * z, T); mateo(c, "feliz", 250, 1090, .78 * z, T, blink=False)
     k = pop(T, T_SABE, .25)
-    if k > 0: rotulo(c, "ELLA LO SABE", 540, 380, 100, MORA, CREMA, -3, k=k); paste_rot(c, nota_rex(), 900, 560, .2 * k, 10); corazon(c, 200, 540 - 30 * u_(T, T_SABE, 2), 34 * k * (1 + .08 * math.sin(T * 8)))
+    if k > 0: rotulo(c, "ELLA SABE", 540, 345, 92, MORA, CREMA, -3, k=k); rotulo(c, "QUE LAS ESCRIBES TÚ", 540, 455, 72, AMA, OL, -3, k=pop(T, T_SABE + .25, .22)); paste_rot(c, nota_rex(), 930, 640, .2 * k, 10); corazon(c, 200, 540 - 30 * u_(T, T_SABE, 2), 34 * k * (1 + .08 * math.sin(T * 8)))
     return c
 
 # ---------------------------------------------------------------- 9 · ¿qué harías tú?
