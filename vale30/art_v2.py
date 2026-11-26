@@ -28,6 +28,14 @@ def nota(w=420, h=330, texto="x", seed=3):
     b += f'<g transform="rotate(-4 {w / 2} 6)"><rect x="{w / 2 - 74}" y="-18" width="148" height="46" fill="#ffe27a" fill-opacity=".88" stroke="{OL}" stroke-width="4"/><path d="M{w / 2 - 60} -6 l120 0 M{w / 2 - 60} 8 l120 0" stroke="#fff" stroke-width="4" opacity=".5"/></g>'
     return b
 
+def nota_dani(abierta=False):
+    """La respuesta de Dani: papel azul doblado, letra prolija, sticker de corazón (y el nombre mal escrito: BALE)."""
+    b = f'<path d="M26 40 L426 28 L434 330 L18 338Z" fill="#000" opacity=".3"/><path d="M14 28 L414 14 L424 318 L8 326Z" fill="#cfe6ff" {ST}/>'
+    b += f'<path d="M14 28 L214 170 L414 14" fill="#e6f2ff" {ST}/><path d="M8 326 L190 190 M424 318 L238 190" stroke="{OL}" stroke-width="5" opacity=".5"/>'
+    b += f'<path d="M150 150 Q214 90 278 150 Q300 190 214 250 Q128 190 150 150Z" fill="{ROSA}" {ST}/><path d="M176 150 q14 -18 34 -6" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".7"/>'
+    b += f'<text x="216" y="298" text-anchor="middle" font-family="Caveat" font-weight="700" font-size="58" fill="{TINTA}">para: BALE</text>'
+    return svg(440, 360, b)
+
 # ---------------------------------------------------------------- Vale
 def ojo(cx, cy, r, mir, parp, uid):
     b = f'<ellipse cx="{cx}" cy="{cy}" rx="{r}" ry="{r * 1.12}" fill="#fff" {ST}/>'
@@ -329,7 +337,7 @@ def fondo(tipo):
 L = {"bg_cuarto": fondo("cuarto"), "bg_cocina": fondo("cocina"), "celular": celular(), "celular_limpio": celular(True), "tablet": tablet(), "candado": candado(), "candado_abierto": candado(True), "mano_mama": mano_mama(),
      "mano_pluma": mano_pluma(), "microondas": microondas(), "boleto": boleto(), "cocodrilo": cocodrilo(), "piedra": piedra(), "caja": svg(400, 430, caja()),
      "nota": svg(440, 360, f'<g transform="translate(10,22)">{nota()}</g>'), "nota_blanca": svg(440, 360, f'<g transform="translate(10,22)">{nota(texto="")}</g>'),
-     "nico": cabeza("nico"), "dani": cabeza("dani"), "renata": cabeza("renata")}
+     "nota_dani": nota_dani(), "nico": cabeza("nico"), "dani": cabeza("dani"), "renata": cabeza("renata")}
 for k in ("aburrida", "shock", "asco", "orgullosa", "enojada"):
     L[f"vale_{k}"] = vale(k, uid=k); L[f"vale_{k}_hab"] = vale(k, True, uid=k + "h")
 L["vale_orgullosa_nota"] = vale("orgullosa", pose="nota", uid="on"); L["vale_orgullosa_nota_hab"] = vale("orgullosa", True, "nota", "onh"); L["vale_aburrida_nota"] = vale("aburrida", pose="nota", uid="an")

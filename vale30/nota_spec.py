@@ -13,4 +13,4 @@ def glifos(lineas, seed=3, x0=76, y0=104, dy=56, tam=(50, 76)):
             x += sz * r.uniform(.2, .36)
         if r.random() < .6: out.append(("~", round(x + 6, 1), round(y - 6, 1), 60, round(r.uniform(-20, 20), 1)))      # rayón al final de la línea
     return out
-NOTA = glifos(("estoy", "castigada", "no tengo", "celular"))
+NOTA = glifos(("vamos", "al cine", "el sabado?"), 7, 80, 118, 72, (60, 88))
