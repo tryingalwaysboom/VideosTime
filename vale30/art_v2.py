@@ -2,7 +2,7 @@
 Vale es peculiar: lápiz clavado en el moño, un ojo más grande que el otro, curita en la nariz, brackets, uñas turquesa
 despintadas, tres aretes y un parche en la sudadera. Uso: python3 art_v2.py"""
 import os, re, random, math, sys
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "..", "mateo30"))
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "..", "mateo30")); sys.path.insert(0, HERE)
 import art30 as B
 from playwright.sync_api import sync_playwright
 FONT_CSS = B.A.FONT_CSS
@@ -22,16 +22,9 @@ def nota(w=420, h=330, texto="x", seed=3):
     for y in range(60, h - 20, 90): b += f'<circle cx="28" cy="{y}" r="11" fill="#1d1640"/><circle cx="28" cy="{y}" r="11" fill="none" stroke="{OL}" stroke-width="4"/>'
     b += f'<circle cx="{w - 70}" cy="{h - 60}" r="34" fill="none" stroke="#b98a52" stroke-width="7" opacity=".35"/>'
     if texto:
-        cambia = {"a": "o", "g": "q", "t": "l", "u": "v"}
-        for i, (linea, y) in enumerate(zip(("estoy", "castigada", "no tengo", "celular"), range(104, h - 20, 56))):
-            x = 76 + r.uniform(0, 26)
-            for ch in linea:
-                if ch == " ": x += 20; continue
-                sz = r.uniform(50, 76); g = cambia.get(ch, ch) if r.random() < .3 else ch
-                b += f'<text x="{x:.0f}" y="{y + r.uniform(-9, 12):.0f}" font-family="Caveat" font-weight="700" font-size="{sz:.0f}" fill="{TINTA}" transform="rotate({r.uniform(-24, 24):.0f} {x:.0f} {y})">{g}</text>'
-                x += sz * r.uniform(.3, .46)
-            if i == 1: b += f'<path d="M168 {y - 24} q14 -14 26 2 q12 14 24 -4 q12 -12 24 6" fill="none" stroke="{TINTA}" stroke-width="6" stroke-linecap="round"/>'
-        b += f'<path d="M300 268 q10 -20 22 0 q10 18 22 -2 q10 -18 22 2" fill="none" stroke="{TINTA}" stroke-width="7" stroke-linecap="round"/><circle cx="120" cy="290" r="9" fill="{TINTA}" opacity=".5"/>'
+        from nota_spec import NOTA
+        for g, x, y, sz, rot in NOTA: b += f'<text x="{x}" y="{y}" font-family="Caveat" font-weight="700" font-size="{sz}" fill="{TINTA}" transform="rotate({rot} {x} {y})">{g}</text>'
+        b += f'<circle cx="120" cy="290" r="9" fill="{TINTA}" opacity=".5"/>'
     b += f'<g transform="rotate(-4 {w / 2} 6)"><rect x="{w / 2 - 74}" y="-18" width="148" height="46" fill="#ffe27a" fill-opacity=".88" stroke="{OL}" stroke-width="4"/><path d="M{w / 2 - 60} -6 l120 0 M{w / 2 - 60} 8 l120 0" stroke="#fff" stroke-width="4" opacity=".5"/></g>'
     return b
 
