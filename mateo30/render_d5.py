@@ -27,7 +27,7 @@ DIAS_FALTAN = 26; LETRAS_ON = "M"          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .3, "L03": .3, "L04": .45, "L05": .5, "L06": .25, "L07": .35, "L08": .55, "L09": .4, "L10": .5, "L11": .3, "L12": .6,
+BASE = {"L02": .3, "L03": .3, "L04": .45, "L05": .5, "L06": .25, "L06B": .12, "L07": .35, "L08": .55, "L09": .4, "L10": .5, "L11": .3, "L12": .6,
         "L13": .45, "L14": .45, "L15": .6, "L16": .45, "L17": .6, "L18": .4, "L19": .3}
 FLEX = ("L05", "L08", "L10", "L12", "L14", "L15", "L17")      # pausas que absorben el ajuste para clavar la duración
 COLA = .35
@@ -810,25 +810,36 @@ def lo_unico(T, t0):
     if k > 0: rotulo(c, "LO ÚNICO QUE SABE", 540, 420, 84, ROJO, CREMA, -3, k=k)
     return c
 
+BK = 1.55      # Bruno es más grande que Mateo
+def bruno_(c, kind, hx, hy, s, T, lid=None):
+    """Bruno: personaje propio (bruno_art.py) — grandote, rubio de punta, curita, le falta un diente, suéter morado de rayas. Cara y voz fijas."""
+    hab = lid is not None and talk(lid, T)
+    if hab: kind = "rie" if int(T * 9) % 2 == 0 else "rie2"
+    put(c, f"bruno_{kind}", hx, hy + 498 * s * BK, s * BK)
+
 @esc(S("L06") - .2)
 def bruno(T, t0):
-    c = borroso(pared_img().copy(), 9, 60); mateo(c, "timido" if T < WI("L06", 6) else "triste", 290, 820, 1.05, T, blink=False)
-    nino_sil(c, 800, 760, 1.15, T, 0); nino_sil(c, 1010, 900, .9, T, 1.3, (58, 50, 96))
+    c = borroso(pared_img().copy(), 9, 60); tr_ = WI("L06", 6) - .05; rie = T >= tr_
+    bruno_(c, "rie" if rie else "burlon", 800, 800 - (20 * abs(math.sin((T - tr_) * 10)) if rie else 0), .8, T)
+    mateo(c, "timido" if not rie else "triste", 250, 900, .95, T, blink=False)
     k = pop(T, WI("L06", 1) - .08, .2)
-    if k > 0: rotulo(c, "BRUNO", 800, 520, 80, AZUL, CREMA, 4, k=k)
-    jaja(c, T, WI("L06", 6) - .05, [(600, 430, 120, -8), (930, 400, 96, 8)])
+    if k > 0: rotulo(c, "BRUNO", 800, 400, 84, MORA, CREMA, 4, k=k)
+    jaja(c, T, tr_, [(470, 560, 110, -8), (1000, 1150, 90, 8)])
     return c
 
-@esc(WI("L06", 8) - .12)
+@esc(S("L06B") - .12)
 def una_sola(T, t0):
-    c = borroso(pared_img().copy(), 12, 90); mateo(c, "triste", 420, 900, 1.3 + .06 * u_(T, t0, 2), T, blink=False)
+    """Bruno, de cerca, lo dice con su propia voz; Mateo, pequeño, lo oye."""
+    c = borroso(pared_img().copy(), 12, 90); hab = talk("L06B", T)
+    bruno_(c, "rie", 620, 960 - 14 * abs(math.sin((T - t0) * 10)), .92 + .04 * u_(T, t0, 2), T, "L06B")
+    mateo(c, "triste", 160, 1330, .62, T, blink=False)
     k = pop(T, t0 + .05, .22)
     if k > 0:
-        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.rounded_rectangle((250, 330, 1010, 620), 60, fill=CREMA + (255,), outline=OL + (255,), width=8)
-        d.polygon([(900, 610), (1060, 720), (960, 560)], fill=CREMA + (255,)); d.line([(900, 616), (1060, 720), (966, 600)], fill=OL + (255,), width=8)
-        d.text((630, 420), "¡SOLO SABE", font=font(F_BAL, 92), fill=OL, anchor="mm"); d.text((630, 530), "UNA LETRA!", font=font(F_BAL, 92), fill=ROJO, anchor="mm")
-        c.alpha_composite(lay.rotate(-3, center=(630, 470), resample=Image.BICUBIC) if k >= 1 else lay.resize((W, H)))
-    jaja(c, T, t0 + .3, [(880, 880, 110, 10), (950, 1090, 84, -6), (170, 1240, 76, -10)])
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.rounded_rectangle((150, 320, 910, 610), 60, fill=CREMA + (255,), outline=OL + (255,), width=8)
+        d.polygon([(560, 600), (640, 720), (680, 600)], fill=CREMA + (255,)); d.line([(560, 606), (640, 720), (680, 606)], fill=OL + (255,), width=8)
+        d.text((530, 410), "¡SOLO SABE", font=font(F_BAL, 92), fill=OL, anchor="mm"); d.text((530, 520), "UNA LETRA!", font=font(F_BAL, 92), fill=ROJO, anchor="mm")
+        c.alpha_composite(lay.rotate(-3, center=(530, 460), resample=Image.BICUBIC))
+    jaja(c, T, WI("L06B", 3) + .25, [(930, 800, 110, 10), (960, 1010, 84, -6), (170, 800, 80, -10)])
     return c
 
 @esc(S("L07") - .2)
@@ -1119,11 +1130,11 @@ def volver(T, t0):
 @esc(WI("L17", 6) - .12)
 def bruno_ahi(T, t0):
     c, tr = vista("bg_escuela", 540, 1120, 1.7 + .15 * u_(T, t0, 2)); k = clamp((T - t0) / .25)
-    nino_sil(c, 560, 900 + 60 * (1 - k), 1.25, T * .25, 0, (40, 46, 86), risa=False)
+    bruno_(c, "burlon", 560, 980 + 60 * (1 - k), .8, T)
     k = pop(T, WI("L17", 7) - .05, .2)
-    if k > 0: rotulo(c, "BRUNO", 560, 600, 96, AZUL, CREMA, 4, k=k)
+    if k > 0: rotulo(c, "BRUNO", 560, 520, 96, MORA, CREMA, 4, k=k)
     k = pop(T, WI("L17", 10) - .05, .22)
-    if k > 0: tiza(c, "…", 860, 620, 190 * k, CREMA, 0, f=F_BAL, stroke=3, borde=True)
+    if k > 0: tiza(c, "…", 900, 700, 190 * k, CREMA, 0, f=F_BAL, stroke=3, borde=True)
     return c
 
 # ---------------------------------------------------------------- 11 · ¿qué harías tú? (cada opción con su pro y su contra)
@@ -1183,7 +1194,7 @@ def final(T, t0):
 
 SC.sort(key=lambda x: x[0])
 SCENES = [(t, f) for t, f, s_ in SC]; SUAVES = {t for t, f, s_ in SC if s_}
-IMPACTS = [.05, T_UNA, WI("L02", 1) - .08, T_FOTO, WI("L06", 8) - .1, T_YOSI]
+IMPACTS = [.05, T_UNA, WI("L02", 1) - .08, T_FOTO, S("L06B") - .05, T_YOSI]
 
 def hblur(im, k):
     if k < 2: return im

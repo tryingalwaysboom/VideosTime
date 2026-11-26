@@ -1,15 +1,16 @@
 # Temporada "Mateo: 30 días para no repetir" · DÍA 5 — Se ríen de él (ganó CASTIGO). Guía: https://claude.ai/artifact/XNsi3CzRUyQwBaGKDFBZBU
 # Primer día con la «Fórmula de los virales»: todo en 2.ª persona (quien mira es la mamá), ternura en el centro, vuelve Rex
 # (la primera nota la escribe mamá), truco de la letra en pantalla y «¿Qué harías tú?» con pro y contra.
-# Voces (eleven_v4): N = mamá narradora (Lily), K = Mateo (Daniela). Bruno y Rex los dice la narradora.
-VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4"}
+# Voces (eleven_v4): N = mamá narradora (Lily), K = Mateo (Daniela). B = Bruno (Nico «Chile neutro», tono subido 1.25: su voz fija para toda la temporada). A Rex lo lee la narradora.
+VOCES = {"N": "zl7szWVBXnpgrJmAalgz", "K": "tTdCI0IDTgFa2iLQiWu4", "B": "qwGqKD27pOM0ZnkGIYpY"}
 LINEAS = [
  ("L01", "N", "[sad, gentle] Tu hijo llegó llorando de la escuela… con una hoja que solo tiene una letra.", "Tu hijo llegó *llorando* de la escuela… con una hoja que solo tiene *una* *letra.*"),
  ("L02", "N", "Eligieron castigo. Tres días sin dibujos, y a limpiar el sofá contigo.", "Eligieron *castigo.* *3* días sin *dibujos,* y a limpiar el *sofá* contigo."),
  ("L03", "K", "[sad, small voice] Pero era mi eme más bonita… era para papá.", "Pero era mi M más *bonita…* era para *papá.*"),
  ("L04", "N", "[soft] Papá no dice nada. Pero esa noche lo ves: le toma una foto a la eme, antes de borrarla.", "Papá no dice *nada.* Pero esa noche lo *ves:* le toma una *foto* a la M, antes de *borrarla.*"),
  ("L05", "N", "Hoy, en clase, todos escribieron su nombre completo. Mateo escribió lo único que sabe.", "Hoy, en *clase,* todos escribieron su nombre *completo.* Mateo escribió lo *único* que sabe."),
- ("L06", "N", "Y Bruno, el de al lado, se rió: [mocking] ¡solo sabe una letra!", "Y *Bruno,* el de al lado, se *rió:* ¡solo sabe *una* *letra!*"),
+ ("L06", "N", "Y Bruno, el de al lado, se rió:", "Y *Bruno,* el de al lado, se *rió:*"),
+ ("L06B", "B", "[mocking, laughing kid] ¡Solo sabe una letra! [laughs]", "¡Solo sabe *una* *letra!*"),
  ("L07", "K", "[crying] No quiero volver, mami. Soy el único que no sabe.", "No quiero *volver,* mami. Soy el *único* que no sabe."),
  ("L08", "N", "[warm] Respiras. Te sientas a su lado y le dices la verdad: la eme es la letra más difícil de su nombre… y ya es suya.", "*Respiras.* Te sientas a su *lado* y le dices la *verdad:* la M es la letra más *difícil* de su nombre… y ya es *suya.*"),
  ("L09", "N", "Se la dibujas despacio: dos montañas que se dan la mano. Sube, baja, sube, baja.", "Se la dibujas *despacio:* dos *montañas* que se dan la *mano.* *Sube,* *baja,* *sube,* *baja.*"),

@@ -8,8 +8,8 @@ LINEAS = importlib.import_module("guion_d" + EP).LINEAS
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "descargas", sys.argv[1] if len(sys.argv) > 1 else "mateo_ep1")
 DST = os.path.join(HERE, "voz_d" + EP); os.makedirs(DST, exist_ok=True)
-TEMPO = {"N": 1.08, "K": 1.0, "T": 1.04, "P": 1.0}
-PITCH = {"K": 1.13, "P": 1.28}
+TEMPO = {"N": 1.08, "K": 1.0, "T": 1.04, "P": 1.0, "B": 1.0}
+PITCH = {"K": 1.13, "P": 1.28, "B": 1.25}
 if EP == "2": TEMPO.update(N=1.12, K=1.06)
 if EP in ("3", "4", "5"): TEMPO.update(N=1.04, K=1.0)   # Mateo: más agudo sin cambiar la velocidad
 
@@ -22,7 +22,7 @@ def lead_silence(f):
 offs = {}
 CUTS = {"L01": [(1.80, 2.05), (2.48, 2.60)]} if EP == "4" else {}      # pausas dentro del gancho: fuera, para que dure menos
 TEMPO_L = {"L01": 1.10} if EP == "4" else {}
-FIN = {"L17": 2.80} if EP == "4" else {}      # el cierre acaba en "…o celebrar." (fuera "tu comentario puede salir…")
+FIN = {"L17": 2.80} if EP == "4" else ({"L06": 2.42} if EP == "5" else {})   # día 5: la frase de Bruno la dice Bruno (L06B)      # el cierre acaba en "…o celebrar." (fuera "tu comentario puede salir…")
 for lid, v, *_ in LINEAS:
     src = os.path.join(SRC, lid + ".mp3")
     off = max(0.0, lead_silence(src) - .03); tp = TEMPO_L.get(lid, TEMPO[v]); pt = PITCH.get(v); cuts = CUTS.get(lid, [])
