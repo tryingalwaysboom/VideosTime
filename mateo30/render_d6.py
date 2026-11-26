@@ -750,12 +750,16 @@ def hoja_M_mateo(k=1.0):
     return n.crop((100, 590, 980, 1260))
 
 # ---------------------------------------------------------------- 1 · gancho (3 s, una idea): le pidió perdón… sin mirarlo
-T_SIN = WI("L01", 7) - .08
+T_SIN = WI("L01N", 11) - .08; T_PER = WI("L01N", 9) - .1
 @esc(0)
 def gancho(T, t0):
-    c = borroso(pared_img().copy(), 9, 60); z = 1.0 + .06 * u_(T, 0, 3)
-    bruno_(c, "burlon", 330, 800, .8, T); mateo(c, "timido", 800, 900, 1.0, T, blink=False)
-    globo(c, 330, 420, 440, 170, [("perdón…", OL)], pop(T, .15, .22), (0, 1), -4, 84)
+    """Para quien no ha visto nada: «el niño que se rió de tu hijo» se ve (JA JA) y se lee desde el primer fotograma."""
+    c = borroso(pared_img().copy(), 9, 60); z = 1.0 + .06 * u_(T, 0, 3.5); rie = T < T_PER
+    bruno_(c, "rie" if rie else "burlon", 330, 800 - (14 * abs(math.sin(T * 10)) if rie else 0), .8, T); mateo(c, "triste" if rie else "timido", 800, 900, 1.0, T, blink=False)
+    if rie: jaja(c, T, .0, [(120, 520, 96, -10), (560, 470, 84, 8)])
+    globo(c, 330, 420, 440, 170, [("perdón…", OL)], pop(T, T_PER, .22), (0, 1), -4, 84)
+    p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22)
+    if T < T_SIN: rotulo(c, "SE RIÓ DE TU HIJO", 540, 250, 84, ROJO, CREMA, -3, k=p)
     k = pop(T, T_SIN, .2)
     if k > 0: rotulo(c, "SIN MIRARLO", 370, 1010, 84, ROJO, CREMA, -4, k=k); lapiz_rojo(c, (170, 660, 500, 860), u_(T, T_SIN, .3), 13, 6)
     return view(c, 540, 900, z)
@@ -1060,7 +1064,7 @@ def final(T, t0):
 
 SC.sort(key=lambda x: x[0])
 SCENES = [(t, f) for t, f, s_ in SC]; SUAVES = {t for t, f, s_ in SC if s_}
-IMPACTS = [.05, T_SIN, WI("L07", 4) - .1, WI("L10", 4) - .1, T_CAE, T_SABE]
+IMPACTS = [.05, T_PER, T_SIN, WI("L07", 4) - .1, WI("L10", 4) - .1, T_CAE, T_SABE]
 
 def hblur(im, k):
     if k < 2: return im

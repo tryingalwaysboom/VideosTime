@@ -15,7 +15,7 @@ def gate(nombre, tramos, out):
 def efectos():
     g = lambda n, tr: gate(n, tr, os.path.join(TMP, n + "_gate.wav")); st = {f.__name__: t for t, f in SCENES}
     e = [(g("crayola", [(V.T_W0, V.T_W1), (st["truco_m"] + .3, V.T_CIELO - .2), (V.T_SG[0], V.T_SG[4])]), 0, -4),
-         (sx("brillo"), V.T_SIN, -10), (sx("timbre"), st["hablaste"] + .05, -14), (sx("brillo"), WI("L06", 4) - .1, -9),
+         (sx("risa"), .05, -13), (sx("brillo"), V.T_SIN, -10), (sx("timbre"), st["hablaste"] + .05, -14), (sx("brillo"), WI("L06", 4) - .1, -9),
          (sx("brillo"), st["abu"] + .1, -9), (sx("brillo"), WI("L08", 9) - .08, -10), (sx("brillo"), V.T_MAND, -8),
          (sx("brillo"), V.T_ESM, -8), (sx("brillo"), V.T_ESW, -9), (sx("risa"), st["se_rieron"] + .15, -15),
          (sx("brillo"), V.T_SABE, -7), (sx("timbre"), st["volver"] + .05, -14), (sx("brillo"), V.T_A, -9), (sx("brillo"), V.T_B, -9)]
