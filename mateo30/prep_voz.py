@@ -11,7 +11,8 @@ DST = os.path.join(HERE, "voz_d" + EP); os.makedirs(DST, exist_ok=True)
 TEMPO = {"N": 1.08, "K": 1.0, "T": 1.04, "P": 1.0, "B": 1.0, "A": 1.0}
 PITCH = {"K": 1.13, "P": 1.28, "B": 1.25}
 if EP == "2": TEMPO.update(N=1.12, K=1.06)
-if EP in ("3", "4", "5", "6"): TEMPO.update(N=1.04, K=1.0)   # Mateo: más agudo sin cambiar la velocidad
+if EP in ("3", "4", "5", "6"): TEMPO.update(N=1.04, K=1.0)
+if EP == "7": TEMPO.update(N=.96, K=1.0)   # día 7: narradora a su velocidad natural   # Mateo: más agudo sin cambiar la velocidad
 
 def lead_silence(f):
     out = subprocess.run(["ffmpeg", "-i", f, "-af", "silencedetect=n=-40dB:d=0.02", "-t", "1.5", "-f", "null", "-"],
