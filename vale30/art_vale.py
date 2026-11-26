@@ -86,14 +86,15 @@ def maqueta():
     b += f'<text x="490" y="1450" text-anchor="middle" font-family="Anton" font-size="104" fill="#fff" stroke="#0c0a18" stroke-width="20" paint-order="stroke">SOLO PUEDE <tspan fill="#ffc93c">ESCRIBIR</tspan></text>'
     return svg(1080, 1920, b)
 
-L = {"maqueta_dia1": maqueta(), "vale": svg(800, 1160, vale()), "caja": svg(400, 430, caja())}
-import re
-with sync_playwright() as p:
-    br = p.chromium.launch(channel="chrome")
-    for name, s in L.items():
-        w, h = map(int, re.search(r'width="(\d+)" height="(\d+)"', s).groups())
-        pg = br.new_page(viewport={"width": w, "height": h}, device_scale_factor=1 if name.startswith("maqueta") else 2); hp = os.path.join(HERE, "_tmp.html")
-        open(hp, "w").write(f"<html><head><style>{FONT_CSS} html,body{{margin:0;background:transparent;overflow:hidden}}</style></head><body>{s}</body></html>")
-        pg.goto("file://" + hp); pg.wait_for_timeout(250); pg.screenshot(path=os.path.join(HERE, "layers" if not name.startswith("maqueta") else "", name + ".png"), omit_background=not name.startswith("maqueta")); pg.close()
-    br.close(); os.remove(os.path.join(HERE, "_tmp.html"))
-print("ok")
+if __name__ == "__main__":
+    L = {"maqueta_dia1": maqueta(), "vale": svg(800, 1160, vale()), "caja": svg(400, 430, caja())}
+    import re
+    with sync_playwright() as p:
+        br = p.chromium.launch(channel="chrome")
+        for name, s in L.items():
+            w, h = map(int, re.search(r'width="(\d+)" height="(\d+)"', s).groups())
+            pg = br.new_page(viewport={"width": w, "height": h}, device_scale_factor=1 if name.startswith("maqueta") else 2); hp = os.path.join(HERE, "_tmp.html")
+            open(hp, "w").write(f"<html><head><style>{FONT_CSS} html,body{{margin:0;background:transparent;overflow:hidden}}</style></head><body>{s}</body></html>")
+            pg.goto("file://" + hp); pg.wait_for_timeout(250); pg.screenshot(path=os.path.join(HERE, "layers" if not name.startswith("maqueta") else "", name + ".png"), omit_background=not name.startswith("maqueta")); pg.close()
+        br.close(); os.remove(os.path.join(HERE, "_tmp.html"))
+    print("ok")
