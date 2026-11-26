@@ -108,22 +108,20 @@ def chispas(c, cx, cy, T, t0, n=10, col=AMA, r=260):
         an = rr.uniform(0, 2 * PI_); q = r * (.35 + .65 * ease(u)) * rr.uniform(.6, 1); x, y = cx + q * math.cos(an), cy + q * math.sin(an); s = 16 * (1 - u) + 3
         d.polygon([(x, y - s * 1.6), (x + s * .5, y), (x, y + s * 1.6), (x - s * .5, y)], fill=col); d.polygon([(x - s * 1.6, y), (x, y - s * .5), (x + s * 1.6, y), (x, y + s * .5)], fill=col)
 
-def garabato(c, x0, y0, w, lines, u, seed=3, col=TINTA, lw=9, dy=74, amp=30):
-    """Letra de doctor que se va escribiendo. Devuelve la punta actual."""
-    r = random.Random(seed); d = ImageDraw.Draw(c); segs = []
-    for i in range(lines):
-        x = x0; y = y0 + i * dy; pts = [(x, y)]; lim = x0 + w * (r.uniform(.5, .7) if i == lines - 1 else 1)
-        while x < lim:
-            x += r.uniform(14, 34); pts.append((x, y + r.uniform(-amp, amp * .45)))
-            if r.random() < .2: x += 26; pts.append((x, y))
-        segs.append(pts)
-    tot = sum(len(p) - 1 for p in segs); n = u * tot; tip = segs[0][0]
-    for pts in segs:
-        if n <= 0: break
-        m = min(len(pts) - 1, n); k = int(m); q = pts[:k + 1]
-        if k < len(pts) - 1 and m > k: f = m - k; q = q + [(pts[k][0] + (pts[k + 1][0] - pts[k][0]) * f, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * f)]
-        if len(q) > 1: d.line(q, fill=col, width=lw, joint="curve")
-        tip = q[-1]; n -= len(pts) - 1
+def garabato(c, x0, y0, lineas, u, seed=3, size=120, dy=96, col=TINTA):
+    """Letra fea que se va escribiendo, letra a letra (torcida, apretada, deforme). Devuelve la punta actual."""
+    r = random.Random(seed); tot = sum(len(l.replace(" ", "")) for l in lineas); n = u * tot; k = 0; tip = (x0, y0)
+    cambia = {"a": "o", "g": "q", "t": "l", "u": "v"}
+    for i, linea in enumerate(lineas):
+        x = x0 + r.uniform(0, 30); y = y0 + i * dy
+        for ch in linea:
+            if ch == " ": x += size * .3; continue
+            sz = size * r.uniform(.72, 1.1); gch = cambia.get(ch, ch) if r.random() < .3 else ch; rot = r.uniform(-24, 24); yy = y + r.uniform(-.14, .18) * size; adv = sz * r.uniform(.3, .46)
+            if k < n:
+                f_ = font(F_HAND, sz); im = Image.new("RGBA", (int(sz * 1.6), int(sz * 1.8)), (0, 0, 0, 0))
+                ImageDraw.Draw(im).text((im.width / 2, im.height / 2), gch, font=f_, fill=col + (255,), anchor="mm", stroke_width=2, stroke_fill=col + (255,))
+                im = im.rotate(rot, resample=Image.BICUBIC); c.alpha_composite(im, (int(x - im.width / 2 + adv / 2), int(yy - im.height / 2))); tip = (x + adv, yy + sz * .2)
+            k += 1; x += adv
     return tip
 
 def hoja(c, cx, cy, w, h, rot=0, rayas=True):
@@ -191,7 +189,7 @@ def sc_9horas(T, t0):           # tiempo de pantalla
     return zoom(c, 1.04 + .05 * u_(T, t0, 2))
 def sc_letra(T, t0):            # una letra que no entiende ni ella
     c = plano((70, 44, 20), (30, 16, 40), AMA); hoja(c, 540, 660, 800, 600)
-    tip = garabato(c, 270, 520, 580, 5, ease(u_(T, t0, 1.15)), 11, dy=92, amp=38, lw=11)
+    tip = garabato(c, 280, 500, ("hoy no ise", "la tarea por", "ke mi perro", "se la comio"), u_(T, t0, 1.6), 11, 118, 100)
     put(c, "mano_pluma", tip[0] + 320, tip[1] - 250, 1.0)
     vale(c, "asco", 270, 1250, .62, T)
     for i, (x, y) in enumerate(((640, 1130), (790, 1090), (880, 1190))): titulo(c, "?", x, y, 170 - 24 * i, ROSA, 12 - 12 * i, pop(T, WI("V03", 16) + i * .12))
@@ -265,7 +263,7 @@ def sc_hora2(T, t0):            # le habla al microondas
     return c
 def sc_hora3(T, t0):            # escribe su primera nota
     c = plano((70, 44, 20), (30, 16, 40), AMA); hoja(c, 560, 860, 820, 620); u = u_(T, t0 + .1, E("V07") - t0 + .3)
-    tip = garabato(c, 290, 720, 560, 3, u * .6, 3, dy=110, amp=44, lw=12); put(c, "mano_pluma", tip[0] + 320, tip[1] - 250, 1.0, rot=3 * math.sin(T * 30)); _hora(c, 3, T, t0)
+    tip = garabato(c, 290, 700, ("estoy", "castigada", "no tengo celular"), u * .55, 3, 130, 118); put(c, "mano_pluma", tip[0] + 320, tip[1] - 250, 1.0, rot=3 * math.sin(T * 30)); _hora(c, 3, T, t0)
     return zoom(c, 1 + .08 * u_(T, t0, 2), .5, .45)
 def sc_11min(T, t0):
     c = plano(MOR, MOR2, ROSA); d = ImageDraw.Draw(c); cx, cy, r = 540, 760, 300; d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=PAPEL, outline=OL, width=16)

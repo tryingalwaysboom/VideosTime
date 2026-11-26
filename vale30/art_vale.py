@@ -14,12 +14,17 @@ def nota(w=420, h=330, texto="garabato", seed=3):
     b = f'<path d="M0 8 {top} L{w} 6 L{w} {h} L0 {h}Z" fill="{PAPER}" stroke="{OL}" stroke-width="7" stroke-linejoin="round"/>'
     for y in range(70, h - 20, 52): b += f'<path d="M10 {y} L{w - 10} {y}" stroke="#9cc7ee" stroke-width="4"/>'
     b += f'<path d="M58 14 L58 {h - 6}" stroke="#f08a8a" stroke-width="4"/>'
-    for i, y in enumerate(range(96, h - 30, 52)):          # letra de doctor: garabatos
-        x = 80; pts = [(x, y)]
-        while x < w - 60 - (90 if i == 2 else 0):
-            x += r.uniform(10, 24); pts.append((x, y + r.uniform(-30, 14)))
-            if r.random() < .22: x += 20; pts.append((x, y))
-        b += '<path d="M' + " L".join(f"{px:.0f} {py:.0f}" for px, py in pts) + f'" fill="none" stroke="#2a3b8f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>'
+    if texto:                                               # letra real pero fea: torcida, apretada y con letras deformes
+        cambia = {"a": "o", "g": "q", "t": "l", "u": "v"}
+        for i, (linea, y) in enumerate(zip(("estoy", "castigada", "no tengo", "celular"), range(104, h - 20, 56))):
+            x = 76 + r.uniform(0, 26)
+            for ch in linea:
+                if ch == " ": x += 20; continue
+                sz = r.uniform(50, 76); g = cambia.get(ch, ch) if r.random() < .3 else ch
+                b += f'<text x="{x:.0f}" y="{y + r.uniform(-9, 12):.0f}" font-family="Caveat" font-weight="700" font-size="{sz:.0f}" fill="#2a3b8f" transform="rotate({r.uniform(-24, 24):.0f} {x:.0f} {y})">{g}</text>'
+                x += sz * r.uniform(.3, .46)
+            if i == 1: b += f'<path d="M168 {y - 24} q14 -14 26 2 q12 14 24 -4 q12 -12 24 6" fill="none" stroke="#2a3b8f" stroke-width="6" stroke-linecap="round"/>'
+        b += '<path d="M300 268 q10 -20 22 0 q10 18 22 -2 q10 -18 22 2" fill="none" stroke="#2a3b8f" stroke-width="7" stroke-linecap="round"/>'
     b += f'<rect x="{w / 2 - 70}" y="-16" width="140" height="44" fill="#ffe27a" fill-opacity=".85" stroke="{OL}" stroke-width="4" transform="rotate(-4 {w / 2} 6)"/>'
     return b
 

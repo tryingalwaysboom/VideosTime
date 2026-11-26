@@ -144,7 +144,7 @@ def fondo(tipo):
 
 L = {"bg_cuarto": fondo("cuarto"), "bg_cocina": fondo("cocina"), "celular": celular(), "tablet": tablet(), "candado": candado(), "candado_abierto": candado(True), "mano_mama": mano_mama(),
      "mano_pluma": mano_pluma(), "microondas": microondas(), "boleto": boleto(), "cocodrilo": cocodrilo(), "piedra": piedra(), "caja": svg(400, 430, caja()), "nota": svg(440, 360, f'<g transform="translate(10,22)">{nota()}</g>'),
-     "nota_blanca": svg(440, 360, '<g transform="translate(10,22)">' + re.sub(r'<path d="M[^"]*" fill="none" stroke="#2a3b8f"[^>]*/>', "", nota()) + '</g>'),
+     "nota_blanca": svg(440, 360, '<g transform="translate(10,22)">' + nota(texto="") + '</g>'),
      "nico": cabeza_extra("nico"), "dani": cabeza_extra("dani"), "renata": cabeza_extra("renata")}
 for k in ("aburrida", "shock", "asco", "orgullosa", "enojada"):
     L[f"vale_{k}"] = vale(k); L[f"vale_{k}_hab"] = vale(k, True)
