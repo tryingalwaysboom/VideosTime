@@ -384,7 +384,9 @@ def _pencil_hand2(g):
     poly(d, [at(78, -30), tip, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), tip, at(30, 11)], OL, None)
     cap(d, at(690), at(760), 30, ROSA, OL, 7)
     # antebrazo y manga
-    cap(d, at(g + 330, -70), at(g + 900, -95), 96, SKIN, OL, 8)
+    cap(d, at(g + 330, -70), at(g + 560, -80), 96, SKIN, OL, 8)
+    e = lambda a, b: at(g + 560 + a, -80 + b)
+    poly(d, [e(-30, -112), e(-30, 112), e(150, 118), e(150, -118)], (240, 120, 150), OL, 8)       # manga
     # dedos recogidos (debajo del lapiz, se asoman los nudillos)
     for k in range(3):
         cap(d, at(g + 130 + k * 50, -20), at(g + 150 + k * 50, 120), 26, SKINS, OL, 7)

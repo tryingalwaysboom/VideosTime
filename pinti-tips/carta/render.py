@@ -174,7 +174,7 @@ def S14(b, t, T):
     put(b, A.globo("Tu hija\nescribe raro", 76, tail="left"), 540, 430, pop(t, .3, .35), -2 + bob(t, 2))
 def S15(b, t, T):
     bg(b, "lila", t); titulo(b, "CON LA\n*DERECHA", t, 0, 300, 130)
-    put(b, A.mano_der(200), 540 + math.sin(t * 3) * 14, 880, .95 * pop(t, .1, .4), 0); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3)
+    put(b, A.mano_der(200), 540 + math.sin(t * 3) * 14, 960, .95 * pop(t, .1, .4), 0); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3)
 def S16(b, t, T):
     bg(b, "menta", t); per(b, "n", "feliz", t, 540, 1010, 1.0); put(b, A.sello("ES ZURDA", 640, 240, A.VERDE, 140), 540, 420, pop(t, .15, .3), -3)
 def S17(b, t, T):
