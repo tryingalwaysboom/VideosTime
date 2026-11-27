@@ -145,7 +145,7 @@ def numero(b, n, t, x=540, y=900, s=1.0, color=None):
 
 def tarjeta(txt, w=420, h=520, size=380, color=A.CREMA, espejo=False, fcol=None):
     im = A.canvas(w, h); d = ImageDraw.Draw(im); A.rrect(d, (8, 8, w - 8, h - 8), 44, color, A.OL, 10); im = A.fin(im).copy()
-    g = Image.new("RGBA", (w, h), (0, 0, 0, 0)); ImageDraw.Draw(g).text((w // 2, h // 2 + 10), txt, font=A.font("hand", size), fill=fcol or A.OL, anchor="mm")
+    g = Image.new("RGBA", (w, h), (0, 0, 0, 0)); ImageDraw.Draw(g).text((w // 2, h // 2 + 10), txt, font=A.font("andika", int(size*.82)), fill=fcol or A.OL, anchor="mm")
     if espejo: g = ImageOps.mirror(g)
     im.alpha_composite(g); return im
 
