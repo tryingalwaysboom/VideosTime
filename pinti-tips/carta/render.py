@@ -178,7 +178,7 @@ def S14(b, t, T):
     put(b, A.globo("Tu hija\nescribe raro", 76, tail="left"), 540, 430, pop(t, .3, .35), -2 + bob(t, 2))
 def S15(b, t, T):
     bg(b, "lila", t); pass
-    put_tip(b, A.mano_der(200), 430 + math.sin(t * 3) * 14, 1180, .8 * max(.05, pop(t, .1, .4)), True); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3); titulo(b, "CON LA\n*DERECHA", t, 0, 300, 130)
+    put_tip(b, A.mano_der(200), 480 + math.sin(t * 3) * 14, 960, .62 * max(.05, pop(t, .1, .4)), True); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3); titulo(b, "CON LA\n*DERECHA", t, 0, 300, 130)
 def S16(b, t, T):
     bg(b, "menta", t); per(b, "n", "feliz", t, 540, 1010, 1.0); put(b, A.sello("ES ZURDA", 640, 240, A.VERDE, 140), 540, 420, pop(t, .15, .3), -3)
 def S17(b, t, T):
@@ -206,7 +206,7 @@ def S26(b, t, T):
 def S27(b, t, T):
     bg(b, "amarillo", t); per(b, "n", "orgulloso", t, 540, 1020, 1.0); put(b, A.globo("¡Lo escribí\nyo solita!", 80, tail="left"), 540, 430, pop(t, .1, .35), 2)
 def S28(b, t, T):
-    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1180 + bob(t, 6, 2), .85 * max(.05, pop(t, .1, .4))); put(b, A.corazon(220), 820, 1130, pop(t, .8), 8); titulo(b, "LA MANO\n*QUE ME GUSTA", t, 0, 270, 100)
+    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1190 + bob(t, 6, 2), .64 * max(.05, pop(t, .1, .4))); put(b, A.corazon(220), 820, 1130, pop(t, .8), 8); titulo(b, "LA MANO\n*QUE ME GUSTA", t, 0, 270, 100)
 def S29(b, t, T):
     bg(b, "lila", t); per(b, "m", "asombro", t, 540, 1020, 1.0); put(b, A.bombilla(440), 540, 480, pop(t, .3, .4), bob(t, 4, 3)); titulo(b, "ENTENDÍ\n*ALGO", t, 0, 270, 110)
 def S30(b, t, T):
@@ -221,7 +221,7 @@ def S32(b, t, T):
 def S33(b, t, T):
     bg(b, "cielo", t); escritorio(b); per(b, "n", "feliz", t, 380, 990, .85); put(b, A.lapiz(520), 160 + ease(u_(t, .1, .9)) * 600, 1090, 1.0, -6)
 def S34(b, t, T):
-    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1150 + bob(t, 6, 2), .85 * max(.05, pop(t, 0, .4))); put(b, A.sello("IZQUIERDA", 700, 240, A.VERDE, 150), 540, 380, pop(t, .2, .35), -3)
+    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1150 + bob(t, 6, 2), .64 * max(.05, pop(t, 0, .4))); put(b, A.sello("IZQUIERDA", 700, 240, A.VERDE, 150), 540, 380, pop(t, .2, .35), -3)
 def S35(b, t, T):
     bg(b, "amarillo", t); titulo(b, "ESCRIBE MÁS\n*QUE NUNCA", t, 0, 270, 96)
     for i in range(5):
@@ -231,13 +231,13 @@ def S36(b, t, T):
     bg(b, "cielo", t); put(b, A.sol(420), 840, 470, 1.0, t * 8); escritorio(b); per(b, "n", "feliz", t, 430, 980, .85); titulo(b, "YA NO SE\n*ESCONDE", t, 0, 270, 100)
     h = A.hoja().copy(); h.alpha_composite(A.letra(("mamá", "sol"), "limpia", 3, 150)); put(b, h, 800, 1000 + bob(t, 6), .5, 6)
 def S37(b, t, T):
-    bg(b, "amarillo", t); put_tip(b, A.pencil_hand(200), 640, 1130 + bob(t, 6, 2), .85 * max(.05, pop(t, .15, .4))); put(b, A.check(240), 830, 1100, pop(t, .8), 0); titulo(b, "SI ES ZURDO\n*NO SE LO CAMBIES", t, 0, 300, 90)
+    bg(b, "amarillo", t); put_tip(b, A.pencil_hand(200), 640, 1130 + bob(t, 6, 2), .64 * max(.05, pop(t, .15, .4))); put(b, A.check(240), 830, 1100, pop(t, .8), 0); titulo(b, "SI ES ZURDO\n*NO SE LO CAMBIES", t, 0, 300, 90)
 def S38(b, t, T):
     bg(b, "menta", t); hoja_escribiendo(b, 560, 900, .95, -4, t, .05, 1.1, ["a su", "manera"], "limpia", True, .6); titulo(b, "DÉJALO", t, 0, 270, 130)
 def S39(b, t, T):
     bg(b, "cielo", t); titulo(b, "CUÉNTAME EN\n*COMENTARIOS", t, 0, 300, 90); put(b, A.globo("¿Zurdo o\ndiestro?", 88, tail="left"), 540, 720, pop(t, .3, .35), -2 + bob(t, 2)); put(b, A.flecha_curva(300, A.ROJO), 800, 1110, pop(t, .9), 90)
 def S40(b, t, T):
-    bg(b, "lila", t); put_tip(b, A.pencil_hand(200), 420, 1020, .6 * max(.05, pop(t, 0, .35))); put_tip(b, A.mano_der(200), 660, 1020, .6 * max(.05, pop(t, .15, .35)), True)
+    bg(b, "lila", t); put_tip(b, A.pencil_hand(200), 450, 900, .6 * max(.05, pop(t, 0, .35))); put_tip(b, A.mano_der(200), 630, 900, .6 * max(.05, pop(t, .15, .35)), True)
     put(b, A.sello("ZURDO", 440, 200, A.VERDE, 120), 300, 1120, pop(t, .5, .3), -3); put(b, A.sello("DIESTRO", 440, 200, A.ROJO, 120), 780, 1120, pop(t, .7, .3), 3); put(b, A.texto("VS", 190, A.AMA, 14), 540, 760, pop(t, .35, .35), 0)
     pass; titulo(b, "¿Y TÚ?", t, 0, 290, 130)
 def S41(b, t, T):
