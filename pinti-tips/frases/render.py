@@ -60,12 +60,22 @@ def bg(base, name, t, sp=16):
 def escritorio(base, t=0, color=(214, 150, 92)):
     d = ImageDraw.Draw(base); d.rectangle((0, 1150, W, H), fill=color); d.rectangle((0, 1150, W, 1170), fill=(238, 184, 130)); d.line((0, 1150, W, 1150), fill=A.OL, width=7)
 
+import numpy as np
+from scipy.ndimage import binary_fill_holes
+@lru_cache(None)
+def _tit(l, size, col):
+    im = A.texto(l, size, col, 12 if size > 100 else 17)
+    a = np.array(im.getchannel("A")) > 8; fill = binary_fill_holes(a) & ~a
+    if fill.any():
+        arr = np.array(im); arr[fill] = (*A.OL, 255); im = Image.fromarray(arr, "RGBA")
+    return im
+
 def titulo(base, txt, t, t0=0.0, y=330, size=128, fill=(255, 255, 255), amarillo=None, d=.3):
     """Titular de dos líneas máx.: la línea marcada con * va en amarillo."""
     lines = txt.split("\n"); n = len(lines)
     for i, l in enumerate(lines):
         col = A.AMA if l.startswith("*") else fill
-        im = A.texto(l.lstrip("*"), size, col, 12)
+        im = _tit(l.lstrip("*"), size, col)
         put(base, im, 540, y + i * size * 1.12, pop(t, t0 + i * .12, d), 0)
 
 def insignia(base, num, t, t0=0.0, x=170, y=300, s=1.0):
