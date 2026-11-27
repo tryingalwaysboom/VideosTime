@@ -27,9 +27,9 @@ DIAS_FALTAN = 19; LETRAS_ON = "MA"          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .2, "L03": .5, "L04": .4, "L05": .3, "L06": .35, "L07": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
+BASE = {"L02": .2, "L03": .5, "L04": .4, "L05": .3, "L21": .4, "L22": .35, "L23": .35, "L24": .35, "L25": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
         "L13": .35, "L14": .35, "L15": .45, "L16": .6, "L17": .45, "L18": .6, "L19": .3, "L20": .3}
-FLEX = ("L03", "L05", "L07", "L09", "L10", "L12", "L15", "L16", "L18")
+FLEX = ("L03", "L05", "L25", "L09", "L10", "L12", "L15", "L16", "L18")
 COLA = .35
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["L20"][1] - .1 + COLA
 OBJ = float(math.ceil(_fin))                                                 # segundos enteros, sin relleno (guía, 26 nov)
@@ -937,31 +937,84 @@ def si_pone(T, t0):
         if k > 0: rotulo(c, "¿QUÉ LE FALTA?", 440, 400, 84, AMA, OL, -3, k=k)
     return c
 
-# ---------------------------------------------------------------- 6 · le falta decirlo dos veces: MA… y MA
-T_M1 = WI("L06", 5) - .1; T_M2 = WI("L06", 7) - .1
-@esc(S("L06") - .2, True)
-def dos_veces(T, t0):
-    c = _mesa(T, t0, 1.05); pulse = (0, 1) if T_M1 <= T < T_M1 + .6 else ((2, 3) if T >= T_M2 else None); hoja9(c, 2, 0, True, pulse, T)
-    k = pop(T, WI("L06", 3) - .1, .22)
-    if k > 0: rotulo(c, "DECIRLO 2 VECES", 540, 440, 84, AMA, OL, -3, k=k)
-    return view(c, 540, 900, 1.0 + .07 * u_(T, t0, 5))
+# ---------------------------------------------------------------- 6 · el juego: su dinosaurio le deja una carta en el buzón
+@esc(S("L21") - .2, True)
+def buzon9(T, t0):
+    c = _mesa(T, t0, 1.05); caja(c, 520, 980, 1.2); rx, ry = ranura_xy(520, 980, 1.2)
+    v = u_(T, WI("L21", 5) - .1, .7)
+    if v > 0: sobre(c, rx + 10, ry - 20 - 400 * v, .4 + .5 * v, 6); chispas(c, rx, ry - 300, T, WI("L21", 6), 5, 220, 71)
+    k = pop(T, t0 + .25, .22)
+    if k > 0: rotulo(c, "EL BUZÓN DE REX", 540, 420, 92, VERDE_C, CREMA, -3, k=k)
+    k = pop(T, WI("L21", 2) - .1, .22)
+    if k > 0: rotulo(c, "SU DINOSAURIO", 560, 570, 62, AMA, OL, 3, k=k)
+    return view(c, 540, 900, 1.0 + .08 * u_(T, t0, 4))
+C9 = mk_carta("L21", [("Yo aquí", (10, 11), 470), ("leo MA.", (12, 13), 630), ("¿Me escribes", (14, 15), 790), ("la otra mitad?", (16, 17, 18), 950)], 29, rojas=("MA.",)); T_H9 = E("L21") + .05
+@esc(WI("L21", 10) - .2, True)
+def carta9(T, t0):
+    c = _mesa(T, t0, 1.05); nota_base(c); carta(c, C9, T, T_H9)
+    return view(c, 540, 800, 1.0 + .08 * u_(T, t0, 5))
 
-# ---------------------------------------------------------------- 7 · el truco: eme, a… y un sombrerito en la última
-T_E = [WI("L07", 4) - .08, WI("L07", 5) - .08]; T_SOM = WI("L07", 8) - .1
-@esc(S("L07") - .2, True)
-def escribe(T, t0):
-    c = _mesa(T, t0, 1.05); n = 2 + (T >= T_E[0] + .3) + (T >= T_E[1] + .3)
-    pulse = (0,) if WI("L07", 0) <= T < WI("L07", 0) + .45 else ((1,) if WI("L07", 1) <= T < WI("L07", 1) + .45 else None)
-    til = u_(T, T_SOM + .45, .3); hoja9(c, n, til, True, pulse, T)
+# ---------------------------------------------------------------- 7 · tres intentos el mismo día (el juego se repite)
+@lru_cache(24)
+def glifo9(ch, rot, al):
+    im = Image.new("RGBA", (320, 380), (0, 0, 0, 0)); ImageDraw.Draw(im).text((160, 190), ch, font=font(F_HAND, 330), fill=VERDE + (int(255 * al),), anchor="mm", stroke_width=5, stroke_fill=VERDE + (int(255 * al),))
+    return im.rotate(rot, resample=Image.BICUBIC, expand=True)
+def intento(c, n, donde, k1, k2, col=AMA):
+    if k1 > 0: rotulo(c, n + " INTENTO", 470, 390, 88, col, OL, -3, k=k1)
+    if k2 > 0: rotulo(c, donde, 620, 520, 58, CREMA, OL, 3, k=k2)
+T_I1 = WI("L22", 6) - .1
+@esc(S("L22") - .2, True)
+def intento1(T, t0):
+    c = _mesa(T, t0, 1.05); hoja9(c, 2, 0, True); k = pop(T, T_I1 + .25, .2)
+    if k > 0: c.alpha_composite(glifo9("M", -22, 1.0), (660 - 190, 930 - 215))
+    if T_I1 - .3 <= T < T_I1 + .7: mano(c, (680, 1040), T, .62)
+    intento(c, "1.er", "DESPUÉS DE COMER", pop(T, t0 + .1, .22), pop(T, WI("L22", 2) - .1, .22))
+    k = pop(T, WI("L22", 7) - .05, .22)
+    if k > 0: tiza(c, "torcida…", 700, 1290, 84 * k, CREMA, -5, stroke=2, borde=True)
+    return view(c, 540, 900, 1.0 + .07 * u_(T, t0, 4))
+T_BORRA = WI("L23", 5) - .1; T_I2 = WI("L23", 10) - .1
+@esc(S("L23") - .2, True)
+def intento2(T, t0):
+    c = _mesa(T, t0, 1.05); bo = u_(T, T_BORRA, .5); hoja9(c, 3 if T >= T_I2 + .25 else 2, 0, True)
+    if bo < 1: c.alpha_composite(glifo9("M", -22, round(1 - bo, 1)), (660 - 190, 930 - 215))
+    if 0 < bo and T < T_I2 + .25:
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.ellipse((560, 800, 780, 1060), fill=(190, 190, 186, int(70 * bo))); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(18)))
+        if bo < 1: ex = 600 + 120 * math.sin(T * 26); d = ImageDraw.Draw(c); d.rounded_rectangle((ex, 900, ex + 130, 970), 14, fill=(240, 150, 160), outline=OL, width=7)
+    if T_I2 - .3 <= T < T_I2 + .7: mano(c, (680, 1040), T, .62)
+    intento(c, "2.º", "ANTES DEL BAÑO", pop(T, t0 + .1, .22), pop(T, WI("L23", 1) - .1, .22))
+    k = pop(T, T_I2 + .4, .22)
+    if k > 0: chispas(c, 660, 900, T, T_I2 + .4, 5, 200, 77)
+    return view(c, 540, 900, 1.0 + .07 * u_(T, t0, 5))
+T_I3 = S("L24") + .35; T_SOM = WI("L24", 7) - .1
+@esc(S("L24") - .2, True)
+def intento3(T, t0):
+    c = _mesa(T, t0, 1.05); til = u_(T, T_SOM + .45, .3); hoja9(c, 4 if T >= T_I3 + .25 else 3, til, True)
     f = u_(T, T_SOM, .4)
     if 0 < f and til < 1:
         d = ImageDraw.Draw(c); hx, hy = 905, 560 + 150 * ease(f)
         d.polygon([(hx - 70, hy + 40), (hx, hy - 60), (hx + 70, hy + 40)], fill=AMA, outline=OL); d.line([(hx - 70, hy + 40), (hx, hy - 60), (hx + 70, hy + 40), (hx - 70, hy + 40)], fill=OL, width=8, joint="curve")
         d.rounded_rectangle((hx - 96, hy + 34, hx + 96, hy + 58), 10, fill=AMA, outline=OL, width=6)
-    if T_E[0] - .3 <= T < T_E[1] + .7: mano(c, (680 if T < T_E[1] - .1 else 915, 1030), T, .62)
+    if T_I3 - .3 <= T < T_I3 + .7: mano(c, (915, 1040), T, .62)
+    intento(c, "3.er", "YA EN PIJAMA", pop(T, t0 + .1, .22) if T < T_SOM + .4 else 0, pop(T, WI("L24", 1) - .1, .22) if T < T_SOM + .4 else 0)
     k = pop(T, T_SOM + .5, .22)
     if k > 0: rotulo(c, "UN SOMBRERITO", 480, 440, 84, AMA, OL, -3, k=k); chispas(c, 905, 720, T, T_SOM + .55, 6, 220, 75)
-    return view(c, 540, 900, 1.0 + .08 * u_(T, t0, 7))
+    return view(c, 540, 900, 1.0 + .08 * u_(T, t0, 5))
+
+# ---------------------------------------------------------------- 7b · y al cuarto, él solo agarra el lápiz
+T_SOLO9 = WI("L25", 8) - .1
+@esc(S("L25") - .2, True)
+def el_solo9(T, t0):
+    c = _mesa(T, t0, 1.15); c = borroso(c, 4, 20); u = ease((T - T_SOLO9) / .6) if T > T_SOLO9 else 0
+    mateo(c, "concentra" if T > T_SOLO9 else "neutral", 360, 760, 1.25 + .05 * u_(T, t0, 4), T, blink=False)
+    put(c, "crayola", 800, 1120 - 160 * u, .7, rot=-28 + 20 * u)
+    if u > 0:
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); hx, hy = 860 - 60 * u, 1180 - 160 * u + 400 * (1 - u)
+        d.line((hx - 330, hy + 330, hx, hy), fill=OL, width=120); d.line((hx - 330, hy + 330, hx, hy), fill=BATA_, width=104); d.ellipse((hx - 84, hy - 78, hx + 84, hy + 78), fill=PIEL, outline=OL, width=8); c.alpha_composite(lay)
+    k = pop(T, WI("L25", 2) - .1, .22)
+    if k > 0 and T < T_SOLO9: rotulo(c, "4.º INTENTO", 620, 420, 84, AMA, OL, -3, k=k)
+    k = pop(T, T_SOLO9 + .2, .22)
+    if k > 0: rotulo(c, "ÉL SOLO", 760, 440, 120, VERDE_C, CREMA, -4, k=k); chispas(c, 800, 960, T, T_SOLO9 + .3, 6, 260, 73)
+    return c
 
 # ---------------------------------------------------------------- 8 · «¡mamá! ¡ahora sí!»
 T_YA = WI("L08", 2) - .1
