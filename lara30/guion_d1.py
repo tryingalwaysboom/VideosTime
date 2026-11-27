@@ -5,7 +5,7 @@
 VOCES = {"N": "qiPEUVsraZ9jPQZFYhfc", "L": "RqO9a86p7KIlAA8RMw0I", "C": "BECjFqjKpX1jVslC0trK", "B": "pTvaBhRPJxXaOQkalYkj"}
 LINEAS = [
  ("L01", "C", "[shouting, tattling kid] Mãe! A Lara escreveu na parede! Tá errado, falta o I!", "Mãe! A Lara *escreveu* na *parede!* Tá *errado,* falta o *I!*"),
- ("L02", "L", "[defiant, small kid voice] Ele sabe quem é!", "Ele *sabe* quem *é!*"),
+ ("L02", "L", "[defiant, small kid voice] O Papai Noel entende!", "O *Papai* *Noel* *entende!*"),
  ("L03", "N", "[tense] Sua filha de cinco anos escreveu pro Papai Noel na parede… e o irmão não perdoou.", "Sua filha de *5 anos* escreveu pro *Papai Noel* na *parede…* e o irmão não *perdoou.*"),
  ("L04", "N", "[calm] Você respira. Pega papel e giz de cera.", "Você *respira.* Pega *papel* e giz de *cera.*"),
  ("L05", "L", "[determined, small kid voice] Eu quero escrever a carta sozinha, mãe.", "Eu quero escrever a *carta* *sozinha,* mãe."),
