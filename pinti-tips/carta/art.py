@@ -372,3 +372,29 @@ def calendario(w=640, h=560, marcas=0):
             x, y = 60 + c * 110, 190 + r * 110; rrect(d, (x, y, x + 80, y + 80), 14, None, AZULC, 5)
             if r * 5 + c < marcas: line(d, [(x + 14, y + 14), (x + 66, y + 66)], ROJO, 10); line(d, [(x + 66, y + 14), (x + 14, y + 66)], ROJO, 10)
     return fin(im)
+
+
+@lru_cache(None)
+def _pencil_hand2(g):
+    """Mano izquierda más natural: antebrazo con puño de manga, dorso, índice largo y pulgar, otros dedos recogidos. Punta en (600, 900)."""
+    W, H = 800, 1000; im = canvas(W, H); d = ImageDraw.Draw(im)
+    tip = (600, 900); u = (-0.45, -0.893); n = (0.893, -0.45)
+    at = lambda dist, off=0: (tip[0] + u[0] * dist + n[0] * off, tip[1] + u[1] * dist + n[1] * off)
+    cap(d, at(78), at(700), 30, AMA, OL, 7)                                   # lapiz
+    poly(d, [at(78, -30), tip, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), tip, at(30, 11)], OL, None)
+    cap(d, at(690), at(760), 30, ROSA, OL, 7)
+    # antebrazo y manga
+    cap(d, at(g + 330, -70), at(g + 900, -95), 96, SKIN, OL, 8)
+    # dedos recogidos (debajo del lapiz, se asoman los nudillos)
+    for k in range(3):
+        cap(d, at(g + 130 + k * 50, -20), at(g + 150 + k * 50, 120), 26, SKINS, OL, 7)
+    # dorso de la mano
+    ell(d, tuple(v for p in (at(g + 235, -60),) for v in (p[0] - 125, p[1] - 140, p[0] + 125, p[1] + 140)), SKIN, OL, 8)
+    # indice largo sobre el lapiz, con nudillo
+    cap(d, at(g + 260, 30), at(g + 80, 24), 31, SKIN, OL, 7); cap(d, at(g + 80, 24), at(g + 4, 6), 27, SKIN, OL, 7)
+    # pulgar al otro lado
+    cap(d, at(g + 200, -70), at(g + 70, -48), 30, SKIN, OL, 7); cap(d, at(g + 70, -48), at(g + 8, -20), 26, SKIN, OL, 7)
+    return fin(im)
+
+def pencil_hand(grip=220):
+    return _pencil_hand2(int(round(grip / 8) * 8))
