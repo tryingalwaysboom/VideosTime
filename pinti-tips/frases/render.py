@@ -13,7 +13,7 @@ TMP = os.path.join(HERE, "tmp2"); os.makedirs(TMP, exist_ok=True)
 W, H, FPS = 1080, 1920, 30
 J = json.load(open(os.path.join(DESC, "voz.json"), encoding="utf-8"))
 def ta(i): return J[i]["inicio"]
-TOTAL = J[-1]["fin"] + 0.6
+TOTAL = max(J[-1]["fin"] + 0.6, 80.6)
 WORDS = [(x["p"].strip('"“”'), x["inicio"], x["fin"]) for x in J]
 
 # ---------------------------------------------------------------- utilidades
@@ -248,9 +248,13 @@ def S32(b, t, T):
 def S33(b, t, T):
     bg(b, "lila", t); titulo(b, "EN UNA\n*SEMANA", t, 0, 290, 120); put(b, A.calendario(640, 560, 1 + int(t * 3.5) % 8), 540, 820, pop(t, .1, .4), -3); put(b, A.check(190), 800, 1170, pop(t, 1.2, .35), 6)
 def S35(b, t, T):
-    bg(b, "amarillo", t)
-    for i in range(3): numero(b, i + 1, t - i * .22, 230 + i * 310, 820, .42)
-    put(b, A.texto("¿CUÁL?", 190, A.ROJO, 14), 540, 1080 + bob(t, 6, 1.5), pop(t, .5, .3), -4)
+    if t < 3.3:
+        bg(b, "amarillo", t)
+        for i in range(3): numero(b, i + 1, t - i * .22, 230 + i * 310, 820, .42)
+        put(b, A.texto("¿CUÁL?", 190, A.ROJO, 14), 540, 1080 + bob(t, 6, 1.5), pop(t, .5, .3), -4)
+    else:
+        u = t - 3.3; bg(b, "cielo", u); titulo(b, "DÉJALO EN\n*COMENTARIOS", u, 0, 300, 100)
+        frase(b, u, "¿1, 2 o 3?", 540, 760, 120, .25, rot=-3); per(b, "m", "feliz", u, 540, 1180, .8); put(b, A.flecha_curva(300, A.ROJO), 820, 1010, pop(u, .9), 90)
 def S36(b, t, T):
     bg(b, "amarillo", t); titulo(b, "SÍGUEME", t, 0, 300, 150); put(b, A.boton_seguir(700), 540, 720, pop(t, .2, .4) * (1 + .03 * math.sin(t * 6)), bob(t, 1.5, 1.2))
     put(b, A.texto("@escribirconpinti", 72, (255, 255, 255), 9, "baloo"), 540, 900, pop(t, .5))
@@ -311,9 +315,6 @@ SHOTS = [
     (181, S33, [('lapiz', 0.4, -10)], False),
     (189, S34, [('brillo', 0.3, -11)], False),
     (194, S35, [('golpe', 0.2, -10)], False),
-    (205, S36, [('brillo', 0.25, -9)], False),
-    (207, S37, [('resultado', 0.1, -12)], False),
-    (215, S38, [('lapiz', 0.3, -8)], False),
 ]
 SHOTS = [(0.0 if i == 0 else _b(w), f, s, n) for i, (w, f, s, n) in enumerate(SHOTS)]
 for i in range(1, len(SHOTS)): assert SHOTS[i][0] > SHOTS[i - 1][0], (i, SHOTS[i][0], SHOTS[i - 1][0])
