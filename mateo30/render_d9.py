@@ -27,7 +27,7 @@ DIAS_FALTAN = 19; LETRAS_ON = "MA"          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .2, "L05": .25, "L21": .4, "L22": .35, "L23": .35, "L24": .35, "L25": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
+BASE = {"L02": .2, "L05": .15, "L01": .4, "L21": .4, "L22": .35, "L23": .35, "L24": .35, "L25": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
         "L13": .35, "L14": .35, "L15": .45, "L16": .6, "L17": .45, "L18": .6, "L19": .3, "L20": .3}
 FLEX = ("L21", "L25", "L09", "L10", "L12", "L15", "L16", "L18")
 COLA = .35
@@ -294,7 +294,7 @@ def _barra_img(n, on):
     o.paste((0, 0, 0, 255), (0, 0), a); o.alpha_composite(im, (pad, pad)); return o
 IMAN = [(226, 72, 59), (245, 166, 35), (60, 160, 90), (63, 127, 208), (150, 90, 200)]
 BARRA = _barra_img(DIAS_FALTAN, LETRAS_ON)
-T_HUD = S("L02") - .1
+T_HUD = S("L05") - .1
 def draw_hud(c, T):
     if T < T_HUD: return
     y = int(122 - 320 * (1 - ease((T - T_HUD) / .35)))
@@ -858,42 +858,18 @@ def hoja9(c, n_on, tilde=0.0, ghost=True, pulse=None, T=0.0):
 def hoja9_img(n_on, tilde):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); hoja9(lay, n_on, tilde, False); return lay.crop((40, 620, 1040, 1232))
 
-# ---------------------------------------------------------------- 1 · gancho: la frase de papá (se entiende sola)
+# ---------------------------------------------------------------- 1 · gancho: tu hijo escribe MA y tú le dices que ahí no pone mamá
+T_NO = WI("L26", 7) - .1
 @esc(0)
 def gancho(T, t0):
-    c, tr = vista("bg_cocina", 540, 900, 1.25 + .06 * u_(T, 0, 5)); c = borroso(c, 8, 50)
-    put(c, "papa_silueta", 770, 1010, .98); mateo(c, "timido", 250, 1010, .9, T, blink=False)
-    p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22); rotulo(c, "«DÉJALO JUGAR»", 520, 330, 92, ROJO, CREMA, -3, k=p)
-    k = pop(T, WI("L01", 2) - .1, .2)
-    if k > 0: rotulo(c, "TIENE 4 AÑOS", 560, 470, 76, AMA, OL, 3, k=k)
-    k = pop(T, WI("L01", 7) - .1, .22)
-    if k > 0: rotulo(c, "TU ESPOSO", 790, 640, 60, CREMA, OL, -4, k=k)
-    k = pop(T, .5, .22)
-    if k > 0: rotulo(c, "TU HIJO", 250, 800, 50, CREMA, OL, 4, k=k)
-    return c
-
-# ---------------------------------------------------------------- 2 · y cerró el cuaderno de golpe
-T_PAF = WI("L02", 5) - .08
-def cuaderno(c, u):
-    d = ImageDraw.Draw(c); x0, y0, x1, y1 = 150, 700, 930, 1240; xm = 540
-    rw = (x1 - xm) * max(0, math.cos(min(u, .5) * PI_))
-    sombra(c, (x0, y0, xm + rw, y1), 20, 110, 18); d = ImageDraw.Draw(c)
-    d.rounded_rectangle((x0 - 14, y0 - 14, xm + rw + 14, y1 + 14), 18, fill=AZUL, outline=OL, width=8)
-    d.rectangle((x0, y0, xm, y1), fill=CREMA)
-    for i, ch in enumerate("MA"): d.text((250 + i * 180, 960), ch, font=font(F_HAND, 270), fill=VERDE, anchor="mm", stroke_width=4, stroke_fill=VERDE)
-    if rw > 4: d.rectangle((xm, y0, xm + rw, y1), fill=(250, 246, 232), outline=(214, 190, 150), width=5)
-    if u > .5:
-        lw = (xm - x0) * math.sin((u - .5) * PI_); d.rectangle((xm - lw, y0 - 14, xm, y1 + 14), fill=AZUL, outline=OL, width=8)
-        if u >= 1: tiza(c, "MIS LETRAS", 345, 960, 84, CREMA, -4, f=F_BAL); d = ImageDraw.Draw(c)
-    for k in range(9): yy = y0 + 30 + k * 60; d.ellipse((xm - 12, yy - 12, xm + 12, yy + 12), fill=(200, 204, 214), outline=OL, width=4)
-@esc(S("L02") - .15)
-def cierra(T, t0):
-    c = _mesa(T, t0, 1.1); u = u_(T, T_PAF - .28, .28); cuaderno(c, u)
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); hx = 1150 - 380 * ease(u_(T, t0, .45)) - 260 * u + 700 * ease(u_(T, T_PAF + .12, .4)); hy = 860 + 70 * u
-    d.line((hx + 520, hy - 300, hx, hy), fill=(34, 28, 58, 240), width=160); d.ellipse((hx - 100, hy - 88, hx + 100, hy + 88), fill=(34, 28, 58, 240)); c.alpha_composite(lay)
-    k = pop(T, T_PAF, .15)
-    if k > 0 and T < T_PAF + 1.4: tiza(c, "¡PAF!", 760, 540, 130 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
-    return c
+    c = _mesa(T, 0, 1.05); hoja9(c, 2, 0, False)
+    mateo(c, "feliz" if T < T_NO else "triste", 250, 1500, .8, T, blink=False)
+    p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22); rotulo(c, "¿AHÍ PONE «MAMÁ»?", 540, 400, 88, AMA, OL, -3, k=p)
+    k = pop(T, .45, .22)
+    if k > 0: rotulo(c, "TU HIJO, 4 AÑOS", 250, 640, 46, CREMA, OL, 4, k=k)
+    k = pop(T, T_NO, .2)
+    if k > 0: rotulo(c, "LE DICES QUE NO", 660, 540, 84, ROJO, CREMA, 4, k=k); lapiz_rojo(c, (540, 720, 1010, 1140), u_(T, T_NO, .35), 14, 9)
+    return view(c, 540, 900, 1.0 + .08 * u_(T, 0, 5))
 
 # ---------------------------------------------------------------- 5 · «¡sí pone mamá!… ¿y qué le falta?»
 T_QUE = WI("L05", 3) - .1
@@ -904,12 +880,11 @@ def si_pone(T, t0):
     paste_rot(c, hoja9_img(2, 0), 800, 1120, .46, 7 + 2 * math.sin(T * 3))
     if en:
         k = pop(T, t0 + .05, .2)
-        if k > 0: rotulo(c, "ESA TARDE, UNAS HORAS ANTES", 540, 370, 54, CREMA, OL, -2, k=k)
+        if k > 0: rotulo(c, "USTEDES ELIGIERON: AÚN NO", 540, 370, 56, AZUL, CREMA, -2, k=k)
         k = pop(T, t0 + .3, .2)
         if k > 0: rotulo(c, "¡SÍ PONE MAMÁ!", 540, 500, 92, ROJO, CREMA, -5, k=k)
     else:
-        k = pop(T, T_QUE, .2)
-        if k > 0: rotulo(c, "USTEDES ELIGIERON: AÚN NO", 540, 370, 56, AZUL, CREMA, -2, k=k)
+        rotulo(c, "USTEDES ELIGIERON: AÚN NO", 540, 370, 56, AZUL, CREMA, -2)
         for i in range(3):
             k = pop(T, T_QUE + .1 + i * .12, .2)
             if k > 0: tiza(c, "?", 700 + i * 80, 640 - i * 60, (90 + i * 30) * k, AMA, -10 + i * 10, f=F_BAL, stroke=3, borde=True)
@@ -1066,6 +1041,41 @@ def agotado(T, t0):
     if k > 0: rotulo(c, "«ESTÁ AGOTADO»", 480, 360, 84, ROJO, CREMA, -3, k=k)
     k = pop(T, WI("L12", 2) - .1, .22)
     if k > 0: rotulo(c, "ES UN NIÑO, NO UN EXAMEN", 540, 500, 58, AMA, OL, 3, k=k)
+    return c
+
+# ---------------------------------------------------------------- 12b · la frase de papá y el cuaderno cerrado de golpe
+@esc(S("L01") - .15)
+def dejalo(T, t0):
+    c, tr = vista("bg_cocina", 540, 900, 1.25 + .06 * u_(T, t0, 5)); c = borroso(c, 8, 50)
+    put(c, "papa_silueta", 770, 1010, .98); mateo(c, "timido", 250, 1010, .9, T, blink=False)
+    p = pop(T, t0 + .05, .2) or .01; rotulo(c, "«DÉJALO JUGAR»", 520, 330, 92, ROJO, CREMA, -3, k=p)
+    k = pop(T, WI("L01", 2) - .1, .2)
+    if k > 0: rotulo(c, "TIENE 4 AÑOS", 560, 470, 76, AMA, OL, 3, k=k)
+    k = pop(T, WI("L01", 7) - .1, .22)
+    if k > 0: rotulo(c, "TU ESPOSO", 790, 640, 60, CREMA, OL, -4, k=k)
+    return c
+
+# ---------------------------------------------------------------- 2 · y cerró el cuaderno de golpe
+T_PAF = WI("L02", 5) - .08
+def cuaderno(c, u):
+    d = ImageDraw.Draw(c); x0, y0, x1, y1 = 150, 700, 930, 1240; xm = 540
+    rw = (x1 - xm) * max(0, math.cos(min(u, .5) * PI_))
+    sombra(c, (x0, y0, xm + rw, y1), 20, 110, 18); d = ImageDraw.Draw(c)
+    d.rounded_rectangle((x0 - 14, y0 - 14, xm + rw + 14, y1 + 14), 18, fill=AZUL, outline=OL, width=8)
+    d.rectangle((x0, y0, xm, y1), fill=CREMA)
+    for i, ch in enumerate("MA"): d.text((250 + i * 180, 960), ch, font=font(F_HAND, 270), fill=VERDE, anchor="mm", stroke_width=4, stroke_fill=VERDE)
+    if rw > 4: d.rectangle((xm, y0, xm + rw, y1), fill=(250, 246, 232), outline=(214, 190, 150), width=5)
+    if u > .5:
+        lw = (xm - x0) * math.sin((u - .5) * PI_); d.rectangle((xm - lw, y0 - 14, xm, y1 + 14), fill=AZUL, outline=OL, width=8)
+        if u >= 1: tiza(c, "MIS LETRAS", 345, 960, 84, CREMA, -4, f=F_BAL); d = ImageDraw.Draw(c)
+    for k in range(9): yy = y0 + 30 + k * 60; d.ellipse((xm - 12, yy - 12, xm + 12, yy + 12), fill=(200, 204, 214), outline=OL, width=4)
+@esc(S("L02") - .15)
+def cierra(T, t0):
+    c = _mesa(T, t0, 1.1); u = u_(T, T_PAF - .28, .28); cuaderno(c, u)
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); hx = 1150 - 380 * ease(u_(T, t0, .45)) - 260 * u + 700 * ease(u_(T, T_PAF + .12, .4)); hy = 860 + 70 * u
+    d.line((hx + 520, hy - 300, hx, hy), fill=(34, 28, 58, 240), width=160); d.ellipse((hx - 100, hy - 88, hx + 100, hy + 88), fill=(34, 28, 58, 240)); c.alpha_composite(lay)
+    k = pop(T, T_PAF, .15)
+    if k > 0 and T < T_PAF + 1.4: tiza(c, "¡PAF!", 760, 540, 130 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
     return c
 
 # ---------------------------------------------------------------- 13 · tú le recuerdas lo que dijo la maestra
