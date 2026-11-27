@@ -23,7 +23,8 @@ def lead_silence(f):
     return float(m.group(2)) if m and float(m.group(1)) <= 0.01 else 0.0
 
 offs = {}
-CUTS = {"L01": [(1.80, 2.05), (2.48, 2.60)]} if EP == "4" else {}      # pausas dentro del gancho: fuera, para que dure menos
+CUTS = {"L01": [(1.80, 2.05), (2.48, 2.60)]} if EP == "4" else ({"L01": [(2.82, 3.8)]} if EP == "9" else {})   # día 9: fuera la pausa larga antes de «te lo dijo tu esposo»
+#      # pausas dentro del gancho: fuera, para que dure menos
 TEMPO_L = {"L01": 1.10} if EP == "4" else {}
 FIN = {"L17": 2.80} if EP == "4" else ({"L06": 2.42} if EP == "5" else {})   # día 5: la frase de Bruno la dice Bruno (L06B)      # el cierre acaba en "…o celebrar." (fuera "tu comentario puede salir…")
 for lid, v, *_ in LINEAS:
