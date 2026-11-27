@@ -7,13 +7,13 @@ from PIL import Image, ImageDraw, ImageOps
 import art as A
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DESC = os.path.join(HERE, "..", "..", "descargas", "frases_tip")
+DESC = os.path.join(HERE, "..", "..", "descargas", "frases3")
 SFXD = os.path.join(HERE, "..", "..", "descargas", "mateo_sfx")
-TMP = os.path.join(HERE, "tmp"); os.makedirs(TMP, exist_ok=True)
+TMP = os.path.join(HERE, "tmp2"); os.makedirs(TMP, exist_ok=True)
 W, H, FPS = 1080, 1920, 30
 J = json.load(open(os.path.join(DESC, "voz.json"), encoding="utf-8"))
 def ta(i): return J[i]["inicio"]
-TOTAL = max(J[-1]["fin"] + 0.6, 80.6)
+TOTAL = J[-1]["fin"] + 0.6
 WORDS = [(x["p"].strip('"“”'), x["inicio"], x["fin"]) for x in J]
 
 # ---------------------------------------------------------------- utilidades
@@ -237,9 +237,6 @@ def S32(b, t, T):
     bg(b, "amarillo", t); put(b, A.sello("SOLO UNA", 760, 260, A.VERDE, 150), 540, 760, pop(t, .05, .3), -4); estrellas(b, t, .3, (540, 760), 6, 420)
 def S33(b, t, T):
     bg(b, "lila", t); put(b, A.calendario(640, 560, 1 + int(t * 3.5) % 8), 540, 700, pop(t, .1, .4), -3); titulo(b, "EN UNA SEMANA", t, .1, 1130, 92)
-def S34(b, t, T):
-    bg(b, "cielo", t); titulo(b, "CUÉNTAME EN\n*COMENTARIOS", t, 0, 300, 90); frase(b, t, "¿Cuál de las\ntres dices más?", 540, 760, 76, .35)
-    put(b, A.flecha_curva(300, A.ROJO), 800, 1110, pop(t, 1.0), 90)
 def S35(b, t, T):
     bg(b, "amarillo", t)
     for i in range(3): numero(b, i + 1, t - i * .22, 230 + i * 310, 820, .42)
@@ -253,47 +250,60 @@ def S38(b, t, T):
     bg(b, "menta", t); hoja_escribiendo(b, 560, 880, .95, -4, t, .2, 2.6, ["Me gusta", "escribir"], "limpia", True, .6); titulo(b, "TU HIJO\n*ESCRIBE MEJOR", t, 0, 290, 92); estrellas(b, t, 3.0, (540, 880), 6, 430)
 
 
+def H00(b, t, T):  # gancho nuevo: condición + prohibición, visible desde el frame 0
+    bg(b, "alerta", t); titulo(b, "SI TU HIJO ESTÁ\nAPRENDIENDO A ESCRIBIR", t, -1, 250, 74)
+    per(b, "n", "triste", t, 540, 1090, .85); put(b, A.sello("NO LE DIGAS ESTO", 960, 240, A.ROJO, 110), 540, 640 + bob(t, 4, 1.5), 1.0, -4)
+def H01(b, t, T):
+    bg(b, "amarillo", t); titulo(b, "NO LE DIGAS\n*ESTAS 3 FRASES", t, 0, 290, 100)
+    for i in range(3): numero(b, i + 1, t - i * .25, 230 + i * 310, 820, .42)
+    per(b, "m", "preocupado", t, 540, 1190, .5)
+
+def S34(b, t, T):
+    bg(b, "cielo", t); titulo(b, "DIME EN\n*COMENTARIOS", t, 0, 300, 100); frase(b, t, "¿Cuál te decían\na ti de niña?", 540, 760, 76, .35)
+    put(b, A.flecha_curva(300, A.ROJO), 800, 1110, pop(t, 1.0), 90)
+
 def _b(i): return ta(i) - 0.04
 SHOTS = [
-    (0, S00, [('brillo', 0.5, -9)], True),
-    (11, S01, [('golpe', 0.1, -9)], False),
-    (18, S02, [('brillo', 0.3, -11)], False),
-    (24, S03, [('golpe', 0.1, -9)], False),
-    (26, S04, [('brillo', 0.3, -10)], False),
-    (34, S05, [('lapiz', 0.5, -9)], False),
-    (40, S06, [('golpe', 0.4, -10)], False),
-    (49, S07, [('resultado', 1.2, -12)], False),
-    (58, S08, [('brillo', 0.5, -10)], False),
-    (61, S09, [('golpe', 0.1, -9)], False),
-    (63, S10, [('brillo', 0.3, -10)], False),
-    (68, S11, [('golpe', 0.3, -10)], False),
-    (74, S12, [], False),
-    (78, S13, [('brillo', 0.4, -11)], False),
-    (84, S14, [('resultado', 0.5, -12)], False),
-    (89, S15, [('resultado', 1.2, -12)], False),
-    (96, S16, [('brillo', 0.2, -10)], False),
-    (98, S17, [('golpe', 0.1, -9)], False),
-    (100, S18, [('golpe', 0.1, -9)], False),
-    (105, S19, [('brillo', 0.4, -11)], False),
-    (111, S20, [('rasgar', 0.6, -12)], False),
-    (118, S21, [('golpe', 0.4, -10)], False),
-    (125, S22, [('resultado', 1.4, -12)], False),
-    (130, S23, [('brillo', 0.2, -10)], False),
-    (132, S24, [], False),
-    (138, S25, [], False),
-    (141, S26, [], False),
-    (145, S27, [('golpe', 0.5, -10)], False),
-    (154, S28, [('lapiz', 0.3, -10)], False),
-    (157, S29, [('brillo', 0.4, -10)], False),
-    (163, S30, [('lapiz', 0.2, -8)], False),
-    (166, S31, [('brillo', 0.3, -10)], False),
-    (175, S32, [('brillo', 0.1, -9)], False),
-    (177, S33, [('lapiz', 0.4, -10)], False),
-    (185, S34, [('brillo', 0.3, -11)], False),
-    (190, S35, [('golpe', 0.2, -10)], False),
-    (196, S36, [('brillo', 0.25, -9)], False),
-    (198, S37, [('resultado', 0.1, -12)], False),
-    (206, S38, [('lapiz', 0.3, -8)], False),
+    (0, H00, [("brillo",.5,-9)], True),
+    (7, H01, [("golpe",.1,-9)], False),
+    (13, S02, [("brillo",.3,-11)], False),
+    (19, S01, [("golpe",.1,-9)], False),
+    (28, S03, [('golpe', 0.1, -9)], False),
+    (30, S04, [('brillo', 0.3, -10)], False),
+    (38, S05, [('lapiz', 0.5, -9)], False),
+    (44, S06, [('golpe', 0.4, -10)], False),
+    (53, S07, [('resultado', 1.2, -12)], False),
+    (62, S08, [('brillo', 0.5, -10)], False),
+    (65, S09, [('golpe', 0.1, -9)], False),
+    (67, S10, [('brillo', 0.3, -10)], False),
+    (72, S11, [('golpe', 0.3, -10)], False),
+    (78, S12, [], False),
+    (82, S13, [('brillo', 0.4, -11)], False),
+    (88, S14, [('resultado', 0.5, -12)], False),
+    (93, S15, [('resultado', 1.2, -12)], False),
+    (100, S16, [('brillo', 0.2, -10)], False),
+    (102, S17, [('golpe', 0.1, -9)], False),
+    (104, S18, [('golpe', 0.1, -9)], False),
+    (109, S19, [('brillo', 0.4, -11)], False),
+    (115, S20, [('rasgar', 0.6, -12)], False),
+    (122, S21, [('golpe', 0.4, -10)], False),
+    (129, S22, [('resultado', 1.4, -12)], False),
+    (134, S23, [('brillo', 0.2, -10)], False),
+    (136, S24, [], False),
+    (142, S25, [], False),
+    (145, S26, [], False),
+    (149, S27, [('golpe', 0.5, -10)], False),
+    (158, S28, [('lapiz', 0.3, -10)], False),
+    (161, S29, [('brillo', 0.4, -10)], False),
+    (167, S30, [('lapiz', 0.2, -8)], False),
+    (170, S31, [('brillo', 0.3, -10)], False),
+    (179, S32, [('brillo', 0.1, -9)], False),
+    (181, S33, [('lapiz', 0.4, -10)], False),
+    (189, S34, [('brillo', 0.3, -11)], False),
+    (194, S35, [('golpe', 0.2, -10)], False),
+    (205, S36, [('brillo', 0.25, -9)], False),
+    (207, S37, [('resultado', 0.1, -12)], False),
+    (215, S38, [('lapiz', 0.3, -8)], False),
 ]
 SHOTS = [(0.0 if i == 0 else _b(w), f, s, n) for i, (w, f, s, n) in enumerate(SHOTS)]
 for i in range(1, len(SHOTS)): assert SHOTS[i][0] > SHOTS[i - 1][0], (i, SHOTS[i][0], SHOTS[i - 1][0])
