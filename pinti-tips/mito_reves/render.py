@@ -162,8 +162,9 @@ def perro(der=True):
 
 def trazo(letra, p, size=520):
     """Dibuja la b o la d en dos trazos: el 1.º en rojo, el 2.º en azul."""
-    im = Image.new("RGBA", (size, size), (0, 0, 0, 0)); d = ImageDraw.Draw(im); W = 44
+    im = Image.new("RGBA", (600, 600), (0, 0, 0, 0)); d = ImageDraw.Draw(im); W = 44
     def seg(pts, col):
+        pts = [(q[0] + 40, q[1] + 40) for q in pts]
         for i in range(len(pts) - 1): d.line([pts[i], pts[i + 1]], fill=col, width=W)
         for q in pts: d.ellipse((q[0] - W // 2, q[1] - W // 2, q[0] + W // 2, q[1] + W // 2), fill=col)
     def arco(cx, cy, r, a0, sg, k, col): seg([(cx + r * math.cos(math.radians(a0 + sg * 360 * j / 40)), cy - r * math.sin(math.radians(a0 + sg * 360 * j / 40))) for j in range(int(40 * k) + 1)], col)
@@ -233,7 +234,7 @@ def S19(b, t, T):
 def S20(b, t, T):
     bg(b, "menta", t); titulo(b, "LO QUE SÍ", t, 0, 420, 170); put(b, A.check(300), 540, 820, pop(t, .3, .4), 6)
 def S21(b, t, T):
-    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 1120, .85); titulo(b, "ENSÉÑALE POR DÓNDE\n*EMPIEZA CADA LETRA", t, 0, 290, 76); put(b, A.flecha_curva(260, A.ROJO), 850, 760, pop(t, .8), 100)
+    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 1120, .85); titulo(b, "ENSÉÑALE POR DÓNDE\n*EMPIEZA CADA LETRA", t, 0, 290, 76)
 def S22(b, t, T):
     bg(b, "amarillo", t); tabla_trazo(b, "b", t, 540, 800, 1.0); titulo(b, "LA B", t, 0, 300, 120); put(b, A.texto("palito, luego barriga", 62, (255, 255, 255), 8, "baloo"), 540, 1180, pop(t, 1.0))
 def S23(b, t, T):
@@ -260,15 +261,15 @@ def S32(b, t, T):
 def S33(b, t, T):
     bg(b, "menta", t); per(b, "m", "feliz", t, 540, 1120, .85, shirt=(60, 160, 110)); titulo(b, "CONSÚLTALO CON\n*SU MAESTRA", t, 0, 290, 90); put(b, A.check(190), 840, 780, pop(t, .7), 6)
 def S34(b, t, T):
-    bg(b, "cielo", t); numero(b, 5, t, 540, 640, .8); titulo(b, "NIÑO DE 5 AÑOS", t, 0, 930, 90); per(b, "n", "feliz", t, 540, 1330, .55)
+    bg(b, "cielo", t); numero(b, 5, t, 540, 640, .8); titulo(b, "NIÑO DE 5 AÑOS", t, 0, 930, 90); per(b, "n", "feliz", t, 540, 1520, .5)
 def S35(b, t, T):
     bg(b, "menta", t); put(b, A.sello("NADA RARO", 800, 270, A.VERDE, 140), 540, 760, pop(t, .05, .3), -4); put(b, A.check(260), 540, 1110, pop(t, .5, .4), 6)
 def S36(b, t, T):
     bg(b, "amarillo", t); per(b, "n", "orgulloso", t, 540, 1130, .85); titulo(b, "ESTÁ\n*APRENDIENDO", t, 0, 290, 110); estrellas(b, t, .3, (540, 560), 6, 380)
 def S37(b, t, T):
-    bg(b, "cielo", t); titulo(b, "DÉJALO EN\n*COMENTARIOS", t, 0, 300, 100); per(b, "m", "feliz", t, 540, 1380, .8)
+    bg(b, "cielo", t); titulo(b, "DÉJALO EN\n*COMENTARIOS", t, 0, 300, 100); per(b, "m", "feliz", t, 540, 1580, .7)
 def S38(b, t, T):
-    bg(b, "amarillo", t); frase(b, t, "¿Qué letra escribe\nal revés tu hijo?", 540, 640, 76, .1, tail="left"); put(b, tarjeta("b"), 300, 1000, pop(t, .5, .3) * .8, -4); put(b, tarjeta("d", espejo=True), 780, 1000, pop(t, .8, .3) * .8, 4)
+    bg(b, "amarillo", t); frase(b, t, "¿Qué letra escribe\nal revés tu hijo?", 540, 640, 76, .1, tail="left"); put(b, tarjeta("b"), 300, 1000, pop(t, .5, .3) * .8, -4); put(b, tarjeta("d"), 780, 1000, pop(t, .8, .3) * .8, 4)
 
 
 def _b(i): return ta(i) - 0.04
