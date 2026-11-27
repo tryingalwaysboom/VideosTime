@@ -254,7 +254,7 @@ def S35(b, t, T):
         put(b, A.texto("¿CUÁL?", 190, A.ROJO, 14), 540, 1080 + bob(t, 6, 1.5), pop(t, .5, .3), -4)
     else:
         u = t - 3.3; bg(b, "cielo", u); titulo(b, "DÉJALO EN\n*COMENTARIOS", u, 0, 300, 100)
-        frase(b, u, "¿1, 2 o 3?", 540, 760, 120, .25, rot=-3); per(b, "m", "feliz", u, 540, 1330, .85)
+        frase(b, u, "¿1, 2 o 3?", 540, 760, 120, .25, rot=-3); per(b, "m", "feliz", u, 540, 1440, .85)
 def S36(b, t, T):
     bg(b, "amarillo", t); titulo(b, "SÍGUEME", t, 0, 300, 150); put(b, A.boton_seguir(700), 540, 720, pop(t, .2, .4) * (1 + .03 * math.sin(t * 6)), bob(t, 1.5, 1.2))
     put(b, A.texto("@escribirconpinti", 72, (255, 255, 255), 9, "baloo"), 540, 900, pop(t, .5))
