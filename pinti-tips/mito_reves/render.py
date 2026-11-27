@@ -76,7 +76,7 @@ def titulo(base, txt, t, t0=0.0, y=330, size=128, fill=(255, 255, 255), amarillo
     for i, l in enumerate(lines):
         col = A.AMA if l.startswith("*") else fill
         im = _tit(l.lstrip("*"), size, col)
-        put(base, im, 540, y + i * size * 1.12, pop(t, t0 + i * .12, d), 0)
+        put(base, im, 540, y + i * size * 1.3, pop(t, t0 + i * .12, d), 0)
 
 def insignia(base, num, t, t0=0.0, x=170, y=300, s=1.0):
     k = pop(t, t0, .3)
@@ -189,13 +189,13 @@ def S00(b, t, T):  # gancho visible desde el frame 0
     bg(b, "cielo", t); titulo(b, "SI TU HIJO ESCRIBE\n*LAS LETRAS AL REVÉS", t, -1, 290, 78)
     put(b, tarjeta("b"), 290, 860 + bob(t, 6, 1.2), .85, -5); put(b, A.flecha_doble(250), 540, 860, 1.0, 0); put(b, tarjeta("d"), 790, 860 + bob(t, 6, 1.2, 1), .85, 5)
 def S01(b, t, T):
-    bg(b, "alerta", t); put(b, A.sello("NO HAGAS ESTO", 940, 280, A.ROJO, 120), 540, 640 + bob(t, 4, 1.5), pop(t, 0, .3), -4); per(b, "m", "preocupado", t, 540, 1120, .85)
+    bg(b, "alerta", t); put(b, A.sello("NO HAGAS ESTO", 940, 280, A.ROJO, 120), 540, 500 + bob(t, 4, 1.5), pop(t, 0, .3), -4); per(b, "m", "preocupado", t, 540, 880, .85)
 def S02(b, t, T):
-    bg(b, "lila", t); per(b, "m", "preocupado", t, 400, 1130, .8); frase(b, t, "¡Es dislexia!", 590, 620, 90, .2, tail="left"); titulo(b, "ALGUIEN\n*TE LO DIJO", t, 0, 290, 96)
+    bg(b, "lila", t); per(b, "m", "preocupado", t, 400, 890, .8); frase(b, t, "¡Es dislexia!", 590, 590, 90, .2, tail="left"); titulo(b, "ALGUIEN\n*TE LO DIJO", t, 0, 290, 96)
 def S03(b, t, T):
     bg(b, "amarillo", t); put(b, A.sello("MITO", 760, 300, A.ROJO, 200), 540, 760, pop(t, .05, .3), -5); put(b, A.xmark(260), 840, 1130, pop(t, .5), 8)
 def S04(b, t, T):
-    bg(b, "noche", t); per(b, "n", "triste", t, 540, 1130, .85); titulo(b, "TU MIEDO\n*LE HACE DAÑO", t, 0, 290, 96, (255, 236, 160))
+    bg(b, "noche", t); per(b, "n", "triste", t, 540, 890, .85); titulo(b, "TU MIEDO\n*LE HACE DAÑO", t, 0, 290, 96, (255, 236, 160))
 def S05(b, t, T):
     bg(b, "menta", t); numero(b, 7, t, 540, 760, .95); titulo(b, "HASTA LOS\n*7 AÑOS", t, 0, 290, 96); put(b, A.sello("ES NORMAL", 700, 230, A.VERDE, 120), 540, 1130, pop(t, 1.0, .3), -3)
 def S06(b, t, T):
@@ -219,22 +219,22 @@ def S12(b, t, T):
 def S13(b, t, T):
     bg(b, "amarillo", t); put(b, A.sello("OTRA LETRA", 860, 260, A.ROJO, 130), 540, 760, pop(t, .05, .3), -4); estrellas(b, t, .3, (540, 760), 6, 420)
 def S14(b, t, T):
-    bg(b, "cielo", t); per(b, "n", "feliz", t, 540, 1120, .85); put(b, A.bombilla(260), 830, 640 + bob(t, 6, 1.4), pop(t, .5, .4), 0); titulo(b, "ES NUEVO\n*PARA ÉL", t, 0, 290, 100)
+    bg(b, "cielo", t); per(b, "n", "feliz", t, 540, 880, .85); put(b, A.bombilla(260), 830, 640 + bob(t, 6, 1.4), pop(t, .5, .4), 0); titulo(b, "ES NUEVO\n*PARA ÉL", t, 0, 290, 100)
 def S15(b, t, T):
-    bg(b, "alerta", t); titulo(b, "LO QUE NO\n*HAY QUE HACER", t, 0, 290, 96); per(b, "m", "neutral", t, 540, 1130, .85); put(b, A.xmark(220), 830, 780, pop(t, .6), 8)
+    bg(b, "alerta", t); titulo(b, "LO QUE NO\n*HAY QUE HACER", t, 0, 290, 96); per(b, "m", "neutral", t, 540, 890, .85); put(b, A.xmark(220), 830, 780, pop(t, .6), 8)
 def S16(b, t, T):
     bg(b, "crema", t); h = A.hoja().copy(); h.alpha_composite(A.letra(("b  d  p",), "limpia", 4, 150)); put(b, h, 540, 880 + bob(t, 6), .95, -3)
     k = ease(u_(t, .4, .6)); ImageDraw.Draw(b).line((220, 760, 220 + 640 * k, 960), fill=A.ROJO, width=30); titulo(b, "TACHARLE", t, 0, 300, 120)
 def S17(b, t, T):
-    bg(b, "alerta", t); per(b, "m", "neutral", t, 380, 1130, .8); frase(b, t, "Está mal,\notra vez.", 600, 620, 84, .05); put(b, A.xmark(210), 850, 1010, pop(t, 1.0, .3), 0)
+    bg(b, "alerta", t); per(b, "m", "neutral", t, 380, 890, .8); frase(b, t, "Está mal,\notra vez.", 600, 620, 84, .05); put(b, A.xmark(210), 850, 1010, pop(t, 1.0, .3), 0)
 def S18(b, t, T):
-    bg(b, "lila", t); per(b, "m", "preocupado", t, 540, 1100, .9); titulo(b, "CARA DE\n*PREOCUPACIÓN", t, 0, 290, 96); put(b, A.xmark(190), 840, 760, pop(t, .8), 8)
+    bg(b, "lila", t); per(b, "m", "preocupado", t, 540, 860, .9); titulo(b, "CARA DE\n*PREOCUPACIÓN", t, 0, 290, 96); put(b, A.xmark(190), 840, 760, pop(t, .8), 8)
 def S19(b, t, T):
-    bg(b, "noche", t); per(b, "n", "triste", t, 540, 1110, .85); titulo(b, "SE FRUSTRA Y\n*EVITA ESCRIBIR", t, 0, 290, 84, (255, 236, 160)); put(b, A.lapiz(480), 820 + t * 120, 1260 + t * 20, 1.0, -8)
+    bg(b, "noche", t); per(b, "n", "triste", t, 540, 870, .85); titulo(b, "SE FRUSTRA Y\n*EVITA ESCRIBIR", t, 0, 290, 84, (255, 236, 160)); put(b, A.lapiz(480), 820 + t * 120, 1260 + t * 20, 1.0, -8)
 def S20(b, t, T):
     bg(b, "menta", t); titulo(b, "LO QUE SÍ", t, 0, 420, 170); put(b, A.check(300), 540, 820, pop(t, .3, .4), 6)
 def S21(b, t, T):
-    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 1120, .85); titulo(b, "ENSÉÑALE POR DÓNDE\n*EMPIEZA CADA LETRA", t, 0, 290, 76)
+    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 880, .85); titulo(b, "ENSÉÑALE POR DÓNDE\n*EMPIEZA CADA LETRA", t, 0, 290, 76)
 def S22(b, t, T):
     bg(b, "amarillo", t); tabla_trazo(b, "b", t, 540, 800, 1.0); titulo(b, "LA B", t, 0, 300, 120); put(b, A.texto("palito, luego barriga", 62, (255, 255, 255), 8, "baloo"), 540, 1180, pop(t, 1.0))
 def S23(b, t, T):
@@ -244,12 +244,12 @@ def S24(b, t, T):
 def S25(b, t, T):
     bg(b, "amarillo", t); put(b, A.sello("OTRO TRUCO", 860, 260, A.VERDE, 130), 540, 760, pop(t, .05, .3), -4); estrellas(b, t, .3, (540, 760), 6, 420)
 def S26(b, t, T):
-    bg(b, "lila", t); per(b, "n", "feliz", t, 540, 1250, .75); u = ease(u_(t, .4, 2.0)); put(b, trazo("b", u, 460), 540, 740, .9, 0); titulo(b, "DIBÚJALA CON\n*EL DEDO EN EL AIRE", t, 0, 290, 76)
+    bg(b, "lila", t); per(b, "n", "feliz", t, 540, 1500, .6); u = ease(u_(t, .4, 2.0)); put(b, trazo("b", u, 460), 540, 740, .9, 0); titulo(b, "DIBÚJALA CON\n*EL DEDO EN EL AIRE", t, 0, 290, 76)
 def S27(b, t, T):
     bg(b, "durazno", t); d = ImageDraw.Draw(b); d.rounded_rectangle((120, 560, 960, 1180), 50, fill=(236, 205, 150), outline=A.OL, width=10)
     put(b, trazo("d", ease(u_(t, .2, 1.3)), 560), 540, 870, 1.0, 0); titulo(b, "EN LA ARENA\n*O EN HARINA", t, 0, 290, 90)
 def S28(b, t, T):
-    bg(b, "menta", t); per(b, "n", "feliz", t, 540, 1110, .85); titulo(b, "SIENTE EL\n*MOVIMIENTO", t, 0, 290, 100); estrellas(b, t, 1.2, (540, 640), 5, 380)
+    bg(b, "menta", t); per(b, "n", "feliz", t, 540, 870, .85); titulo(b, "SIENTE EL\n*MOVIMIENTO", t, 0, 290, 100); estrellas(b, t, 1.2, (540, 640), 5, 380)
 def S29(b, t, T):
     bg(b, "cielo", t); put(b, A.bombilla(380), 540, 760 + bob(t, 8, 1.2), pop(t, .1, .4), 0); put(b, A.corazon(180), 790, 640, pop(t, .8), 8); titulo(b, "SU CUERPO\n*RECUERDA", t, 0, 290, 100)
 def S30(b, t, T):
@@ -257,15 +257,15 @@ def S30(b, t, T):
 def S31(b, t, T):
     bg(b, "alerta", t); put(b, tarjeta("b"), 300, 830, pop(t, 0, .3) * .8, -4); put(b, tarjeta("d", espejo=True), 780, 830, pop(t, .3, .3) * .8, 4); titulo(b, "SIGUE HACIÉNDOLO\n*MUCHO", t, 0, 290, 80)
 def S32(b, t, T):
-    bg(b, "lila", t); per(b, "n", "triste", t, 540, 1120, .8); titulo(b, "ADEMÁS LE\n*CUESTA LEER", t, 0, 290, 100)
+    bg(b, "lila", t); per(b, "n", "triste", t, 540, 880, .8); titulo(b, "ADEMÁS LE\n*CUESTA LEER", t, 0, 290, 100)
 def S33(b, t, T):
-    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 1120, .85, shirt=(60, 160, 110)); titulo(b, "CONSÚLTALO CON\n*SU MAESTRA", t, 0, 290, 90); put(b, A.check(190), 840, 780, pop(t, .7), 6)
+    bg(b, "menta", t); per(b, "m", "feliz", t, 540, 880, .85, shirt=(60, 160, 110)); titulo(b, "CONSÚLTALO CON\n*SU MAESTRA", t, 0, 290, 90); put(b, A.check(190), 840, 780, pop(t, .7), 6)
 def S34(b, t, T):
     bg(b, "cielo", t); numero(b, 5, t, 540, 640, .8); titulo(b, "NIÑO DE 5 AÑOS", t, 0, 930, 90); per(b, "n", "feliz", t, 540, 1520, .5)
 def S35(b, t, T):
     bg(b, "menta", t); put(b, A.sello("NADA RARO", 800, 270, A.VERDE, 140), 540, 760, pop(t, .05, .3), -4); put(b, A.check(260), 540, 1110, pop(t, .5, .4), 6)
 def S36(b, t, T):
-    bg(b, "amarillo", t); per(b, "n", "orgulloso", t, 540, 1130, .85); titulo(b, "ESTÁ\n*APRENDIENDO", t, 0, 290, 110); estrellas(b, t, .3, (540, 560), 6, 380)
+    bg(b, "amarillo", t); per(b, "n", "orgulloso", t, 540, 890, .85); titulo(b, "ESTÁ\n*APRENDIENDO", t, 0, 290, 110); estrellas(b, t, .3, (540, 560), 6, 380)
 def S37(b, t, T):
     bg(b, "cielo", t); titulo(b, "DÉJALO EN\n*COMENTARIOS", t, 0, 300, 100); per(b, "m", "feliz", t, 540, 1580, .7)
 def S38(b, t, T):
