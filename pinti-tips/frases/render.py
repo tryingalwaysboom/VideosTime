@@ -162,7 +162,7 @@ def S04(b, t, T):
     bg(b, "alerta", t); per(b, "m", "neutral", t, 400, 1120, .8); frase(b, t, "Eso está mal,\nbórralo y hazlo\notra vez.", 540, 640, 76, .05)
     put(b, A.xmark(230), 830, 1000, pop(t, 2.0, .3), 0)
 def S05(b, t, T):
-    bg(b, "crema", t); h = A.hoja().copy(); h.alpha_composite(A.letra(("mamá", "sol"), "fea", 4, 150)); put(b, h, 540, 880 + bob(t, 6), .9, -4)
+    bg(b, "crema", t); h = A.hoja().copy(); h.alpha_composite(A.letra(("mi perro", "salta"), "fea", 4, 150)); put(b, h, 540, 880 + bob(t, 6), .9, -4)
     k = ease(u_(t, .5, .5)); ImageDraw.Draw(b).line((250, 700, 250 + 560 * k, 1000), fill=A.ROJO, width=30)
     put(b, A.sello("PARECE AYUDAR", 760, 210, A.AMA, 100), 540, 380, pop(t, .15, .3), -3)
 def S06(b, t, T):
@@ -205,7 +205,7 @@ def S19(b, t, T):
     titulo(b, "MUCHA\n*CONCENTRACIÓN", t, 0, 290, 92)
 def S20(b, t, T):
     bg(b, "alerta", t); reloj_vivo(b, 540, 640, 1.0, t, 3.0)
-    h = A.hoja().copy(); h.alpha_composite(A.letra(("mamá",), "fea", 8, 150)); put(b, h, 540, 1080 + bob(t, 6), .5, -6); titulo(b, "LETRAS PEOR", t, 0, 300, 100)
+    h = A.hoja().copy(); h.alpha_composite(A.letra(("la luna",), "fea", 8, 140)); put(b, h, 540, 1150 + bob(t, 6), .72, -6); titulo(b, "LETRAS PEOR", t, 0, 300, 100)
 def S21(b, t, T):
     bg(b, "noche", t); per(b, "n", "asombro", t, 540, 1030, .85); put(b, A.texto("?!", 200, A.AMA, 12), 820, 640 + bob(t, 8, 1.8), pop(t, .5, .3), 8)
     titulo(b, "MIEDO A\n*EQUIVOCARSE", t, 0, 290, 96, (255, 236, 160))
@@ -250,7 +250,7 @@ def S36(b, t, T):
 def S37(b, t, T):
     bg(b, "cielo", t); titulo(b, "1 TIP\n*CADA DÍA", t, 0, 290, 140); per(b, "m", "feliz", t, 540, 1020, .85); estrellas(b, t, .4, (540, 520), 5, 380)
 def S38(b, t, T):
-    bg(b, "menta", t); hoja_escribiendo(b, 560, 880, .95, -4, t, .2, 2.6, ["¡Gracias,", "mamá!"], "limpia", True, .6); titulo(b, "TU HIJO\n*ESCRIBE MEJOR", t, 0, 290, 92); estrellas(b, t, 3.0, (540, 880), 6, 430)
+    bg(b, "menta", t); hoja_escribiendo(b, 560, 880, .95, -4, t, .2, 2.6, ["Me gusta", "escribir"], "limpia", True, .6); titulo(b, "TU HIJO\n*ESCRIBE MEJOR", t, 0, 290, 92); estrellas(b, t, 3.0, (540, 880), 6, 430)
 
 
 def _b(i): return ta(i) - 0.04
