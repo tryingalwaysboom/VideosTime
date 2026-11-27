@@ -236,7 +236,7 @@ def S31(b, t, T):
 def S32(b, t, T):
     bg(b, "amarillo", t); put(b, A.sello("SOLO UNA", 760, 260, A.VERDE, 150), 540, 760, pop(t, .05, .3), -4); estrellas(b, t, .3, (540, 760), 6, 420)
 def S33(b, t, T):
-    bg(b, "lila", t); put(b, A.calendario(640, 560, 1 + int(t * 3.5) % 8), 540, 700, pop(t, .1, .4), -3); titulo(b, "EN UNA SEMANA", t, .1, 1130, 92)
+    bg(b, "lila", t); titulo(b, "EN UNA\n*SEMANA", t, 0, 290, 120); put(b, A.calendario(640, 560, 1 + int(t * 3.5) % 8), 540, 820, pop(t, .1, .4), -3); put(b, A.check(190), 800, 1170, pop(t, 1.2, .35), 6)
 def S35(b, t, T):
     bg(b, "amarillo", t)
     for i in range(3): numero(b, i + 1, t - i * .22, 230 + i * 310, 820, .42)
