@@ -27,9 +27,9 @@ DIAS_FALTAN = 19; LETRAS_ON = "MA"          # Día 1: ninguna letra dominada
 
 # ---------------------------------------------------------------- tiempos
 R.GAP.clear()
-BASE = {"L02": .2, "L03": .5, "L04": .4, "L05": .3, "L21": .4, "L22": .35, "L23": .35, "L24": .35, "L25": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
+BASE = {"L02": .2, "L05": .25, "L21": .4, "L22": .35, "L23": .35, "L24": .35, "L25": .4, "L08": .35, "L09": .45, "L10": .6, "L11": .35, "L12": .4,
         "L13": .35, "L14": .35, "L15": .45, "L16": .6, "L17": .45, "L18": .6, "L19": .3, "L20": .3}
-FLEX = ("L03", "L05", "L25", "L09", "L10", "L12", "L15", "L16", "L18")
+FLEX = ("L21", "L25", "L09", "L10", "L12", "L15", "L16", "L18")
 COLA = .35
 R.GAP.update(BASE); _tl, _ = R.timeline(); _fin = _tl["L20"][1] - .1 + COLA
 OBJ = float(math.ceil(_fin))                                                 # segundos enteros, sin relleno (guía, 26 nov)
@@ -895,46 +895,26 @@ def cierra(T, t0):
     if k > 0 and T < T_PAF + 1.4: tiza(c, "¡PAF!", 760, 540, 130 * k, AMA, 8, f=F_BAL, stroke=3, borde=True)
     return c
 
-# ---------------------------------------------------------------- 3 · todo empezó esa tarde, con dos letras
-T_MA = WI("L03", 10) - .1; T_CREE = WI("L03", 15) - .12
-@esc(S("L03") - .2, True)
-def dos_letras(T, t0):
-    c = _mesa(T, t0, 1.05); n = (T >= WI("L03", 9) - .1) + (T >= T_MA)
-    hoja9(c, n, 0, False)
-    k = pop(T, t0 + .15, .22)
-    if k > 0 and T < WI("L03", 4): rotulo(c, "ESA TARDE", 540, 440, 96, CREMA, OL, -3, k=k)
-    k = pop(T, WI("L03", 5) - .1, .22)
-    if k > 0 and T < T_CREE: rotulo(c, "2 LETRAS", 540, 440, 100, AMA, OL, -3, k=k)
-    k = pop(T, T_CREE, .25)
-    if k > 0: tiza(c, "«mamá»", 700, 470, 130 * k, CREMA, -4, stroke=2, borde=True); corazon(c, 930, 460, 36 * k)
-    if WI("L03", 9) - .4 <= T < T_MA + .5: mano(c, (300 if T < T_MA - .15 else 520, 1020), T, .62)
-    return view(c, 540, 900, 1.0 + .08 * u_(T, t0, 8))
-
-# ---------------------------------------------------------------- 4 · ustedes eligieron: aún no
-@esc(S("L04") - .15)
-def eligieron(T, t0):
-    c = _mesa(T, t0, 1.05); hoja9(c, 2, 0, True)
-    k = pop(T, t0 + .05, .22)
-    if k > 0: rotulo(c, "USTEDES ELIGIERON", 540, 400, 74, AMA, OL, -3, k=k)
-    k = pop(T, WI("L04", 5) - .1, .22)
-    if k > 0: rotulo(c, "AÚN NO", 740, 540, 104, AZUL, CREMA, 4, k=k); lapiz_rojo(c, (540, 720, 1010, 1140), u_(T, WI("L04", 5), .35), 14, 9)
-    return c
-
 # ---------------------------------------------------------------- 5 · «¡sí pone mamá!… ¿y qué le falta?»
 T_QUE = WI("L05", 3) - .1
 @esc(S("L05") - .15)
 def si_pone(T, t0):
     c = _mesa(T, t0, 1.3); c = borroso(c, 10, 60); en = T < T_QUE
-    mateo(c, "enojado" if en else "timido", 540 + 5 * math.sin(T * 20) * (1 - u_(T, t0, .5)), 800, 1.5 + .06 * u_(T, t0, 3), T, "L05", blink=False)
+    mateo(c, "enojado" if en else "timido", 400 + 5 * math.sin(T * 20) * (1 - u_(T, t0, .5)), 820, 1.4 + .06 * u_(T, t0, 3), T, "L05", blink=False)
+    paste_rot(c, hoja9_img(2, 0), 800, 1120, .46, 7 + 2 * math.sin(T * 3))
     if en:
-        k = pop(T, t0 + .2, .2)
-        if k > 0: rotulo(c, "¡SÍ PONE MAMÁ!", 540, 400, 96, ROJO, CREMA, -5, k=k)
+        k = pop(T, t0 + .05, .2)
+        if k > 0: rotulo(c, "ESA TARDE, UNAS HORAS ANTES", 540, 370, 54, CREMA, OL, -2, k=k)
+        k = pop(T, t0 + .3, .2)
+        if k > 0: rotulo(c, "¡SÍ PONE MAMÁ!", 540, 500, 92, ROJO, CREMA, -5, k=k)
     else:
+        k = pop(T, T_QUE, .2)
+        if k > 0: rotulo(c, "USTEDES ELIGIERON: AÚN NO", 540, 370, 56, AZUL, CREMA, -2, k=k)
         for i in range(3):
             k = pop(T, T_QUE + .1 + i * .12, .2)
-            if k > 0: tiza(c, "?", 760 + i * 80, 560 - i * 60, (90 + i * 30) * k, AMA, -10 + i * 10, f=F_BAL, stroke=3, borde=True)
-        k = pop(T, T_QUE + .1, .2)
-        if k > 0: rotulo(c, "¿QUÉ LE FALTA?", 440, 400, 84, AMA, OL, -3, k=k)
+            if k > 0: tiza(c, "?", 700 + i * 80, 640 - i * 60, (90 + i * 30) * k, AMA, -10 + i * 10, f=F_BAL, stroke=3, borde=True)
+        k = pop(T, T_QUE + .15, .2)
+        if k > 0: rotulo(c, "¿QUÉ LE FALTA?", 440, 500, 84, AMA, OL, -3, k=k)
     return c
 
 # ---------------------------------------------------------------- 6 · el juego: su dinosaurio le deja una carta en el buzón

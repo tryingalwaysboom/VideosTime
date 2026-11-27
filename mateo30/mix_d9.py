@@ -14,9 +14,9 @@ def gate(nombre, tramos, out):
 
 def efectos():
     g = lambda n, tr: gate(n, tr, os.path.join(TMP, n + "_gate.wav")); st = {f.__name__: t for t, f in SCENES}
-    e = [(g("crayola", [(WI("L03", 9) - .1, V.T_MA + .5), (V.T_I1, V.T_I1 + .6), (V.T_I2, V.T_I2 + .6), (V.T_I3, V.T_I3 + .55), (V.T_SOM + .45, V.T_SOM + .8)]), 0, -4),
+    e = [(g("crayola", [(V.T_I1, V.T_I1 + .6), (V.T_I2, V.T_I2 + .6), (V.T_I3, V.T_I3 + .55), (V.T_SOM + .45, V.T_SOM + .8)]), 0, -4),
          (sx("borrar"), V.T_BORRA, -8), (sx("brillo"), V.T_SOLO9 + .2, -8),
-         (g("reloj", [(V.T_REL, S("L12") - .2)]), 0, -8), (sx("brillo"), V.T_CREE, -10), (sx("brillo"), V.T_SOM + .5, -8), (sx("brillo"), V.T_YA, -7), (sx("brillo"), V.T_DINO, -9),
+         (g("reloj", [(V.T_REL, S("L12") - .2)]), 0, -8), (sx("brillo"), V.T_SOM + .5, -8), (sx("brillo"), V.T_YA, -7), (sx("brillo"), V.T_DINO, -9),
          (sx("brillo"), V.T_A, -9), (sx("brillo"), V.T_B, -9)]
     for t, fn in SCENES[1:]:
         if t not in SUAVES: e.append((sx("whoosh"), t - .05, -13))
