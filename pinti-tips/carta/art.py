@@ -2,7 +2,7 @@
 Mismo lenguaje visual que Mateo: contorno azul marino, colores planos, tipografías Baloo 2 / Anton / Caveat."""
 import os, math, random
 from functools import lru_cache
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FD = os.path.join(HERE, "..", "..", "mateo-pov", "fonts")
@@ -374,7 +374,7 @@ def calendario(w=640, h=560, marcas=0):
     return fin(im)
 
 
-HAND_W, HAND_H = 1500, 2900; TIP = (1150, 2000)
+HAND_W, HAND_H = 1500, 2100; TIP = (1150, 2000)
 # ---- MANO ANATÓMICA: estructura de datos primero, trazos después -------------------------------------------------
 # Lateralidad: IZQUIERDA · Vista: DORSO (vemos el dorso de la mano, dedos hacia arriba, pulgar a la derecha). Sistema local: muñeca (0,0), y negativo = hacia los dedos.
 PALM_H = 230.0; L_MED = PALM_H                      # dedo medio = altura de la palma
@@ -435,22 +435,31 @@ def _pencil_hand2(g, debug=False):
     c, s_ = math.cos(th), math.sin(th)
     def tf(p):
         x, y = p[0] - tip_l[0], p[1] - tip_l[1]; return (TIP[0] + x * c - y * s_, TIP[1] + x * s_ + y * c)
+    def _mix(c, k): return tuple(int(max(0, min(255, v * k))) for v in c)
     def tube(P, R, fill=SKIN, ow=7):
-        P = [tf(p) for p in P]
-        for ow_, col in ((ow, OL), (0, fill)):
+        """Sin contorno negro: borde en un tono más oscuro de la piel + luz suave arriba-izquierda."""
+        P = [tf(p) for p in P]; edge = _mix(fill, .90); luz = (min(255, fill[0] + 12), min(255, fill[1] + 26), min(255, fill[2] + 34))
+        for mode in (0, 1, 2):
             for (a, b, ra, rb) in zip(P, P[1:], R, R[1:]):
                 n = max(2, int(math.dist(a, b) / 3))
                 for k in range(n + 1):
-                    t = k / n; x, y = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t; r = ra + (rb - ra) * t + ow_
+                    t = k / n; x, y = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t; r = ra + (rb - ra) * t
+                    if mode == 0: r += 2.5; col = edge
+                    elif mode == 1: col = fill
+                    else: x -= r * .22; y -= r * .26; r *= .52; col = luz
                     ell(d, (x - r, y - r, x + r, y + r), col)
     def blob(P, fill=SKIN, out=OL, w=8):
-        P = [tf(p) for p in P]; d.polygon([(x * SS, y * SS) for x, y in P], fill=fill)
-        d.line([(x * SS, y * SS) for x, y in P + [P[0]]], fill=out, width=w * SS, joint="curve")
+        P = [tf(p) for p in P]; edge = _mix(fill, .90)
+        d.polygon([(x * SS, y * SS) for x, y in P], fill=fill); d.line([(x * SS, y * SS) for x, y in P + [P[0]]], fill=edge, width=int(4 * SS), joint="curve")
+        cx = sum(p[0] for p in P) / len(P); cy = sum(p[1] for p in P) / len(P)
+        hl = [(cx + (x - cx) * .72 - 18, cy + (y - cy) * .72 - 22) for x, y in P]
+        m = Image.new("L", im.size, 0); ImageDraw.Draw(m).polygon([(x * SS, y * SS) for x, y in hl], fill=120)
+        m = m.filter(ImageFilter.GaussianBlur(22 * SS)); lay = Image.new("RGBA", im.size, (255, 228, 200, 255)); lay.putalpha(m)
+        pm = Image.new("L", im.size, 0); ImageDraw.Draw(pm).polygon([(x * SS, y * SS) for x, y in P], fill=255); lay.putalpha(ImageChops.multiply(lay.getchannel("A"), pm)); im.alpha_composite(lay)
     # 3) lápiz
     ptip = tf(tip_l); pb = tf((tip_l[0] + back[0] * 700, tip_l[1] + back[1] * 700)); u = (-0.45, -0.893); n_ = (0.893, -0.45)
     at = lambda dist, off=0: (TIP[0] + u[0] * dist + n_[0] * off, TIP[1] + u[1] * dist + n_[1] * off)
-    cap(d, at(78), at(700), 30, AMA, OL, 7); poly(d, [at(78, -30), TIP, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), TIP, at(30, 11)], OL, None)
-    cap(d, at(690), at(760), 30, ROSA, OL, 7)
+    cap(d, at(78), at(330), 30, AMA, OL, 7); poly(d, [at(78, -30), TIP, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), TIP, at(30, 11)], OL, None)
     # 1) antebrazo (cónico) + manga cerrada
     tube([(0, 20), (0, 2800)], [62, 100])
     # 2) dedos recogidos (escorzo): medio, anular, meñique por detrás del lápiz
@@ -463,10 +472,10 @@ def _pencil_hand2(g, debug=False):
     tube(pts["pulgar_base"], [44, 38]); tube(pts["pulgar"], [38, 33, 29])
     tube(pts["indice"], [37, 33, 30, 27])
     for p in (pts["indice"][-1], pts["pulgar"][-1]):                                   # uñas
-        q = tf(p); ell(d, (q[0] - 12, q[1] - 14, q[0] + 12, q[1] + 8), (255, 236, 226), OL, 4)
+        q = tf(p); ell(d, (q[0] - 12, q[1] - 14, q[0] + 12, q[1] + 8), (255, 238, 228), (232, 178, 150), 2)
     # 6) nudillos: pequeños arcos de articulación
     for k in HAND["nudillos"].values():
-        q = tf(k); arc(d, (q[0] - 20, q[1] - 14, q[0] + 20, q[1] + 18), 200, 340, SKINS, 5)
+        q = tf(k); arc(d, (q[0] - 20, q[1] - 14, q[0] + 20, q[1] + 18), 200, 340, (226, 168, 132), 4)
     if debug:
         for nm, P in pts.items():
             for p in P: q = tf(p); ell(d, (q[0] - 7, q[1] - 7, q[0] + 7, q[1] + 7), ROJO)
@@ -474,54 +483,3 @@ def _pencil_hand2(g, debug=False):
 
 def pencil_hand(grip=220):
     return _pencil_hand2(int(round(grip / 8) * 8))
-
-
-# ---- MANO (puerto del código de referencia de Wal: pinza trípode, dorso con curvas cuadráticas, segmentos cónicos) ----
-K = 2.7                                              # escala del código de referencia
-def _quad(p0, c, p1, n=18): return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]) for t in [i / n for i in range(n + 1)]]
-
-@lru_cache(None)
-def _mano_ref(rot_deg=-35.0):
-    PIEL, SOMB, CONT = (245, 203, 176), (227, 174, 141), (43, 33, 27)
-    im = canvas(HAND_W, HAND_H); d = ImageDraw.Draw(im); TX, TY = HAND_W - TIP[0], TIP[1]          # mano derecha de referencia; luego se espeja
-    def T(x, y): return (TX + x * K, TY + y * K)
-    def seg(x1, y1, r1, x2, y2, r2, fill, lw=2.4):
-        a, b = T(x1, y1), T(x2, y2); n = max(2, int(math.dist(a, b) / 2.5))
-        for ow, col in ((lw * K / 2, CONT), (-lw * K / 2, fill)):
-            for k in range(n + 1):
-                t = k / n; x, y = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t; r = (r1 + (r2 - r1) * t) * K + ow
-                ell(d, (x - r, y - r, x + r, y + r), col)
-    def poligono(pts, fill, stroke=True):
-        P_ = [T(*p) for p in pts]; d.polygon([(x * SS, y * SS) for x, y in P_], fill=fill)
-        if stroke: d.line([(x * SS, y * SS) for x, y in P_ + [P_[0]]], fill=CONT, width=int(2.6 * K * SS), joint="curve")
-    # antebrazo (sale de la muñeca hacia fuera de pantalla)
-    wr = (278, 48); dv = (.93, .37)
-    seg(wr[0], wr[1], 44, wr[0] + dv[0] * 1200, wr[1] + dv[1] * 1200, 58, PIEL)
-    # capa 1: dedos de apoyo
-    seg(135, 65, 13, 105, 95, 10, SOMB); seg(105, 95, 10, 82, 85, 8.5, SOMB)
-    seg(125, 45, 14, 90, 75, 11, SOMB); seg(90, 75, 11, 65, 65, 9.5, SOMB)
-    seg(115, 20, 15, 75, 42, 12, SOMB); seg(75, 42, 12, 42, 28, 10, SOMB)
-    # capa 2: lápiz (rotado -0.62 rad alrededor de la punta)
-    ang = -0.62; ca, sa = math.cos(ang), math.sin(ang)
-    R = lambda x, y: (x * ca - y * sa, x * sa + y * ca)
-    poligono([R(0, 0), R(38, -9), R(38, 9)], (235, 208, 167)); poligono([R(0, 0), R(12, -3), R(12, 3)], (31, 31, 31), False)
-    poligono([R(38, -9), R(288, -9), R(288, 9), R(38, 9)], (242, 182, 50)); poligono([R(288, -9), R(306, -9), R(306, 9), R(288, 9)], (201, 206, 214))
-    poligono([R(306, -9), R(328, -9), R(328, 9), R(306, 9)], (232, 122, 122))
-    # capa 3: dorso de la mano y muñeca
-    dors = _quad((110, -25), (185, -35), (270, 5)) + [(285, 95)] + _quad((285, 95), (190, 105), (135, 75))[1:] + _quad((135, 75), (115, 25), (110, -25))[1:]
-    poligono(dors, PIEL, False)
-    i1 = dors.index((285, 95)); P_ = [T(*p) for p in dors]
-    d.line([(x * SS, y * SS) for x, y in P_[i1:] + P_[:1]], fill=CONT, width=int(2.6 * K * SS), joint="curve")      # contorno sin el corte de la muñeca
-    d.line([(x * SS, y * SS) for x, y in P_[:i1 - 17]], fill=CONT, width=int(2.6 * K * SS), joint="curve")
-    # capa 4: índice sobre el lápiz
-    seg(112, -18, 15.5, 68, -22, 12.5, PIEL); seg(68, -22, 12.5, 36, -12, 10, PIEL)
-    # capa 5: eminencia tenar + pulgar
-    poligono(_quad((155, 55), (100, 65), (78, 32)) + _quad((78, 32), (95, 10), (145, 20))[1:], PIEL, False)
-    seg(98, 42, 16, 62, 22, 13, PIEL); seg(62, 22, 13, 34, 8, 10.5, PIEL)
-    # uñas
-    for (x, y) in ((36, -12), (34, 8)):
-        q = T(x - 3, y - 1); ell(d, (q[0] - 14, q[1] - 12, q[0] + 14, q[1] + 10), (255, 236, 226), CONT, 3)
-    im = fin(im); im = ImageOps.mirror(im)                         # mano izquierda (zurda)
-    return im.rotate(rot_deg, resample=Image.BICUBIC, center=TIP)
-
-def pencil_hand(grip=220): return _mano_ref()
