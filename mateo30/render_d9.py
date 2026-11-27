@@ -844,17 +844,38 @@ def dia(c, T, t, n):
 
 # ================================================================ ESCENAS DEL DÍA 9 — «Papá no está de acuerdo» (ganó AÚN NO)
 GRIS9 = (206, 204, 196)
-def hoja9(c, n_on, tilde=0.0, ghost=True, pulse=None, T=0.0):
-    """La hoja con M-A-M-A: las letras ya escritas en verde, las que faltan en fantasma, y el sombrerito (la tilde)."""
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); hojita(lay, 60, 640, 1020, 1210); d = ImageDraw.Draw(lay)
-    for i, ch in enumerate("MAMA"):
-        on = i < n_on
-        if not on and not ghost: continue
-        sz = 330 * (1 + .07 * math.sin(T * 12)) if pulse and i in pulse else 330
-        d.text((190 + i * 235, 920), ch, font=font(F_HAND, sz), fill=VERDE if on else GRIS9, anchor="mm", stroke_width=5 if on else 0, stroke_fill=VERDE)
-    if tilde > 0: d.line((872, 772, 872 + 74 * tilde, 772 - 62 * tilde), fill=VERDE, width=26)
-    c.alpha_composite(lay)
-@lru_cache(4)
+def _rot9(pts, c0, ang): return [(c0[0] + (x - c0[0]) * math.cos(ang) - (y - c0[1]) * math.sin(ang), c0[1] + (x - c0[0]) * math.sin(ang) + (y - c0[1]) * math.cos(ang)) for x, y in pts]
+def _letra9(i, ch, seed):
+    x = 190 + i * 235; y = 920
+    if ch == "M": return [letraM(x - 92, y - 112, 184, 228, seed, j=4)]
+    return [_poli([(x - 84, y + 116), (x - 2, y - 116), (x + 84, y + 116)], 9, seed, 3.5), _poli([(x - 50, y + 42), (x + 50, y + 42)], 6, seed + 1, 3)]
+L9 = [_letra9(0, "M", 31), _letra9(1, "A", 32), _letra9(2, "M", 33), _letra9(3, "A", 34)]
+TORC9 = [_rot9(letraM(660 - 96, 920 - 112, 196, 232, 41, j=9), (660, 930), -.36)]
+TIL9 = _poli([(876, 776), (948, 712)], 6, 51, 2)
+def trazos9(c, strokes, u, col=VERDE, w=30, alpha=1.0):
+    """Dibuja la letra trazo a trazo, como la escribe un niño con crayola; devuelve dónde va la punta."""
+    if u <= 0: return None
+    n = sum(len(st) for st in strokes); m = max(2, int(1 + (n - 1) * clamp(u))); tip = None
+    dst = c if alpha >= 1 else Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for st in strokes:
+        q = min(len(st), m); m -= q
+        if q >= 2: crayon(dst, st[:q], w, col); tip = st[q - 1]
+        if m <= 0: break
+    if alpha < 1: dst.putalpha(dst.getchannel("A").point(lambda v: int(v * alpha))); c.alpha_composite(dst)
+    return tip
+def hoja9(c, prog, tilde=0.0, ghost=True, pulse=None, T=0.0):
+    """La hoja con M-A-M-A escritas a crayola: prog = cuánto lleva de cada letra (0..1). Las que faltan, en fantasma."""
+    if isinstance(prog, int): prog = [1.0 if i < prog else 0.0 for i in range(4)]
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); hojita(lay, 60, 640, 1020, 1210); tip = None
+    for i in range(4):
+        if ghost and prog[i] < 1: trazos9(lay, L9[i], 1, GRIS9, 12)
+        t_ = trazos9(lay, L9[i], prog[i])
+        if 0 < prog[i] < 1: tip = t_
+    if tilde > 0:
+        t_ = trazos9(lay, [TIL9], tilde, VERDE, 26)
+        if tilde < 1: tip = t_
+    c.alpha_composite(lay); return tip
+@lru_cache(8)
 def hoja9_img(n_on, tilde):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); hoja9(lay, n_on, tilde, False); return lay.crop((40, 620, 1040, 1232))
 
@@ -862,7 +883,8 @@ def hoja9_img(n_on, tilde):
 T_NO = WI("L26", 7) - .1
 @esc(0)
 def gancho(T, t0):
-    c = _mesa(T, 0, 1.05); hoja9(c, 2, 0, False)
+    c = _mesa(T, 0, 1.05); tip = hoja9(c, [1, u_(T, .05, 1.3), 0, 0], 0, False)
+    if tip: mano(c, tip, T, .62)
     mateo(c, "feliz" if T < T_NO else "triste", 250, 1500, .8, T, blink=False)
     p = 1 + .04 * math.exp(-T * 6) * math.cos(T * 22); rotulo(c, "¿AHÍ PONE «MAMÁ»?", 540, 400, 88, AMA, OL, -3, k=p)
     k = pop(T, .45, .22)
@@ -920,9 +942,9 @@ def intento(c, n, donde, k1, k2, col=AMA):
 T_I1 = WI("L22", 6) - .1
 @esc(S("L22") - .2, True)
 def intento1(T, t0):
-    c = _mesa(T, t0, 1.05); hoja9(c, 2, 0, True); k = pop(T, T_I1 + .25, .2)
-    if k > 0: c.alpha_composite(glifo9("M", -22, 1.0), (660 - 190, 930 - 215))
-    if T_I1 - .3 <= T < T_I1 + .7: mano(c, (680, 1040), T, .62)
+    c = _mesa(T, t0, 1.05); hoja9(c, 2, 0, True)
+    tip = trazos9(c, TORC9, u_(T, T_I1, 1.1))
+    if tip and T < T_I1 + 1.15: mano(c, tip, T, .62)
     intento(c, "1.er", "DESPUÉS DE COMER", pop(T, t0 + .1, .22), pop(T, WI("L22", 2) - .1, .22))
     k = pop(T, WI("L22", 7) - .05, .22)
     if k > 0: tiza(c, "torcida…", 700, 1290, 84 * k, CREMA, -5, stroke=2, borde=True)
@@ -930,26 +952,26 @@ def intento1(T, t0):
 T_BORRA = WI("L23", 5) - .1; T_I2 = WI("L23", 10) - .1
 @esc(S("L23") - .2, True)
 def intento2(T, t0):
-    c = _mesa(T, t0, 1.05); bo = u_(T, T_BORRA, .5); hoja9(c, 3 if T >= T_I2 + .25 else 2, 0, True)
-    if bo < 1: c.alpha_composite(glifo9("M", -22, round(1 - bo, 1)), (660 - 190, 930 - 215))
-    if 0 < bo and T < T_I2 + .25:
-        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.ellipse((560, 800, 780, 1060), fill=(190, 190, 186, int(70 * bo))); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(18)))
+    c = _mesa(T, t0, 1.05); bo = u_(T, T_BORRA, .6); tip = hoja9(c, [1, 1, u_(T, T_I2, 1.1), 0], 0, True)
+    if bo < 1: trazos9(c, TORC9, 1, alpha=1 - bo)
+    if 0 < bo and T < T_I2:
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); d.ellipse((560, 800, 780, 1060), fill=(190, 190, 186, int(60 * bo))); c.alpha_composite(lay.filter(ImageFilter.GaussianBlur(18)))
         if bo < 1: ex = 600 + 120 * math.sin(T * 26); d = ImageDraw.Draw(c); d.rounded_rectangle((ex, 900, ex + 130, 970), 14, fill=(240, 150, 160), outline=OL, width=7)
-    if T_I2 - .3 <= T < T_I2 + .7: mano(c, (680, 1040), T, .62)
+    if tip: mano(c, tip, T, .62)
     intento(c, "2.º", "ANTES DEL BAÑO", pop(T, t0 + .1, .22), pop(T, WI("L23", 1) - .1, .22))
-    k = pop(T, T_I2 + .4, .22)
-    if k > 0: chispas(c, 660, 900, T, T_I2 + .4, 5, 200, 77)
+    k = pop(T, T_I2 + 1.15, .22)
+    if k > 0: chispas(c, 660, 900, T, T_I2 + 1.15, 5, 200, 77)
     return view(c, 540, 900, 1.0 + .07 * u_(T, t0, 5))
 T_I3 = S("L24") + .35; T_SOM = WI("L24", 7) - .1
 @esc(S("L24") - .2, True)
 def intento3(T, t0):
-    c = _mesa(T, t0, 1.05); til = u_(T, T_SOM + .45, .3); hoja9(c, 4 if T >= T_I3 + .25 else 3, til, True)
+    c = _mesa(T, t0, 1.05); til = u_(T, T_SOM + .45, .4); tip = hoja9(c, [1, 1, 1, u_(T, T_I3, 1.2)], til, True)
+    if tip: mano(c, tip, T, .62)
     f = u_(T, T_SOM, .4)
     if 0 < f and til < 1:
         d = ImageDraw.Draw(c); hx, hy = 905, 560 + 150 * ease(f)
         d.polygon([(hx - 70, hy + 40), (hx, hy - 60), (hx + 70, hy + 40)], fill=AMA, outline=OL); d.line([(hx - 70, hy + 40), (hx, hy - 60), (hx + 70, hy + 40), (hx - 70, hy + 40)], fill=OL, width=8, joint="curve")
         d.rounded_rectangle((hx - 96, hy + 34, hx + 96, hy + 58), 10, fill=AMA, outline=OL, width=6)
-    if T_I3 - .3 <= T < T_I3 + .7: mano(c, (915, 1040), T, .62)
     intento(c, "3.er", "YA EN PIJAMA", pop(T, t0 + .1, .22) if T < T_SOM + .4 else 0, pop(T, WI("L24", 1) - .1, .22) if T < T_SOM + .4 else 0)
     k = pop(T, T_SOM + .5, .22)
     if k > 0: rotulo(c, "UN SOMBRERITO", 480, 440, 84, AMA, OL, -3, k=k); chispas(c, 905, 720, T, T_SOM + .55, 6, 220, 75)
