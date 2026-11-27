@@ -35,9 +35,13 @@ def put(base, im, cx, cy, s=1.0, rot=0.0, a=1.0):
     if a < 1: im = im.copy(); im.putalpha(im.getchannel("A").point(lambda v: int(v * a)))
     base.paste(im, (int(cx - im.width / 2), int(cy - im.height / 2)), im)
 
-def put_tip(base, im, tx, ty, s=1.0):      # pone la punta del lápiz (600, 900 de la capa) en (tx, ty)
-    if s != 1: im = im.resize((int(im.width * s), int(im.height * s)), Image.BILINEAR)
-    base.paste(im, (int(tx - 600 * s), int(ty - 900 * s)), im)
+_HC = {}
+def put_tip(base, im, tx, ty, s=1.0, espejo=False):      # pone la punta del lápiz de la mano en (tx, ty)
+    s = round(s, 2); key = (id(im), s)
+    if len(_HC) > 24: _HC.clear()
+    if key not in _HC: _HC[key] = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BILINEAR) if s != 1 else im
+    im2 = _HC[key]; tipx = (A.HAND_W - A.TIP[0] if espejo else A.TIP[0]) * s
+    base.paste(im2, (int(tx - tipx), int(ty - A.TIP[1] * s)), im2)
 
 PAL = {"crema": ((255, 244, 222), (255, 230, 192)), "cielo": ((196, 226, 250), (172, 210, 244)), "menta": ((200, 236, 222), (174, 226, 206)),
        "durazno": ((255, 214, 186), (255, 198, 164)), "lila": ((226, 214, 248), (208, 192, 240)), "amarillo": ((255, 226, 120), (255, 212, 84)),
@@ -149,7 +153,7 @@ def S05(b, t, T):
 def S06(b, t, T):
     bg(b, "menta", t); nota(b, t, 400, 880, .75, -5); put(b, A.check(420), 780, 820, pop(t, .35, .4), 6); titulo(b, "SE ENTENDÍA\n*PERFECTO", t, 0, 290, 100)
 def S07(b, t, T):
-    bg(b, "crema", t); titulo(b, "DECÍA:", t, 0, 290, 130); hoja_escribiendo(b, 580, 870, .95, -4, t, .15, 1.8, ["Mamá,", "no estés", "triste."], "fea", True, .6, 7)
+    bg(b, "crema", t); hoja_escribiendo(b, 580, 870, .95, -4, t, .15, 1.8, ["Mamá,", "no estés", "triste."], "fea", True, .6, 7); titulo(b, "DECÍA:", t, 0, 290, 130)
 def S08(b, t, T):
     bg(b, "durazno", t); nota(b, t, 540, 800, .9, 4, ("Te quiero.",), "fea", 9, 1.0, False); put(b, A.corazon(400), 540, 1090, pop(t, .2, .45), 0 + bob(t, 5, 2)); estrellas(b, t, .5, (540, 820), 6, 420)
 def S09(b, t, T):
@@ -173,14 +177,14 @@ def S14(b, t, T):
     bg(b, "crema", t); escritorio(b); per(b, "m", "neutral", t, 540, 980, .95, shirt=(62, 180, 110))
     put(b, A.globo("Tu hija\nescribe raro", 76, tail="left"), 540, 430, pop(t, .3, .35), -2 + bob(t, 2))
 def S15(b, t, T):
-    bg(b, "lila", t); titulo(b, "CON LA\n*DERECHA", t, 0, 300, 130)
-    put(b, A.mano_der(200), 540 + math.sin(t * 3) * 14, 960, .95 * pop(t, .1, .4), 0); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3)
+    bg(b, "lila", t); pass
+    put_tip(b, A.mano_der(200), 430 + math.sin(t * 3) * 14, 1180, .8 * max(.05, pop(t, .1, .4)), True); put(b, A.sello("OBLIGADA", 620, 220, A.ROJO, 130), 540, 1180, pop(t, .8, .3), -3); titulo(b, "CON LA\n*DERECHA", t, 0, 300, 130)
 def S16(b, t, T):
     bg(b, "menta", t); per(b, "n", "feliz", t, 540, 1010, 1.0); put(b, A.sello("ES ZURDA", 640, 240, A.VERDE, 140), 540, 420, pop(t, .15, .3), -3)
 def S17(b, t, T):
     bg(b, "alerta", t); titulo(b, "A PUNTO DE\n*OBLIGARLA", t, 0, 290, 100); per(b, "m", "preocupado", t, 400, 1000, 1.0); per(b, "n", "triste", t, 830, 1100, .55)
 def S18(b, t, T):
-    bg(b, "crema", t); escritorio(b); per(b, "n", "triste", t, 540, 980, .95); put(b, A.pencil_hand(200), 560 + t * 380, 960, .5 * (1 - clamp((t - 1.5) / .7)) + .001, 0)
+    bg(b, "crema", t); escritorio(b); per(b, "n", "triste", t, 540, 980, .95); put_tip(b, A.pencil_hand(200), 640 + t * 380, 1150, .5 * (1 - clamp((t - 1.5) / .7)) + .02)
     put(b, A.xmark(220), 860, 520, pop(t, .5), 0)
 def S19(b, t, T):
     bg(b, "alerta", t); shake(t, .05, 18); put(b, A.texto("x2", 560, A.ROJO, 18), 540, 760, pop(t, .05, .35), -5); titulo(b, "DOS VECES", t, .2, 1120, 100)
@@ -188,7 +192,7 @@ def S20(b, t, T):
     bg(b, "cielo", t); escritorio(b); per(b, "n", "feliz", t, 540, 980, .95); titulo(b, "SIN QUE\n*NADIE SE LO PIDIERA", t, 0, 290, 84)
     put(b, A.lapiz(520), 760, 1235, pop(t, .5, .3), -6 + bob(t, 2, 2))
 def S21(b, t, T):
-    bg(b, "menta", t); titulo(b, "CON LA\n*IZQUIERDA", t, 0, 270, 112); hoja_escribiendo(b, 560, 880, .95, -5, t, .15, 1.5, ["Mamá,", "te quiero"], "fea", True, .6, 5)
+    bg(b, "menta", t); hoja_escribiendo(b, 560, 880, .95, -5, t, .15, 1.5, ["Mamá,", "te quiero"], "fea", True, .6, 5); titulo(b, "CON LA\n*IZQUIERDA", t, 0, 270, 112)
 def S22(b, t, T):
     bg(b, "durazno", t); put(b, A.corazon(520), 540, 700 + bob(t, 8, 2), pop(t, .05, .45), 0); titulo(b, "LO MÁS\n*BONITO", t, .15, 1040, 120); estrellas(b, t, .5, (540, 700), 7, 430)
 def S23(b, t, T):
@@ -202,7 +206,7 @@ def S26(b, t, T):
 def S27(b, t, T):
     bg(b, "amarillo", t); per(b, "n", "orgulloso", t, 540, 1020, 1.0); put(b, A.globo("¡Lo escribí\nyo solita!", 80, tail="left"), 540, 430, pop(t, .1, .35), 2)
 def S28(b, t, T):
-    bg(b, "menta", t); titulo(b, "LA MANO\n*QUE ME GUSTA", t, 0, 270, 100); put(b, A.pencil_hand(200), 540, 880, .95 * pop(t, .1, .4), bob(t, 3, 2)); put(b, A.corazon(220), 820, 1130, pop(t, .8), 8)
+    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1180 + bob(t, 6, 2), .85 * max(.05, pop(t, .1, .4))); put(b, A.corazon(220), 820, 1130, pop(t, .8), 8); titulo(b, "LA MANO\n*QUE ME GUSTA", t, 0, 270, 100)
 def S29(b, t, T):
     bg(b, "lila", t); per(b, "m", "asombro", t, 540, 1020, 1.0); put(b, A.bombilla(440), 540, 480, pop(t, .3, .4), bob(t, 4, 3)); titulo(b, "ENTENDÍ\n*ALGO", t, 0, 270, 110)
 def S30(b, t, T):
@@ -217,7 +221,7 @@ def S32(b, t, T):
 def S33(b, t, T):
     bg(b, "cielo", t); escritorio(b); per(b, "n", "feliz", t, 380, 990, .85); put(b, A.lapiz(520), 160 + ease(u_(t, .1, .9)) * 600, 1090, 1.0, -6)
 def S34(b, t, T):
-    bg(b, "menta", t); put(b, A.pencil_hand(200), 540, 880, .95 * pop(t, 0, .4), bob(t, 3, 2)); put(b, A.sello("IZQUIERDA", 700, 240, A.VERDE, 150), 540, 380, pop(t, .2, .35), -3)
+    bg(b, "menta", t); put_tip(b, A.pencil_hand(200), 640, 1150 + bob(t, 6, 2), .85 * max(.05, pop(t, 0, .4))); put(b, A.sello("IZQUIERDA", 700, 240, A.VERDE, 150), 540, 380, pop(t, .2, .35), -3)
 def S35(b, t, T):
     bg(b, "amarillo", t); titulo(b, "ESCRIBE MÁS\n*QUE NUNCA", t, 0, 270, 96)
     for i in range(5):
@@ -227,15 +231,15 @@ def S36(b, t, T):
     bg(b, "cielo", t); put(b, A.sol(420), 840, 470, 1.0, t * 8); escritorio(b); per(b, "n", "feliz", t, 430, 980, .85); titulo(b, "YA NO SE\n*ESCONDE", t, 0, 270, 100)
     h = A.hoja().copy(); h.alpha_composite(A.letra(("mamá", "sol"), "limpia", 3, 150)); put(b, h, 800, 1000 + bob(t, 6), .5, 6)
 def S37(b, t, T):
-    bg(b, "amarillo", t); titulo(b, "SI ES ZURDO\n*NO SE LO CAMBIES", t, 0, 300, 90); put(b, A.pencil_hand(200), 540, 880, .9 * pop(t, .15, .4), bob(t, 3, 2)); put(b, A.check(240), 830, 1100, pop(t, .8), 0)
+    bg(b, "amarillo", t); put_tip(b, A.pencil_hand(200), 640, 1130 + bob(t, 6, 2), .85 * max(.05, pop(t, .15, .4))); put(b, A.check(240), 830, 1100, pop(t, .8), 0); titulo(b, "SI ES ZURDO\n*NO SE LO CAMBIES", t, 0, 300, 90)
 def S38(b, t, T):
     bg(b, "menta", t); hoja_escribiendo(b, 560, 900, .95, -4, t, .05, 1.1, ["a su", "manera"], "limpia", True, .6); titulo(b, "DÉJALO", t, 0, 270, 130)
 def S39(b, t, T):
     bg(b, "cielo", t); titulo(b, "CUÉNTAME EN\n*COMENTARIOS", t, 0, 300, 90); put(b, A.globo("¿Zurdo o\ndiestro?", 88, tail="left"), 540, 720, pop(t, .3, .35), -2 + bob(t, 2)); put(b, A.flecha_curva(300, A.ROJO), 800, 1110, pop(t, .9), 90)
 def S40(b, t, T):
-    bg(b, "lila", t); put(b, A.pencil_hand(200), 300, 760, .62 * pop(t, 0, .35), 0); put(b, A.mano_der(200), 780, 760, .62 * pop(t, .15, .35), 0)
+    bg(b, "lila", t); put_tip(b, A.pencil_hand(200), 420, 1020, .6 * max(.05, pop(t, 0, .35))); put_tip(b, A.mano_der(200), 660, 1020, .6 * max(.05, pop(t, .15, .35)), True)
     put(b, A.sello("ZURDO", 440, 200, A.VERDE, 120), 300, 1120, pop(t, .5, .3), -3); put(b, A.sello("DIESTRO", 440, 200, A.ROJO, 120), 780, 1120, pop(t, .7, .3), 3); put(b, A.texto("VS", 190, A.AMA, 14), 540, 760, pop(t, .35, .35), 0)
-    titulo(b, "¿Y TÚ?", t, 0, 290, 130)
+    pass; titulo(b, "¿Y TÚ?", t, 0, 290, 130)
 def S41(b, t, T):
     bg(b, "amarillo", t); titulo(b, "SÍGUEME", t, 0, 300, 150); put(b, A.boton_seguir(700), 540, 720, pop(t, .2, .4) * (1 + .03 * math.sin(t * 6)), bob(t, 1.5, 1.2))
     put(b, A.texto("@escribirconpinti", 72, (255, 255, 255), 9, "baloo"), 540, 900, pop(t, .5))

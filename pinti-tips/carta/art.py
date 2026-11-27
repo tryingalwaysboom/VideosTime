@@ -222,7 +222,7 @@ def lapiz(length=820, w=64):
     return fin(im)
 
 def pencil_hand(grip=220):
-    return _pencil_hand(int(round(grip / 8) * 8))
+    return _pencil_hand2(int(round(grip / 8) * 8))
 
 @lru_cache(None)
 def _pencil_hand(g):
@@ -374,28 +374,102 @@ def calendario(w=640, h=560, marcas=0):
     return fin(im)
 
 
+HAND_W, HAND_H = 1500, 2100; TIP = (1150, 2000)
+# ---- MANO ANATÓMICA: estructura de datos primero, trazos después -------------------------------------------------
+# Lateralidad: IZQUIERDA · Vista: DORSO (vemos el dorso de la mano, dedos hacia arriba, pulgar a la derecha). Sistema local: muñeca (0,0), y negativo = hacia los dedos.
+PALM_H = 230.0; L_MED = PALM_H                      # dedo medio = altura de la palma
+HAND = {
+    "lateralidad": "izquierda", "vista": "dorso",
+    # palma: pentágono irregular (trapecio muñeca→nudillos) + eminencia tenar (bulto del pulgar en el lateral derecho)
+    "palma": [(-82, 0), (82, 0), (116, -48), (140, -108), (100, -PALM_H + 8), (-4, -PALM_H - 10), (-108, -PALM_H + 34), (-98, -110)],
+    # 4 nudillos en ARCO: el más alto es el del medio
+    "nudillos": {"menique": (-92, -PALM_H + 30), "anular": (-34, -PALM_H + 6), "medio": (26, -PALM_H - 8), "indice": (84, -PALM_H + 8)},
+    # longitud total de cada dedo: medio 1.0 L · índice y anular .87 L (mitad de la última falange del medio) · meñique .60 L (altura de la distal del anular)
+    "largo": {"medio": 1.0 * L_MED, "indice": .87 * L_MED, "anular": .87 * L_MED, "menique": .60 * L_MED},
+    "falanges": (.46, .27, .27),                      # proporción proximal / media / distal
+    # pulgar: nace bajo, cerca de la muñeca, a 35-45º hacia fuera; 2 falanges visibles desde la base tenar; la punta llega a mitad de la 1ª falange del índice
+    "pulgar": {"base": (90, -36), "tenar": 80.0, "ang_base": 36.0, "falanges": (95.0, 80.0), "ang": (32.0, -24.0)},
+}
+
+def _pt(p, a, l): return (p[0] + l * math.sin(math.radians(a)), p[1] - l * math.cos(math.radians(a)))
+def _cadena(p0, largos, angs):
+    pts = [p0]
+    for l, a in zip(largos, angs): pts.append(_pt(pts[-1], a, l))
+    return pts
+
+def _hand_points(pose):
+    """Capa 1: puntos de articulación de cada dedo (esqueleto)."""
+    H = HAND; kn = H["nudillos"]; out = {}
+    for nombre, angs in pose.items():
+        if nombre == "pulgar": continue
+        tot = H["largo"][nombre]; out[nombre] = _cadena(kn[nombre], [tot * f for f in H["falanges"]], angs)
+    th = H["pulgar"]; t0 = _pt(th["base"], th["ang_base"], th["tenar"])
+    out["pulgar"] = _cadena(t0, th["falanges"], th["ang"]); out["pulgar_base"] = [th["base"], t0]
+    return out
+
+POSE_ESCRIBIR = {"indice": (6, 16, 28), "medio": (10, 26, 52), "anular": (8, 24, 50), "menique": (6, 22, 48), "pulgar": None}
+CURL = .50                                          # los 3 dedos recogidos se ven acortados (escorzo)
+
+def _suave(pts, n=3):
+    """Chaikin: suaviza el contorno de la palma con curvas."""
+    for _ in range(n):
+        q = []
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            q += [(.75 * a[0] + .25 * b[0], .75 * a[1] + .25 * b[1]), (.25 * a[0] + .75 * b[0], .25 * a[1] + .75 * b[1])]
+        pts = q
+    return pts
+
 @lru_cache(None)
-def _pencil_hand2(g):
-    """Mano izquierda más natural: antebrazo con puño de manga, dorso, índice largo y pulgar, otros dedos recogidos. Punta en (600, 900)."""
-    W, H = 800, 1000; im = canvas(W, H); d = ImageDraw.Draw(im)
-    tip = (600, 900); u = (-0.45, -0.893); n = (0.893, -0.45)
-    at = lambda dist, off=0: (tip[0] + u[0] * dist + n[0] * off, tip[1] + u[1] * dist + n[1] * off)
-    cap(d, at(78), at(700), 30, AMA, OL, 7)                                   # lapiz
-    poly(d, [at(78, -30), tip, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), tip, at(30, 11)], OL, None)
+def _pencil_hand2(g, debug=False):
+    # lienzo grande: el antebrazo sale por el borde de la pantalla (sin corte visible). Punta del lápiz en TIP
+    W, Hh = HAND_W, HAND_H; im = canvas(W, Hh); d = ImageDraw.Draw(im)
+    pts = _hand_points(POSE_ESCRIBIR)
+    # lápiz: pasa entre índice y pulgar; punta más allá de los dedos
+    ind, pul = pts["indice"], pts["pulgar"]
+    pinch = ((ind[1][0] + pul[-1][0]) / 2 + 2, (ind[1][1] + pul[-1][1]) / 2)
+    ang_l = 12.0; dirf = (math.sin(math.radians(ang_l)), -math.cos(math.radians(ang_l)))
+    tip_l = (pinch[0] + dirf[0] * 215, pinch[1] + dirf[1] * 215); back = (-dirf[0], -dirf[1])
+    # transformación: el eje del lápiz (hacia atrás) debe coincidir con u=(-0.45,-0.893) y la punta con (600,900)
+    ua = math.atan2(-0.893, -0.45); va = math.atan2(back[1], back[0]); th = ua - va
+    c, s_ = math.cos(th), math.sin(th)
+    def tf(p):
+        x, y = p[0] - tip_l[0], p[1] - tip_l[1]; return (TIP[0] + x * c - y * s_, TIP[1] + x * s_ + y * c)
+    def tube(P, R, fill=SKIN, ow=7):
+        P = [tf(p) for p in P]
+        for ow_, col in ((ow, OL), (0, fill)):
+            for (a, b, ra, rb) in zip(P, P[1:], R, R[1:]):
+                n = max(2, int(math.dist(a, b) / 3))
+                for k in range(n + 1):
+                    t = k / n; x, y = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t; r = ra + (rb - ra) * t + ow_
+                    ell(d, (x - r, y - r, x + r, y + r), col)
+    def blob(P, fill=SKIN, out=OL, w=8):
+        P = [tf(p) for p in P]; d.polygon([(x * SS, y * SS) for x, y in P], fill=fill)
+        d.line([(x * SS, y * SS) for x, y in P + [P[0]]], fill=out, width=w * SS, joint="curve")
+    # 3) lápiz
+    ptip = tf(tip_l); pb = tf((tip_l[0] + back[0] * 700, tip_l[1] + back[1] * 700)); u = (-0.45, -0.893); n_ = (0.893, -0.45)
+    at = lambda dist, off=0: (TIP[0] + u[0] * dist + n_[0] * off, TIP[1] + u[1] * dist + n_[1] * off)
+    cap(d, at(78), at(700), 30, AMA, OL, 7); poly(d, [at(78, -30), TIP, at(78, 30)], (240, 200, 150), OL, 7); poly(d, [at(30, -11), TIP, at(30, 11)], OL, None)
     cap(d, at(690), at(760), 30, ROSA, OL, 7)
-    # antebrazo y manga
-    cap(d, at(g + 330, -70), at(g + 560, -80), 96, SKIN, OL, 8)
-    e = lambda a, b: at(g + 560 + a, -80 + b)
-    poly(d, [e(-30, -112), e(-30, 112), e(150, 118), e(150, -118)], (240, 120, 150), OL, 8)       # manga
-    # dedos recogidos (debajo del lapiz, se asoman los nudillos)
-    for k in range(3):
-        cap(d, at(g + 130 + k * 50, -20), at(g + 150 + k * 50, 120), 26, SKINS, OL, 7)
-    # dorso de la mano
-    ell(d, tuple(v for p in (at(g + 235, -60),) for v in (p[0] - 125, p[1] - 140, p[0] + 125, p[1] + 140)), SKIN, OL, 8)
-    # indice largo sobre el lapiz, con nudillo
-    cap(d, at(g + 260, 30), at(g + 80, 24), 31, SKIN, OL, 7); cap(d, at(g + 80, 24), at(g + 4, 6), 27, SKIN, OL, 7)
-    # pulgar al otro lado
-    cap(d, at(g + 200, -70), at(g + 70, -48), 30, SKIN, OL, 7); cap(d, at(g + 70, -48), at(g + 8, -20), 26, SKIN, OL, 7)
+    # 1) antebrazo (cónico) + manga cerrada
+    tube([(0, 20), (0, 2800)], [62, 100])
+    # 2) dedos recogidos (escorzo): medio, anular, meñique por detrás del lápiz
+    for n in ("menique", "anular", "medio"):
+        pp = pts[n]; cur = [pp[0]] + [(pp[0][0] + (p[0] - pp[0][0]) * CURL, pp[0][1] + (p[1] - pp[0][1]) * CURL) for p in pp[1:]]
+        tube(cur, [30, 28, 26, 25], SKIN if n == "medio" else SKINS)
+    # 4) palma (pentágono irregular suavizado) con eminencia tenar
+    blob(_suave(HAND["palma"]))
+    # 5) índice por encima del lápiz y pulgar (2 falanges) por el otro lado
+    tube(pts["pulgar_base"], [44, 38]); tube(pts["pulgar"], [38, 33, 29])
+    tube(pts["indice"], [37, 33, 30, 27])
+    for p in (pts["indice"][-1], pts["pulgar"][-1]):                                   # uñas
+        q = tf(p); ell(d, (q[0] - 12, q[1] - 14, q[0] + 12, q[1] + 8), (255, 236, 226), OL, 4)
+    # 6) nudillos: pequeños arcos de articulación
+    for k in HAND["nudillos"].values():
+        q = tf(k); arc(d, (q[0] - 20, q[1] - 14, q[0] + 20, q[1] + 18), 200, 340, SKINS, 5)
+    if debug:
+        for nm, P in pts.items():
+            for p in P: q = tf(p); ell(d, (q[0] - 7, q[1] - 7, q[0] + 7, q[1] + 7), ROJO)
     return fin(im)
 
 def pencil_hand(grip=220):
